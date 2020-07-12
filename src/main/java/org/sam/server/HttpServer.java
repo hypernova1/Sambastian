@@ -25,8 +25,7 @@ public class HttpServer implements Runnable {
 
             while (true) {
                 HttpServer httpServer = new HttpServer(serverSocket.accept());
-
-
+                
                 if (verbose) {
                     System.out.println("connected.." + new Date());
                 }
