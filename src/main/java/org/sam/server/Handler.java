@@ -8,69 +8,131 @@ import java.util.StringTokenizer;
 public class Handler {
 
     private static final File WEB_ROOT = new File(".");
+    private static final String DEFAULT_FILE = "index.html";
     private static final String FILE_NOT_FOUND = "404.html";
     private static final String METHOD_NOT_SUPPORTED = "not_supported";
 
-    public static final boolean verbose = true;
-    private static final String DEFAULT_FILE = "index.html";
+    private Socket connect;
 
-    private final Socket connect;
+    private BufferedReader in;
+    private PrintWriter out;
+    private BufferedOutputStream dataOut;
 
+    private String method;
+    private String fileRequested;
 
     public Handler(Socket connect) {
         this.connect = connect;
+        try {
+            this.in = new BufferedReader(new InputStreamReader(connect.getInputStream()));
+            this.out = new PrintWriter(connect.getOutputStream());
+            this.dataOut = new BufferedOutputStream(connect.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public void analyze(BufferedReader in, PrintWriter out, BufferedOutputStream dataOut) throws IOException {
+    public void requestAnalyze() {
 
-        String input = in.readLine();
-        StringTokenizer parse = new StringTokenizer(input);
+        try {
+            String input = in.readLine();
+            StringTokenizer parse = new StringTokenizer(input);
 
-        String method = parse.nextToken().toUpperCase();
-        String fileRequested = parse.nextToken().toLowerCase();
-        String contentType = this.getContentType(fileRequested);
+            method = parse.nextToken().toUpperCase();
+            fileRequested = parse.nextToken().toLowerCase();
 
-        if (Handler.verbose) {
-            System.out.println("File " + fileRequested + " of type " + contentType + " returned");
-        }
+            if (fileRequested.endsWith("/")) {
+                fileRequested += DEFAULT_FILE;
+            }
 
-        if (!method.equals("GET") && !method.equals("HEAD")) {
-            this.notImplemented(out, dataOut, method);
-            return;
-        }
+            String contentType = this.getContentType();
 
-        if (fileRequested.endsWith("/")) {
-            fileRequested += DEFAULT_FILE;
-        }
+            if (HttpServer.verbose) {
+                System.out.println("File " + fileRequested + " of type " + contentType + " returned");
+            }
 
-        File file = new File(WEB_ROOT, fileRequested);
+            if (!method.equals("GET") && !method.equals("HEAD")) {
+                this.notImplemented();
+                return;
+            }
 
-        if (method.equals("GET")) {
+            File file = new File(WEB_ROOT, fileRequested);
+
+            if (method.equals("GET")) {
+                try {
+                    this.doGet(file, contentType);
+                } catch (FileNotFoundException e) {
+                    this.fileNotFound();
+                    throw new RuntimeException(e);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
             try {
-                this.doGet(out, dataOut, file, contentType);
-            } catch (FileNotFoundException e) {
-                this.fileNotFound(out, dataOut, fileRequested);
-                throw new RuntimeException(e);
+                this.closeResource();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
+
     }
 
-    public void doGet(PrintWriter out, BufferedOutputStream dataOut, File file, String contentType) throws IOException {
-        byte[] fileData = null;
+    public void doGet(File file, String contentType) throws IOException {
+        byte[] fileData;
         int fileLength = (int) file.length();
-        fileData = readFileData(file, fileLength);
+        fileData = this.readFileData(file, fileLength);
 
-        out.println("HTTP/1.1 200 OK");
-        getDefaultResponseHeader(out, fileLength, contentType);
+        String status = "200 OK";
+        this.getDefaultResponseHeader(fileLength, status, contentType);
+        dataOut.write(fileData, 0, fileLength);
+    }
 
+    void notImplemented() throws IOException {
+        if (!HttpServer.verbose) {
+            System.out.println("501 not implemented :" + method + "method");
+        }
+
+        File file = new File(WEB_ROOT, METHOD_NOT_SUPPORTED);
+        int fileLength = (int) file.length();
+
+        byte[] fileData = this.readFileData(file, fileLength);
+
+        String status = "501 Not Implemented";
+        String contentMimeType = "text/html";
+        this.getDefaultResponseHeader(fileLength, status, contentMimeType);
+        dataOut.write(fileData, 0, fileLength);
+    }
+
+    public void fileNotFound() throws IOException {
+        File file = new File(WEB_ROOT, FILE_NOT_FOUND);
+        int fileLength = (int) file.length();
+        byte[] fileData = this.readFileData(file, fileLength);
+
+        String status = "404 File Not Found";
+        String contentMimeType = "text/html";
+        this.getDefaultResponseHeader(fileLength, status, contentMimeType);
+        dataOut.write(fileData, 0, fileLength);
+
+        if (HttpServer.verbose) {
+            System.out.println("File " + fileRequested + " not found");
+        }
+    }
+
+    private String getContentType() {
+        if (fileRequested.endsWith(".html")) return "text/html";
+        return "text/plain";
+    }
+
+    private void closeResource() throws IOException {
         out.println();
         out.flush();
-        dataOut.write(fileData, 0, fileLength);
         dataOut.flush();
         connect.close();
     }
 
-    void getDefaultResponseHeader(PrintWriter out, int fileLength, String contentMimeType) {
+    private void getDefaultResponseHeader(int fileLength, String contentMimeType, String status) {
+        out.println("HTTP/1.1 " + status);
         out.println("Server: Java HTTP Server from sam : 1.0");
         out.println("Date: " + new Date());
         out.println("Content-Type: " + contentMimeType);
@@ -82,49 +144,5 @@ public class Handler {
         FileInputStream fileIn = new FileInputStream(file);
         fileIn.read(fileData);
         return fileData;
-    }
-
-    void notImplemented(PrintWriter out, BufferedOutputStream dataOut, String method) throws IOException {
-        if (!verbose) {
-            System.out.println("501 not implemented :" + method + "method");
-        }
-
-        File file = new File(WEB_ROOT, METHOD_NOT_SUPPORTED);
-        int fileLength = (int) file.length();
-        String contentMimeType = "text/html";
-
-        byte[] fileData = readFileData(file, fileLength);
-
-        out.println("HTTP/1.1 501 Not Implemented");
-        this.getDefaultResponseHeader(out, fileLength, contentMimeType);
-
-        out.println();
-        out.flush();
-        dataOut.write(fileData, 0, fileLength);
-        dataOut.close();
-    }
-
-    public void fileNotFound(PrintWriter out, OutputStream dataOut, String fileRequested) throws IOException {
-        File file = new File(WEB_ROOT, FILE_NOT_FOUND);
-        int fileLength = (int) file.length();
-        String content = "text/html";
-        byte[] fileData = readFileData(file, fileLength);
-
-        out.println("HTTP/1.1 404 File Not Found");
-        this.getDefaultResponseHeader(out, fileLength, content);
-
-        out.println();
-        out.flush();
-        dataOut.write(fileData, 0, fileLength);
-        dataOut.flush();
-
-        if (verbose) {
-            System.out.println("File " + fileRequested + " not found");
-        }
-    }
-
-    private String getContentType(String fileRequested) {
-        if (fileRequested.endsWith(".html")) return "text/html";
-        return "text/plain";
     }
 }
