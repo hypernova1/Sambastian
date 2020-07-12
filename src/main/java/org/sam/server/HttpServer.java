@@ -66,13 +66,10 @@ public class HttpServer implements Runnable {
                 byte[] fileData = readFileData(file, fileLength);
 
                 out.println("HTTP/1.1 501 Not Implemented");
-                out.println("Server: Java HTTP Server from sam : 1.0");
-                out.println("Date: " + new Date());
-                out.println("Content-type: " + contentMimeType);
-                out.println("Content-length: " + fileLength);
+                getDefaultResponseHeader(out, fileLength, contentMimeType);
+
                 out.println();
                 out.flush();
-
                 dataOut.write(fileData, 0, fileLength);
                 dataOut.close();
             } else {
@@ -85,18 +82,20 @@ public class HttpServer implements Runnable {
                 String contentType = getContentType(fileRequested);
 
                 if (method.equals("GET")) {
-                    byte[] fileData = readFileData(file, fileLength);
+                    byte[] fileData = null;
+                    try {
+                        fileData = readFileData(file, fileLength);
 
-
+                    } catch(FileNotFoundException e) {
+                        fileNotFound(out, dataOut, fileRequested);
+                        throw new RuntimeException(e);
+                    }
 
                     out.println("HTTP/1.1 200 OK");
-                    out.println("Server: Java HTTP Server from sam : 1.0");
-                    out.println("Date: " + new Date());
-                    out.println("Content-type" + contentType);
-                    out.println("Content-length" + fileLength);
+                    getDefaultResponseHeader(out, fileLength, contentType);
+
                     out.println();
                     out.flush();
-
                     dataOut.write(fileData, 0, fileLength);
                     dataOut.flush();
                     connect.close();
@@ -111,13 +110,10 @@ public class HttpServer implements Runnable {
         }
     }
 
-    private byte[] readFileData(File file, int fileLength) {
+    private byte[] readFileData(File file, int fileLength) throws IOException {
         byte[] fileData = new byte[fileLength];
-        try (FileInputStream fileIn = new FileInputStream(file)) {
-            fileIn.read(fileData);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        FileInputStream fileIn = new FileInputStream(file);
+        fileIn.read(fileData);
         return fileData;
     }
 
@@ -126,7 +122,29 @@ public class HttpServer implements Runnable {
         return "text/plain";
     }
 
-    private void fileNotFound() {
+    private void fileNotFound(PrintWriter out, OutputStream dataOut, String fileRequested) throws IOException {
+        File file = new File(WEB_ROOT, FILE_NOT_FOUND);
+        int fileLength = (int) file.length();
+        String content = "text/html";
+        byte[] fileData = readFileData(file, fileLength);
 
+        out.println("HTTP/1.1 404 File Not Found");
+        getDefaultResponseHeader(out, fileLength, content);
+        out.println();
+        out.flush();
+
+        dataOut.write(fileData, 0, fileLength);
+        dataOut.flush();
+
+        if (verbose) {
+            System.out.println("File " + fileRequested + " not found");
+        }
+    }
+
+    private void getDefaultResponseHeader(PrintWriter out, int fileLength, String contentMimeType) {
+        out.println("Server: Java HTTP Server from sam : 1.0");
+        out.println("Date: " + new Date());
+        out.println("Content-Type: " + contentMimeType);
+        out.println("Content-length" + fileLength);
     }
 }
