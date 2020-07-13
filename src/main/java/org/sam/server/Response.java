@@ -1,17 +1,25 @@
 package org.sam.server;
 
 import java.io.*;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import org.sam.server.constant.HttpStatus;
 
 public class Response {
 
-    private PrintWriter out;
-    private BufferedOutputStream dataOut;
     private static final File WEB_ROOT = new File(".");
-    private String path;
-
+    private static final String DEFAULT_FILE = "index.html";
     private static final String FILE_NOT_FOUND = "404.html";
     private static final String METHOD_NOT_SUPPORTED = "not_supported";
+
+    private PrintWriter out;
+    private BufferedOutputStream dataOut;
+    private String path;
+    private Map<String, Object> headers = new HashMap<>();
+
+    private HttpStatus httpStatus;
 
     public Response(PrintWriter out, BufferedOutputStream dataOut, String path) {
         this.out = out;
@@ -24,14 +32,21 @@ public class Response {
     }
 
     public void execute() throws IOException {
+        if (this.path.endsWith("/")) {
+            path += DEFAULT_FILE;
+        }
         byte[] fileData;
         File file = new File(WEB_ROOT, path);
         int fileLength = (int) file.length();
 
         fileData = readFileData(file, fileLength);
+        httpStatus = HttpStatus.OK;
+        headers.put("Server", "Java HTTP Server from sam : 1.0");
+        headers.put("Date", LocalDateTime.now());
+        headers.put("Content-Type", getContentMimeType());
+        headers.put("Content-length", fileLength);
 
-        String status = "200 OK";
-        getDefaultResponseHeader(fileLength, status, getContentMimeType());
+        printHeader();
         dataOut.write(fileData, 0, fileLength);
 
         out.println();
@@ -41,18 +56,14 @@ public class Response {
 
     private byte[] readFileData(File file, int fileLength) throws IOException {
         byte[] fileData = new byte[fileLength];
-        FileInputStream fileIn = new FileInputStream(file);
-        fileIn.read(fileData);
+        FileInputStream fis = new FileInputStream(file);
+        fis.read(fileData);
         return fileData;
     }
 
-    private void getDefaultResponseHeader(int fileLength, String contentMimeType, String status) {
-        out.println("HTTP/1.1 " + status);
-        out.println("Server: Java HTTP Server from sam : 1.0");
-        out.println("Date: " + new Date());
-        out.println("Content-Type: " + contentMimeType);
-        out.println("Content-length: " + fileLength);
-
+    private void printHeader() {
+        out.println("HTTP/1.1 " + httpStatus.getCode() + " " + httpStatus.getMessage());
+        headers.keySet().forEach(key -> out.println(key + ": " + headers.get(key)));
     }
 
     void notImplemented(Request request) throws IOException {
@@ -65,9 +76,9 @@ public class Response {
 
         byte[] fileData = readFileData(file, fileLength);
 
-        String status = "501 Not Implemented";
-        String contentMimeType = "text/html";
-        getDefaultResponseHeader(fileLength, status, contentMimeType);
+        httpStatus = HttpStatus.NOT_IMPLEMENTED;
+
+        printHeader();
         dataOut.write(fileData, 0, fileLength);
 
         out.println();
@@ -80,9 +91,8 @@ public class Response {
         int fileLength = (int) file.length();
         byte[] fileData = readFileData(file, fileLength);
 
-        String status = "404 File Not Found";
-        String contentMimeType = "text/html";
-        getDefaultResponseHeader(fileLength, status, contentMimeType);
+        httpStatus = HttpStatus.NOT_FOUND;
+        printHeader();
         dataOut.write(fileData, 0, fileLength);
 
         out.println();
@@ -94,9 +104,22 @@ public class Response {
         }
     }
 
+    private void setHeader(String key, String value) {
+        this.headers.put(key, value);
+    }
+
     public String getContentMimeType() {
+        if (httpStatus.getCode().equals("404") || httpStatus.getCode().equals("NOT_IMPLEMENTED")) return "text/html";
         if (this.path.endsWith(".html")) return "text/html";
         return "text/plain";
+    }
+
+    public Set<String> getHeaderNames() {
+        return headers.keySet();
+    }
+
+    public Object getHeader(String key) {
+        return headers.get(key);
     }
 
 }
