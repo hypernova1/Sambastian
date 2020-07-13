@@ -22,7 +22,7 @@ public class Handler {
             Request request = Request.create(in);
             Response response = Response.create(out, dataOut, request.getPath());
             if (!request.getMethod().equals(HttpMethod.GET) && !request.getMethod().equals(HttpMethod.HEAD)) {
-                response.notImplemented(request);
+                response.methodNotImplemented();
                 return;
             }
 
@@ -39,7 +39,6 @@ public class Handler {
                     default: break;
                 }
             } catch (FileNotFoundException e) {
-                response.fileNotFound(request);
                 e.printStackTrace();
             }
 
