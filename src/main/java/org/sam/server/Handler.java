@@ -3,7 +3,6 @@ package org.sam.server;
 import java.io.*;
 import java.net.Socket;
 import java.util.Date;
-import java.util.StringTokenizer;
 
 public class Handler {
 
@@ -18,9 +17,7 @@ public class Handler {
     private PrintWriter out;
     private BufferedOutputStream dataOut;
 
-    private String method;
     private String requestPath;
-    private String contentType;
 
     public Handler(Socket connect) {
         this.connect = connect;
@@ -36,33 +33,29 @@ public class Handler {
     public void requestAnalyze() {
         try {
             String input = in.readLine();
-            StringTokenizer parse = new StringTokenizer(input);
+            Request request = Request.create(input);
 
-            method = parse.nextToken().toUpperCase();
-            requestPath = parse.nextToken().toLowerCase();
-
-            if (requestPath.endsWith("/")) {
+            requestPath = request.getPath();
+            if (request.getPath().endsWith("/")) {
                 requestPath += DEFAULT_FILE;
             }
 
-            contentType = getContentType();
-
             if (HttpServer.verbose) {
-                System.out.println("File " + requestPath + " of type " + contentType + " returned");
+                System.out.println("File " + requestPath + " of type " + request.getContentMimeType() + " returned");
             }
 
-            if (!method.equals("GET") && !method.equals("HEAD")) {
-                notImplemented();
+            if (!request.getMethod().equals("GET") && !request.getMethod().equals("HEAD")) {
+                notImplemented(request);
                 return;
             }
 
             File file = new File(WEB_ROOT, requestPath);
 
-            if (method.equals("GET")) {
+            if (request.getMethod().equals("GET")) {
                 try {
-                    doGet(file);
+                    doGet(file, request);
                 } catch (FileNotFoundException e) {
-                    fileNotFound();
+                    fileNotFound(request);
                     throw new RuntimeException(e);
                 }
             }
@@ -78,19 +71,19 @@ public class Handler {
 
     }
 
-    public void doGet(File file) throws IOException {
+    public void doGet(File file, Request request) throws IOException {
         byte[] fileData;
         int fileLength = (int) file.length();
         fileData = readFileData(file, fileLength);
 
         String status = "200 OK";
-        getDefaultResponseHeader(fileLength, status, contentType);
+        getDefaultResponseHeader(fileLength, status, request.getContentMimeType());
         dataOut.write(fileData, 0, fileLength);
     }
 
-    void notImplemented() throws IOException {
+    void notImplemented(Request request) throws IOException {
         if (!HttpServer.verbose) {
-            System.out.println("501 not implemented :" + method + "method");
+            System.out.println("501 not implemented :" + request.getMethod() + "method");
         }
 
         File file = new File(WEB_ROOT, METHOD_NOT_SUPPORTED);
@@ -104,7 +97,7 @@ public class Handler {
         dataOut.write(fileData, 0, fileLength);
     }
 
-    public void fileNotFound() throws IOException {
+    public void fileNotFound(Request request) throws IOException {
         File file = new File(WEB_ROOT, FILE_NOT_FOUND);
         int fileLength = (int) file.length();
         byte[] fileData = readFileData(file, fileLength);
@@ -115,13 +108,8 @@ public class Handler {
         dataOut.write(fileData, 0, fileLength);
 
         if (HttpServer.verbose) {
-            System.out.println("File " + requestPath + " not found");
+            System.out.println("File " + request.getPath() + " not found");
         }
-    }
-
-    private String getContentType() {
-        if (requestPath.endsWith(".html")) return "text/html";
-        return "text/plain";
     }
 
     private void closeResource() throws IOException {
