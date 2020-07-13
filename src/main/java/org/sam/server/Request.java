@@ -1,5 +1,7 @@
 package org.sam.server;
 
+import org.sam.server.constant.HttpMethod;
+
 import java.util.*;
 
 public class Request {
@@ -7,6 +9,8 @@ public class Request {
     private String path;
     private String method;
     private Map<String, Object> parameterMap;
+
+    private static final String DEFAULT_FILE = "index.html";
 
     private Request(String path, String method, Map<String, Object> parameterMap) {
         this.path = path;
@@ -16,7 +20,6 @@ public class Request {
 
     public static Request create(String input) {
         StringTokenizer parse = new StringTokenizer(input);
-
         String method = parse.nextToken().toUpperCase();
         String requestPath = parse.nextToken().toLowerCase();
 
@@ -44,17 +47,15 @@ public class Request {
         return map;
     }
 
-    public String getContentMimeType() {
-        if (this.path.endsWith(".html")) return "text/html";
-        return "text/plain";
-    }
-
     public String getPath() {
+        if (this.path.endsWith("/")) {
+            path += DEFAULT_FILE;
+        }
         return this.path;
     }
 
-    public String getMethod() {
-        return this.method;
+    public HttpMethod getMethod() {
+        return HttpMethod.get(method);
     }
 
     public Object getParameter(String key) {
