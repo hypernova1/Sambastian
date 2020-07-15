@@ -4,18 +4,18 @@ import org.sam.server.constant.HttpMethod;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 public class Handler {
 
-    private Socket connect;
+    private final Socket connect;
 
     public Handler(Socket connect) {
         this.connect = connect;
-
     }
 
     public void requestAnalyze() {
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(connect.getInputStream()));
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(connect.getInputStream(), StandardCharsets.UTF_8));
              PrintWriter out = new PrintWriter(connect.getOutputStream());
              BufferedOutputStream dataOut = new BufferedOutputStream(connect.getOutputStream())) {
 
@@ -38,6 +38,7 @@ public class Handler {
                     break;
                     default: break;
                 }
+                response.execute();
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -46,15 +47,12 @@ public class Handler {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     private void doPost(Request request, Response response) throws IOException {
-        response.execute();
     }
 
     public void doGet(Request request, Response response) throws IOException {
-        response.execute();
     }
 
 }

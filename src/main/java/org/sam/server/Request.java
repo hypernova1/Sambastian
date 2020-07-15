@@ -20,15 +20,15 @@ public class Request {
         this.parameterMap = parameterMap;
     }
 
-    public static Request create(BufferedReader in) {
+    public static Request create(BufferedReader br) {
         try {
-            String input = in.readLine();
+            String input = br.readLine();
 
             StringTokenizer parse = new StringTokenizer(input);
             String method = parse.nextToken().toUpperCase();
             String requestPath = parse.nextToken().toLowerCase();
 
-            Map<String, Object> headers = getHeaders(in);
+            Map<String, Object> headers = getHeaders(br);
 
             String path = requestPath;
             int index = path.indexOf("?");
@@ -36,7 +36,7 @@ public class Request {
             Map<String, Object> parameterMap = null;
             if (index != -1) {
                 path = requestPath.substring(0, index);
-                parameters = requestPath.substring(index);
+                parameters = requestPath.substring(index + 1);
                 parameterMap = getParameterMap(parameters);
             }
 

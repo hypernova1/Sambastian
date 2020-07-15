@@ -18,6 +18,7 @@ public class HttpServer implements Runnable {
 
     public static void main(String[] args) {
         try {
+
             ServerSocket serverSocket = new ServerSocket(PORT);
             if (verbose) {
                 System.out.println("server started..");

@@ -15,19 +15,19 @@ public class Response {
     private static final String FILE_NOT_FOUND = "static/404.html";
     private static final String METHOD_NOT_SUPPORTED = "static/not_supported";
 
-    private ClassLoader classLoader = getClass().getClassLoader();
+    private final ClassLoader classLoader = getClass().getClassLoader();
 
-    private PrintWriter out;
-    private BufferedOutputStream dataOut;
-    private String path;
-    private Map<String, Object> headers = new HashMap<>();
+    private final PrintWriter out;
+    private final BufferedOutputStream dataOut;
+    private final Map<String, Object> headers = new HashMap<>();
 
+    private String returnPath;
     private HttpStatus httpStatus;
 
     public Response(PrintWriter out, BufferedOutputStream dataOut, String path) {
         this.out = out;
         this.dataOut = dataOut;
-        this.path = path;
+        this.returnPath = path;
     }
 
     public static Response create(PrintWriter out, BufferedOutputStream dataOut, String path) {
@@ -35,11 +35,11 @@ public class Response {
     }
 
     public void execute() throws IOException {
-        if (this.path.endsWith("/")) {
-            path = DEFAULT_FILE;
+        if (this.returnPath.endsWith("/")) {
+            returnPath = DEFAULT_FILE;
         }
 
-        getFile(path, HttpStatus.OK);
+        returnFile(returnPath, HttpStatus.OK);
     }
 
     private byte[] readFileData(File file, int fileLength) throws IOException {
@@ -54,7 +54,7 @@ public class Response {
         headers.keySet().forEach(key -> out.println(key + ": " + headers.get(key)));
     }
 
-    private void getFile(String filePath, HttpStatus status) throws IOException {
+    private void returnFile(String filePath, HttpStatus status) throws IOException {
         URL fileUrl = classLoader.getResource(filePath);
         if (fileUrl == null) {
             fileNotFound();
@@ -64,6 +64,7 @@ public class Response {
         File file = new File(fileUrl.getFile());
         int fileLength = (int) file.length();
         byte[] fileData = readFileData(file, fileLength);
+
         httpStatus = status;
 
         headers.put("Server", "Java HTTP Server from sam : 1.0");
@@ -81,27 +82,27 @@ public class Response {
 
     public void fileNotFound() throws IOException {
         if (HttpServer.verbose) {
-            System.out.println("File " + path + " not found");
+            System.out.println("File " + returnPath + " not found");
         }
 
-        getFile(FILE_NOT_FOUND, HttpStatus.NOT_FOUND);
+        returnFile(FILE_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
     public void methodNotImplemented() throws IOException {
         if (!HttpServer.verbose) {
-            System.out.println("501 not implemented :" + path + "method");
+            System.out.println("501 not implemented :" + returnPath + "method");
         }
 
-        getFile(METHOD_NOT_SUPPORTED, HttpStatus.NOT_IMPLEMENTED);
+        returnFile(METHOD_NOT_SUPPORTED, HttpStatus.NOT_IMPLEMENTED);
     }
 
     public String getContentMimeType() {
         if (httpStatus.equals(HttpStatus.NOT_FOUND) || httpStatus.equals(HttpStatus.NOT_IMPLEMENTED)) return "text/html";
-        if (this.path.endsWith(".html")) return "text/html";
+        if (this.returnPath.endsWith(".html")) return "text/html";
         return "text/plain";
     }
 
-    private void setHeader(String key, String value) {
+    public void setHeader(String key, String value) {
         this.headers.put(key, value);
     }
 
