@@ -1,8 +1,12 @@
 package org.sam.server;
 
-import java.io.IOException;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 
 public class HttpServer implements Runnable {
@@ -17,16 +21,31 @@ public class HttpServer implements Runnable {
     }
 
     public static void main(String[] args) {
+
         try {
 
-            ServerSocket serverSocket = new ServerSocket(PORT);
+            ServerSocket serverSocket = null;
+
+            if (args[0] != null) {
+                System.setProperty("javax.net.ssl.keyStore", args[0]);
+                System.setProperty("javax.net.ssl.keyStorePassword", args[1]);
+                System.setProperty("javax.net.debug", "ssl");
+
+                SSLServerSocketFactory sslserversocketfactory =
+                        (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
+                serverSocket =
+                        sslserversocketfactory.createServerSocket(PORT);
+            } else {
+                serverSocket = new ServerSocket(PORT);
+            }
+
             if (verbose) {
                 System.out.println("server started..");
             }
 
             while (true) {
                 HttpServer httpServer = new HttpServer(serverSocket.accept());
-                
+
                 if (verbose) {
                     System.out.println("connected.." + new Date());
                 }
