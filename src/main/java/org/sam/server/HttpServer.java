@@ -27,8 +27,7 @@ public class HttpServer implements Runnable {
         int port = Integer.parseInt(properties.getProperty("server.port"));
 
         try {
-
-            ServerSocket serverSocket = null;
+            ServerSocket serverSocket;
 
             if (keyStore != null) {
                 System.setProperty("javax.net.ssl.keyStore", keyStore);
