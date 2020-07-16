@@ -56,58 +56,28 @@ public class Request {
     }
 
     private static class UrlParser {
-
-        private final BufferedReader br;
-
         private String path;
-        private String method;
-        private String parameters;
+        private HttpMethod method;
+        private Map<String, Object> headers;
+        private Map<String, Object> parameters;
 
         public UrlParser(BufferedReader br) {
-            this.br = br;
-            this.execute();
-        }
-
-        private void execute() {
             try {
                 String input = br.readLine();
                 StringTokenizer parse = new StringTokenizer(input);
-                this.method = parse.nextToken().toUpperCase();
+                String method = parse.nextToken().toUpperCase();
                 String requestPath = parse.nextToken().toLowerCase();
 
-                this.path = requestPath;
-                int index = path.indexOf("?");
-                if (index != -1) {
-                    this.path = requestPath.substring(0, index);
-                    this.parameters = requestPath.substring(index + 1);
-                }
+                String rawParameters = parsePath(requestPath);
+                parseParameters(rawParameters);
+                parseHeaders(br);
+                parseMethod(method);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        public String getPath() {
-            return this.path;
-        }
-
-        public HttpMethod getMethod() {
-            return HttpMethod.get(method);
-        }
-
-        public Map<String, Object> getParameters() {
-            Map<String, Object> map = new HashMap<>();
-            if (parameters == null) return map;
-
-            String[] rawParameters = this.parameters.split("&");
-            Arrays.stream(rawParameters).forEach(parameter -> {
-                String[] parameterPair = parameter.split("=");
-                map.put(parameterPair[0], parameterPair[1]);
-            });
-
-            return map;
-        }
-
-        public Map<String, Object> getHeaders() {
+        private void parseHeaders(BufferedReader br) {
             Map<String, Object> map = new HashMap<>();
             try {
                 String s = br.readLine();
@@ -122,8 +92,50 @@ public class Request {
                 e.printStackTrace();
             }
 
-            return map;
+            this.headers = map;
+        }
+
+        private void parseMethod(String method) {
+            this.method = HttpMethod.get(method);
+        }
+
+        private String parsePath(String requestPath) {
+            this.path = requestPath;
+            int index = path.indexOf("?");
+            if (index != -1) {
+                this.path = requestPath.substring(0, index);
+                return requestPath.substring(index + 1);
+            }
+            return null;
+        }
+
+        private void parseParameters(String parameters) {
+            Map<String, Object> map = new HashMap<>();
+            if (parameters == null) return;
+
+            String[] rawParameters = parameters.split("&");
+            Arrays.stream(rawParameters).forEach(parameter -> {
+                String[] parameterPair = parameter.split("=");
+                map.put(parameterPair[0], parameterPair[1]);
+            });
+
+            this.parameters = map;
+        }
+
+        public Map<String, Object> getHeaders() {
+            return this.headers;
+        }
+
+        public HttpMethod getMethod() {
+            return this.method;
+        }
+
+        public String getPath() {
+            return this.path;
+        }
+
+        public Map<String, Object> getParameters() {
+            return this.parameters;
         }
     }
-
 }

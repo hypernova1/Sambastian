@@ -62,8 +62,6 @@ public class HttpServer implements Runnable {
                 }
                 threadPool.execute(httpServer);
                 System.out.println("total thread count: " + threadPool.getPoolSize());
-//                Thread thread = new Thread(httpServer);
-//                thread.start();
             }
         } catch (IOException e) {
             e.printStackTrace();
