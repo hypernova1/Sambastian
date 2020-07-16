@@ -6,7 +6,7 @@ import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
-public class Handler {
+public abstract class Handler {
 
     private final Socket connect;
 
@@ -38,15 +38,16 @@ public class Handler {
     private void executeHandle(Request request, Response response) throws IOException {
         try {
             switch (request.getMethod()) {
-                case GET: {
-                    doGet(request, response);
-                }
-                break;
-                case POST: {
-                    doPost(request, response);
-                }
-                break;
-                default: break;
+                case GET: doGet(request, response); break;
+                case POST: doPost(request, response); break;
+                case PUT: doPut(request, response); break;
+                case DELETE: doDelete(request, response); break;
+                case HEAD: doHead(request, response); break;
+                case OPTIONS: doOptions(request, response); break;
+                case TRACE: doTrace(request, response); break;
+                case CONNECT: doConnect(request, response); break;
+                case PATCH: doPatch(request, response); break;
+                default:
             }
             response.execute();
         } catch (FileNotFoundException e) {
@@ -54,10 +55,15 @@ public class Handler {
         }
     }
 
-    private void doPost(Request request, Response response) throws IOException {
-    }
+    protected void doGet(Request request, Response response) throws IOException {}
+    protected void doPost(Request request, Response response) throws IOException {}
+    protected void doPut(Request request, Response response) throws IOException {}
+    protected void doDelete(Request request, Response response) throws IOException {}
+    protected void doHead(Request request, Response response) throws IOException {}
+    protected void doOptions(Request request, Response response) throws IOException {}
+    protected void doTrace(Request request, Response response) throws IOException {}
+    protected void doConnect(Request request, Response response) throws IOException {}
+    protected void doPatch(Request request, Response response) throws IOException {}
 
-    public void doGet(Request request, Response response) throws IOException {
-    }
 
 }

@@ -82,6 +82,6 @@ public class HttpServer implements Runnable {
     }
 
     public void run() {
-        new Handler(connect).requestAnalyze();
+        new DefaultHandler(connect).requestAnalyze();
     }
 }
