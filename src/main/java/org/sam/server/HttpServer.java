@@ -7,6 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Date;
 import java.util.Properties;
+import java.util.concurrent.*;
 
 public class HttpServer implements Runnable {
 
@@ -42,6 +43,15 @@ public class HttpServer implements Runnable {
                 serverSocket = new ServerSocket(port);
             }
 
+            ThreadPoolExecutor threadPool = new ThreadPoolExecutor(
+                    5,
+                    200,
+                    150L,
+                    TimeUnit.SECONDS,
+                    new SynchronousQueue<>()
+            );
+
+
             if (verbose) {
                 System.out.println("server started..");
             }
@@ -51,8 +61,10 @@ public class HttpServer implements Runnable {
                 if (verbose) {
                     System.out.println("connected.." + new Date());
                 }
-                Thread thread = new Thread(httpServer);
-                thread.start();
+                threadPool.execute(httpServer);
+                System.out.println("total thread count: " + threadPool.getPoolSize());
+//                Thread thread = new Thread(httpServer);
+//                thread.start();
             }
         } catch (IOException e) {
             e.printStackTrace();
