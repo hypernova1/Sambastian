@@ -1,6 +1,7 @@
 package org.sam.server.http;
 
 import org.sam.server.HttpServer;
+import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpStatus;
 
 import java.io.*;
@@ -78,12 +79,15 @@ public class Response {
         headers.put("Server", "Java HTTP Server from sam : 1.0");
         headers.put("Date", LocalDateTime.now());
         headers.put("Content-Type", getContentMimeType());
+
+        if (!isRestApi) {
+            dataOut.write(fileData, 0, fileLength);
+        } else {
+            fileLength = 0;
+        }
         headers.put("Content-length", fileLength);
 
         printHeader();
-        if (!isRestApi) {
-            dataOut.write(fileData, 0, fileLength);
-        }
         out.println();
         out.flush();
         dataOut.flush();
@@ -109,6 +113,7 @@ public class Response {
     }
 
     public String getContentMimeType() {
+        if (isRestApi) return ContentType.JSON.getValue();
         if (httpStatus.equals(HttpStatus.NOT_FOUND) || httpStatus.equals(HttpStatus.NOT_IMPLEMENTED)) return "text/html";
         if (this.returnPath.endsWith(".html")) return "text/html";
         return "text/plain";
