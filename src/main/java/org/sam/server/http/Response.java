@@ -27,7 +27,6 @@ public class Response {
 
     private final PrintWriter out;
     private final BufferedOutputStream bos;
-    private final OutputStreamWriter osw;
     private final Map<String, Object> headers = new HashMap<>();
     private final String requestPath;
 
@@ -38,8 +37,6 @@ public class Response {
     public Response(OutputStream os, String path) {
         this.out = new PrintWriter(os);
         this.bos = new BufferedOutputStream(os);
-        this.osw = new OutputStreamWriter(os);
-
         this.requestPath = path;
     }
 
@@ -47,22 +44,14 @@ public class Response {
         return new Response(os, path);
     }
 
-    private void pass(String filePath, HttpStatus status) throws IOException {
+    public void pass(String filePath, HttpStatus status) throws IOException {
         this.httpStatus = status;
-
-        URL fileUrl = classLoader.getResource(filePath);
-        if (fileUrl == null) {
-            fileNotFound();
-            return;
-        }
 
         int fileLength = 0;
         if (getContentMimeType().equals(ContentType.JSON.getValue())) {
+            fileLength = creteJson(filePath);
         } else {
-            File file = new File(fileUrl.getFile());
-            byte[] fileData = readFile(file);
-            bos.write(fileData, 0, fileLength);
-            fileLength = (int) file.length();
+            fileLength = createStaticFile(filePath);
         }
 
         headers.put("Server", "Java HTTP Server from sam : 1.0");
@@ -71,18 +60,40 @@ public class Response {
         headers.put("Content-length", fileLength);
 
         printHeader();
-        out.println();
+
         out.flush();
         bos.flush();
+    }
+
+    private int createStaticFile(String filePath) throws IOException {
+        URL fileUrl = classLoader.getResource(filePath);
+        if (fileUrl == null) {
+            fileNotFound();
+            return 0;
+        }
+
+        File file = new File(fileUrl.getFile());
+        int fileLength = (int) file.length();
+        byte[] fileData = readFile(file, fileLength);
+        bos.write(fileData, 0, fileLength);
+
+        return fileLength;
+    }
+
+    private int creteJson(String filePath) throws IOException {
+        byte[] bytes = filePath.getBytes();
+        bos.write(bytes);
+        return bytes.length;
     }
 
     private void printHeader() {
         out.println("HTTP/1.1 " + httpStatus.getCode() + " " + httpStatus.getMessage());
         headers.keySet().forEach(key -> out.println(key + ": " + headers.get(key)));
+        out.println();
     }
 
-    private byte[] readFile(File file) throws IOException {
-        byte[] fileData = new byte[(int) file.length()];
+    private byte[] readFile(File file, int fileLength) throws IOException {
+        byte[] fileData = new byte[fileLength];
         FileInputStream fis = new FileInputStream(file);
         fis.read(fileData);
         return fileData;
@@ -148,6 +159,5 @@ public class Response {
     public Set<String> getHeaderNames() {
         return headers.keySet();
     }
-
 
 }

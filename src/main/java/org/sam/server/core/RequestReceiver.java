@@ -1,8 +1,11 @@
 package org.sam.server.core;
 
+import com.google.gson.Gson;
 import org.sam.server.annotation.handle.*;
 import org.sam.server.common.PrimitiveWrapper;
 import org.sam.server.constant.ContentType;
+import org.sam.server.constant.HttpMethod;
+import org.sam.server.constant.HttpStatus;
 import org.sam.server.exception.NotFoundHandlerException;
 import org.sam.server.http.Request;
 import org.sam.server.http.Response;
@@ -29,6 +32,8 @@ public class RequestReceiver {
 
     private Request request;
     private Response response;
+
+    Gson gson = new Gson();
 
     private List<Class<? extends Annotation>> handleAnnotations =
             Arrays.asList(GetHandle.class, PostHandle.class, PutHandle.class, DeleteHandle.class);
@@ -66,10 +71,12 @@ public class RequestReceiver {
             try {
                 Method handlerMethod = findMethod(handlerClass, requestPath);
                 Object[] parameters = getHandlerMethodParameters(handlerMethod.getParameters()).toArray();
-                handlerMethod.invoke(handlerClass.newInstance(), parameters);
+                Object returnValue = handlerMethod.invoke(handlerClass.newInstance(), parameters);
+                String json = gson.toJson(returnValue);
+                response.pass(json, HttpStatus.OK);
             } catch (IllegalAccessException | InstantiationException | InvocationTargetException | NotFoundHandlerException e) {
-                notFoundHandler();
                 e.printStackTrace();
+                notFoundHandler();
             } catch (IllegalArgumentException e) {
                 badRequest();
             }

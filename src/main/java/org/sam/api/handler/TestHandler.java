@@ -1,5 +1,6 @@
 package org.sam.api.handler;
 
+import org.sam.api.domain.Person;
 import org.sam.server.annotation.handle.GetHandle;
 import org.sam.server.annotation.handle.Handler;
 import org.sam.server.annotation.handle.RestApi;
@@ -14,7 +15,11 @@ public class TestHandler {
 
     @GetHandle("/test")
     @RestApi
-    public void testMethod(String a, int b) {
+    public Person testMethod(String a, int b) {
         System.out.println("Test Method Handler");
+        Person person = new Person();
+        person.setName(a);
+
+        return person;
     }
 }
