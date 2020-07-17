@@ -89,7 +89,7 @@ public class Request {
                 String s = br.readLine();
                 while (!s.trim().equals("")) {
                     int index = s.indexOf(": ");
-                    String key = s.substring(0, index);
+                    String key = s.substring(0, index).toLowerCase();
                     String value = s.substring(index);
                     map.put(key, value);
                     s = br.readLine();

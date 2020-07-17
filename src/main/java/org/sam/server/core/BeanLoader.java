@@ -28,7 +28,7 @@ public class BeanLoader {
 
     public static void loadHandler(List<Class<?>> classes) {
         handlerClasses = classes.stream()
-                .filter(clazz -> clazz.equals(Handler.class))
+                .filter(clazz -> clazz.getDeclaredAnnotation(Handler.class) != null)
                 .collect(Collectors.toList());
     }
 
