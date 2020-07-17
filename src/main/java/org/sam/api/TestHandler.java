@@ -1,4 +1,4 @@
-package org.sam.server;
+package org.sam.api;
 
 import org.sam.server.annotation.handle.GetHandle;
 import org.sam.server.annotation.handle.Handler;

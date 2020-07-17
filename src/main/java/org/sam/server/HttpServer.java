@@ -1,6 +1,6 @@
 package org.sam.server;
 
-import org.sam.server.http.DefaultRequestReceiver;
+import org.sam.api.DefaultRequestReceiver;
 import org.sam.server.util.ServerProperties;
 
 import javax.net.ssl.SSLServerSocketFactory;
@@ -27,7 +27,7 @@ public class HttpServer implements Runnable {
         this.connect = connect;
     }
 
-    public static void main(String[] args) {
+    public static void execute() {
 
         String keyStore = ServerProperties.get("keyStore");
         String password = ServerProperties.get("keyStorePassword");

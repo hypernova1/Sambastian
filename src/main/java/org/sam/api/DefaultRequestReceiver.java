@@ -1,4 +1,4 @@
-package org.sam.server.http;
+package org.sam.api;
 
 import org.sam.server.http.RequestReceiver;
 

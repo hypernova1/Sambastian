@@ -3,7 +3,7 @@ package org.sam.server.http;
 import org.sam.server.annotation.handle.*;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.core.BeanLoader;
-import org.sam.server.http.exception.NotFoundHandlerException;
+import org.sam.server.exception.NotFoundHandlerException;
 
 import java.io.*;
 import java.lang.annotation.Annotation;

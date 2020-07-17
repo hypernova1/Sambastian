@@ -1,4 +1,4 @@
-package org.sam.server.http.exception;
+package org.sam.server.exception;
 
 /**
  * Created by melchor
