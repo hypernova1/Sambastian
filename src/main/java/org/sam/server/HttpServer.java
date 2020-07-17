@@ -1,6 +1,5 @@
 package org.sam.server;
 
-import org.sam.server.core.BeanLoader;
 import org.sam.server.http.DefaultRequestReceiver;
 import org.sam.server.util.ServerProperties;
 
@@ -8,7 +7,7 @@ import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +27,7 @@ public class HttpServer implements Runnable {
         this.connect = connect;
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
 
         String keyStore = ServerProperties.get("keyStore");
         String password = ServerProperties.get("keyStorePassword");
@@ -63,10 +62,10 @@ public class HttpServer implements Runnable {
                 System.out.println("server started..");
             }
 
-            while (true) {
+            while (!Thread.currentThread().isInterrupted()) {
                 HttpServer httpServer = new HttpServer(serverSocket.accept());
                 if (verbose) {
-                    System.out.println("connected.." + new Date());
+                    System.out.println("connected.." + LocalDateTime.now());
                 }
                 threadPool.execute(httpServer);
                 System.out.println("total thread count: " + threadPool.getPoolSize());
@@ -75,8 +74,6 @@ public class HttpServer implements Runnable {
             e.printStackTrace();
         }
     }
-
-
 
     public void run() {
         new DefaultRequestReceiver(connect).requestAnalyze();

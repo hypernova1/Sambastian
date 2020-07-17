@@ -5,6 +5,7 @@ import org.sam.server.constant.ContentType;
 import org.sam.server.constant.Header;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.core.BeanLoader;
+import org.sam.server.http.exception.NotFoundHandlerException;
 
 import java.io.*;
 import java.lang.annotation.Annotation;
@@ -46,15 +47,14 @@ public abstract class RequestReceiver {
                 return;
             }
 
-            findHandler(request, response);
+            executeHandler(request, response);
 
-            connect.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void findHandler(Request request, Response response) {
+    private void executeHandler(Request request, Response response) throws IOException {
         List<Class<?>> handlerClasses = BeanLoader.getHandlerClasses();
 
         for (Class<?> handlerClass : handlerClasses) {
@@ -67,15 +67,35 @@ public abstract class RequestReceiver {
                 requestPath = requestPath.substring(index + handlerPath.length());
             }
 
-            Method method = findMethod(handlerClass, requestPath);
-            if (method != null) {
-                Parameter[] parameters = method.getParameters();
+            try {
+                Method handlerMethod = findMethod(handlerClass, requestPath);
+                Object[] parameters = getHandlerMethodParameters(handlerMethod, request);
+                handlerMethod.invoke(handlerClass.newInstance(), parameters);
+            } catch (NotFoundHandlerException e) {
+                notFound(request, response);
+            } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
+                e.printStackTrace();
+            } finally {
+                connect.close();
             }
+
         }
     }
 
+    private Object[] getHandlerMethodParameters(Method handlerMethod, Request request) {
+        Parameter[] parameters = handlerMethod.getParameters();
 
-    private Method findMethod(Class<?> handlerClass, String requestPath) {
+        Arrays.stream(parameters).forEach(parameter -> {
+            String name = parameter.getName();
+            Object value = request.getParameter(name);
+            Class<?> type = parameter.getType();
+        });
+
+        return null;
+    }
+
+
+    private Method findMethod(Class<?> handlerClass, String requestPath) throws NotFoundHandlerException {
         Method[] declaredMethods = handlerClass.getDeclaredMethods();
 
         for (Method declaredMethod : declaredMethods) {
@@ -83,7 +103,7 @@ public abstract class RequestReceiver {
             for (Annotation declaredAnnotation : declaredAnnotations) {
                 for (Class<? extends Annotation> handleAnnotation : handleAnnotations) {
                     if (handleAnnotation.equals(declaredAnnotation.annotationType())) {
-                        Method method = null;
+                        Method method;
                         try {
                             method = handleAnnotation.getDeclaredMethod("value");
                             Object path = method.invoke(declaredAnnotation);
@@ -99,7 +119,7 @@ public abstract class RequestReceiver {
                 }
             }
         }
-        return null;
+        throw new NotFoundHandlerException();
     }
 
     private void notFound(Request request, Response response) {
