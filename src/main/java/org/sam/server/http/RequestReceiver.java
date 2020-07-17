@@ -1,8 +1,6 @@
 package org.sam.server.http;
 
 import org.sam.server.annotation.handle.*;
-import org.sam.server.constant.ContentType;
-import org.sam.server.constant.Header;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.core.BeanLoader;
 import org.sam.server.http.exception.NotFoundHandlerException;
@@ -67,13 +65,11 @@ public abstract class RequestReceiver {
             }
 
             try {
-                Method handlerMethod = findMethod(handlerClass, requestPath);
+                Method handlerMethod = findMethod(handlerClass, requestPath, response);
                 Object[] parameters = getHandlerMethodParameters(handlerMethod, request);
                 handlerMethod.invoke(handlerClass.newInstance(), parameters);
-            } catch (NotFoundHandlerException e) {
-                notFound(request, response);
-            } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
-                e.printStackTrace();
+            } catch (NotFoundHandlerException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException e) {
+                notFound(response);
             } finally {
                 connect.close();
             }
@@ -93,7 +89,7 @@ public abstract class RequestReceiver {
     }
 
 
-    private Method findMethod(Class<?> handlerClass, String requestPath) throws NotFoundHandlerException {
+    private Method findMethod(Class<?> handlerClass, String requestPath, Response response) throws NotFoundHandlerException {
         Method[] declaredMethods = handlerClass.getDeclaredMethods();
 
         for (Method declaredMethod : declaredMethods) {
@@ -107,6 +103,9 @@ public abstract class RequestReceiver {
                             Object path = method.invoke(declaredAnnotation);
 
                             if (requestPath.equals(path)) {
+                                if (declaredMethod.getDeclaredAnnotation(RestApi.class) != null) {
+                                    response.isRestApi(true);
+                                }
                                 return declaredMethod;
                             }
                         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
@@ -120,14 +119,8 @@ public abstract class RequestReceiver {
         throw new NotFoundHandlerException();
     }
 
-    private void notFound(Request request, Response response) {
-        if (!ContentType.JSON.equals(request.getHeader(Header.CONTENT_TYPE))) {
-            try {
-                response.fileNotFound();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+    private void notFound(Response response) {
+        response.fileNotFound();
     }
 
 }

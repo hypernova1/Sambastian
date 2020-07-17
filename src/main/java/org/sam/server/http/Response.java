@@ -30,6 +30,8 @@ public class Response {
     private String returnPath;
     private HttpStatus httpStatus;
 
+    private boolean isRestApi;
+
     public Response(PrintWriter out, BufferedOutputStream dataOut, String path) {
         this.out = out;
         this.dataOut = dataOut;
@@ -79,19 +81,23 @@ public class Response {
         headers.put("Content-length", fileLength);
 
         printHeader();
-
-        dataOut.write(fileData, 0, fileLength);
+        if (!isRestApi) {
+            dataOut.write(fileData, 0, fileLength);
+        }
         out.println();
         out.flush();
         dataOut.flush();
     }
 
-    public void fileNotFound() throws IOException {
+    public void fileNotFound() {
         if (HttpServer.verbose) {
             System.out.println("File " + returnPath + " not found");
         }
-
-        returnFile(FILE_NOT_FOUND, HttpStatus.NOT_FOUND);
+        try {
+            returnFile(FILE_NOT_FOUND, HttpStatus.NOT_FOUND);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void methodNotImplemented() throws IOException {
@@ -110,6 +116,10 @@ public class Response {
 
     public void setHeader(String key, String value) {
         this.headers.put(key, value);
+    }
+
+    public void isRestApi(boolean isRestApi) {
+        this.isRestApi = isRestApi;
     }
 
     public Object getHeader(String key) {

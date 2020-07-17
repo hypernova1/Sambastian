@@ -2,6 +2,7 @@ package org.sam.server;
 
 import org.sam.server.annotation.handle.GetHandle;
 import org.sam.server.annotation.handle.Handler;
+import org.sam.server.annotation.handle.RestApi;
 
 /**
  * Created by melchor
@@ -12,6 +13,7 @@ import org.sam.server.annotation.handle.Handler;
 public class TestHandler {
 
     @GetHandle("/test")
+    @RestApi
     public void testMethod(String a, Integer b) {
         System.out.println("Test Method Handler");
     }
