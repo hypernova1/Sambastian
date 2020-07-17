@@ -38,12 +38,10 @@ public class RequestReceiver {
     }
 
     public void requestAnalyze() {
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(connect.getInputStream(), StandardCharsets.UTF_8));
-             PrintWriter out = new PrintWriter(connect.getOutputStream());
-             BufferedOutputStream dataOut = new BufferedOutputStream(connect.getOutputStream())) {
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(connect.getInputStream(), StandardCharsets.UTF_8))) {
 
             this.request = Request.create(in);
-            this.response = Response.create(out, dataOut, request.getPath());
+            this.response = Response.create(connect.getOutputStream(), request.getPath());
 
             executeHandler();
 
@@ -69,10 +67,13 @@ public class RequestReceiver {
                 Method handlerMethod = findMethod(handlerClass, requestPath);
                 Object[] parameters = getHandlerMethodParameters(handlerMethod.getParameters()).toArray();
                 handlerMethod.invoke(handlerClass.newInstance(), parameters);
-            } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
-                e.printStackTrace();
+            } catch (IllegalAccessException | InstantiationException | InvocationTargetException | NotFoundHandlerException e) {
                 notFoundHandler();
-            } finally {
+                e.printStackTrace();
+            } catch (IllegalArgumentException e) {
+                badRequest();
+            }
+            finally {
                 connect.close();
             }
         }
@@ -131,6 +132,10 @@ public class RequestReceiver {
 
     private void notFoundHandler() {
         this.response.fileNotFound();
+    }
+
+    private void badRequest() {
+        this.response.badRequest();
     }
 
 }

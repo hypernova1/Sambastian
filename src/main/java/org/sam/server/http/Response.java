@@ -19,34 +19,61 @@ import java.util.Set;
 public class Response {
 
     private static final String DEFAULT_FILE = "static/index.html";
+    private static final String BAD_REQUEST = "static/400.html";
     private static final String FILE_NOT_FOUND = "static/404.html";
     private static final String METHOD_NOT_SUPPORTED = "static/not_supported";
 
     private final ClassLoader classLoader = getClass().getClassLoader();
 
     private final PrintWriter out;
-    private final BufferedOutputStream dataOut;
+    private final BufferedOutputStream bos;
+    private final OutputStreamWriter osw;
     private final Map<String, Object> headers = new HashMap<>();
+    private final String requestPath;
 
-    private String returnPath;
+    private String filePath;
     private HttpStatus httpStatus;
     private String contentMimeType;
 
-    public Response(PrintWriter out, BufferedOutputStream dataOut, String path) {
-        this.out = out;
-        this.dataOut = dataOut;
-        this.returnPath = path;
+    public Response(OutputStream os, String path) {
+        this.out = new PrintWriter(os);
+        this.bos = new BufferedOutputStream(os);
+        this.osw = new OutputStreamWriter(os);
+
+        this.requestPath = path;
     }
 
-    public static Response create(PrintWriter out, BufferedOutputStream dataOut, String path) {
-        return new Response(out, dataOut, path);
+    public static Response create(OutputStream os, String path) {
+        return new Response(os, path);
     }
 
-    private byte[] readFileData(File file, int fileLength) throws IOException {
-        byte[] fileData = new byte[fileLength];
-        FileInputStream fis = new FileInputStream(file);
-        fis.read(fileData);
-        return fileData;
+    private void pass(String filePath, HttpStatus status) throws IOException {
+        this.httpStatus = status;
+
+        URL fileUrl = classLoader.getResource(filePath);
+        if (fileUrl == null) {
+            fileNotFound();
+            return;
+        }
+
+        int fileLength = 0;
+        if (getContentMimeType().equals(ContentType.JSON.getValue())) {
+        } else {
+            File file = new File(fileUrl.getFile());
+            byte[] fileData = readFile(file);
+            bos.write(fileData, 0, fileLength);
+            fileLength = (int) file.length();
+        }
+
+        headers.put("Server", "Java HTTP Server from sam : 1.0");
+        headers.put("Date", LocalDateTime.now());
+        headers.put("Content-Type", getContentMimeType());
+        headers.put("Content-length", fileLength);
+
+        printHeader();
+        out.println();
+        out.flush();
+        bos.flush();
     }
 
     private void printHeader() {
@@ -54,42 +81,30 @@ public class Response {
         headers.keySet().forEach(key -> out.println(key + ": " + headers.get(key)));
     }
 
-    private void returnFile(String filePath, HttpStatus status) throws IOException {
-        URL fileUrl = classLoader.getResource(filePath);
-        if (fileUrl == null) {
-            fileNotFound();
-            return;
-        }
-
-        File file = new File(fileUrl.getFile());
-        int fileLength = (int) file.length();
-        byte[] fileData = readFileData(file, fileLength);
-
-        httpStatus = status;
-
-        headers.put("Server", "Java HTTP Server from sam : 1.0");
-        headers.put("Date", LocalDateTime.now());
-        headers.put("Content-Type", getContentMimeType());
-
-        if (!getContentMimeType().equals(ContentType.JSON.getValue())) {
-            dataOut.write(fileData, 0, fileLength);
-        } else {
-            fileLength = 0;
-        }
-        headers.put("Content-length", fileLength);
-
-        printHeader();
-        out.println();
-        out.flush();
-        dataOut.flush();
+    private byte[] readFile(File file) throws IOException {
+        byte[] fileData = new byte[(int) file.length()];
+        FileInputStream fis = new FileInputStream(file);
+        fis.read(fileData);
+        return fileData;
     }
 
     public void fileNotFound() {
         if (HttpServer.verbose) {
-            System.out.println("File " + returnPath + " not found");
+            System.out.println("File " + requestPath + " not found");
         }
         try {
-            returnFile(FILE_NOT_FOUND, HttpStatus.NOT_FOUND);
+            pass(FILE_NOT_FOUND, HttpStatus.NOT_FOUND);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void badRequest() {
+        if (HttpServer.verbose) {
+            System.out.println("Bad Request");
+        }
+        try {
+            pass(BAD_REQUEST, HttpStatus.BAD_REQUEST);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -97,18 +112,18 @@ public class Response {
 
     public void methodNotImplemented() throws IOException {
         if (!HttpServer.verbose) {
-            System.out.println("501 not implemented :" + returnPath + "method");
+            System.out.println("501 not implemented :" + requestPath + "method");
         }
 
-        returnFile(METHOD_NOT_SUPPORTED, HttpStatus.NOT_IMPLEMENTED);
+        pass(METHOD_NOT_SUPPORTED, HttpStatus.NOT_IMPLEMENTED);
     }
 
     public void returnIndexFile() throws IOException {
-        if (this.returnPath.endsWith("/")) {
-            returnPath = DEFAULT_FILE;
+        if (this.requestPath.endsWith("/")) {
+            filePath = DEFAULT_FILE;
         }
 
-        returnFile(returnPath, HttpStatus.OK);
+        pass(filePath, HttpStatus.OK);
     }
 
     public void setContentMimeType(ContentType contentMimeType) {
@@ -117,8 +132,8 @@ public class Response {
 
     public String getContentMimeType() {
         if (contentMimeType != null) return contentMimeType;
-        if (httpStatus.equals(HttpStatus.NOT_FOUND) || httpStatus.equals(HttpStatus.NOT_IMPLEMENTED)) return "text/html";
-        if (this.returnPath.endsWith(".html")) return "text/html";
+        if (httpStatus.equals(HttpStatus.NOT_FOUND) || httpStatus.equals(HttpStatus.BAD_REQUEST) || httpStatus.equals(HttpStatus.NOT_IMPLEMENTED)) return "text/html";
+        if (this.requestPath.endsWith(".html")) return "text/html";
         return "text/plain";
     }
 
@@ -133,5 +148,6 @@ public class Response {
     public Set<String> getHeaderNames() {
         return headers.keySet();
     }
+
 
 }
