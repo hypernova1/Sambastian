@@ -1,4 +1,6 @@
-package org.sam.server;
+package org.sam.server.http;
+
+import org.sam.server.http.RequestReceiver;
 
 import java.net.Socket;
 

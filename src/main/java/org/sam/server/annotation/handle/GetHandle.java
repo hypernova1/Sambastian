@@ -1,4 +1,4 @@
-package org.sam.server.annotation;
+package org.sam.server.annotation.handle;
 
 import org.sam.server.constant.ContentType;
 
@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface PutHandle {
+public @interface GetHandle {
     String value() default "/";
     ContentType contentType() default ContentType.JSON;
 }

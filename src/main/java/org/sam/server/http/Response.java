@@ -1,5 +1,6 @@
-package org.sam.server;
+package org.sam.server.http;
 
+import org.sam.server.HttpServer;
 import org.sam.server.constant.HttpStatus;
 
 import java.io.*;

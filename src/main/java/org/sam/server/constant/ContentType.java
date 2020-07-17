@@ -6,16 +6,27 @@ package org.sam.server.constant;
  * Time: 1:38 PM
  */
 public enum ContentType {
-    PLAIN("text/plain"),
-    HTML("text/html"),
-    JSON("application/json");
+    PLAIN("text/plain", EncodingType.UTF_8),
+    HTML("text/html", EncodingType.UTF_8),
+    JSON("application/json", EncodingType.UTF_8);
 
     private String value;
-    ContentType(String value) {
+    private EncodingType encodingType;
+
+    ContentType(String value, EncodingType encodingType) {
         this.value = value;
+        this.encodingType = encodingType;
+    }
+
+    public void setEncodingType(EncodingType encodingType) {
+        this.encodingType = encodingType;
     }
 
     public String getValue() {
         return this.value;
+    }
+
+    public EncodingType getEncodingType() {
+        return this.encodingType;
     }
 }

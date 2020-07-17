@@ -1,13 +1,17 @@
 package org.sam.server;
 
+import org.sam.server.core.BeanLoader;
+import org.sam.server.http.DefaultRequestReceiver;
+import org.sam.server.util.ServerProperties;
+
 import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Date;
-import java.util.Properties;
-import java.util.concurrent.*;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by melchor
@@ -26,10 +30,9 @@ public class HttpServer implements Runnable {
 
     public static void main(String[] args) throws IOException {
 
-        Properties properties = getProperties();
-        String keyStore = properties.getProperty("keyStore");
-        String password = properties.getProperty("keyStorePassword");
-        int port = Integer.parseInt(properties.getProperty("server.port"));
+        String keyStore = ServerProperties.get("keyStore");
+        String password = ServerProperties.get("keyStorePassword");
+        int port = Integer.parseInt(ServerProperties.get("server.port"));
 
         try {
             ServerSocket serverSocket;
@@ -73,15 +76,7 @@ public class HttpServer implements Runnable {
         }
     }
 
-    private static Properties getProperties() throws IOException {
-        Properties properties = new Properties();
-        InputStream resourceAsStream = HttpServer.class.getClassLoader().getResourceAsStream("config/application.properties");
 
-        if (resourceAsStream != null) {
-            properties.load(resourceAsStream);
-        }
-        return properties;
-    }
 
     public void run() {
         new DefaultRequestReceiver(connect).requestAnalyze();

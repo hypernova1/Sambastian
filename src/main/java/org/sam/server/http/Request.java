@@ -1,4 +1,4 @@
-package org.sam.server;
+package org.sam.server.http;
 
 import org.sam.server.constant.HttpMethod;
 
@@ -78,6 +78,7 @@ public class Request {
                 parseHeaders(br);
                 parseMethod(method);
             } catch (IOException e) {
+                System.out.println("terminate thread..");
                 e.printStackTrace();
             }
         }
