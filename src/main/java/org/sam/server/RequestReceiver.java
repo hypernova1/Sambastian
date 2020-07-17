@@ -6,11 +6,16 @@ import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
-public abstract class Handler {
+/**
+ * Created by melchor
+ * Date: 2020/07/17
+ * Time: 1:34 PM
+ */
+public abstract class RequestReceiver {
 
     private final Socket connect;
 
-    public Handler(Socket connect) {
+    public RequestReceiver(Socket connect) {
         this.connect = connect;
     }
 
@@ -27,7 +32,7 @@ public abstract class Handler {
                 return;
             }
 
-            executeHandle(request, response);
+            findHandler(request, response);
 
             connect.close();
         } catch (IOException e) {
@@ -35,7 +40,7 @@ public abstract class Handler {
         }
     }
 
-    private void executeHandle(Request request, Response response) throws IOException {
+    private void findHandler(Request request, Response response) throws IOException {
         try {
             switch (request.getMethod()) {
                 case GET: doGet(request, response); break;

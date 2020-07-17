@@ -9,6 +9,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Created by melchor
+ * Date: 2020/07/17
+ * Time: 1:34 PM
+ */
 public class Response {
 
     private static final String DEFAULT_FILE = "static/index.html";

@@ -9,6 +9,11 @@ import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.*;
 
+/**
+ * Created by melchor
+ * Date: 2020/07/17
+ * Time: 1:34 PM
+ */
 public class HttpServer implements Runnable {
 
     public static boolean verbose = true;
@@ -79,6 +84,6 @@ public class HttpServer implements Runnable {
     }
 
     public void run() {
-        new DefaultHandler(connect).requestAnalyze();
+        new DefaultRequestReceiver(connect).requestAnalyze();
     }
 }

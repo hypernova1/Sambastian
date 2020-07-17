@@ -1,8 +1,17 @@
 package org.sam.server.constant;
 
+/**
+ * Created by melchor
+ * Date: 2020/07/17
+ * Time: 1:34 PM
+ */
 public enum HttpStatus {
 
     OK("200", "OK"),
+    CREATED("201", "Created"),
+    BAD_REQUEST("400", "Bad Request"),
+    UNAUTHORIZED("401", "Unauthorized"),
+    FORBIDDEN("403", "Forbidden"),
     NOT_FOUND("404", "File Not Found"),
     NOT_IMPLEMENTED("501", "Not Implemented");
 

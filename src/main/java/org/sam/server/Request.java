@@ -6,6 +6,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * Created by melchor
+ * Date: 2020/07/17
+ * Time: 1:34 PM
+ */
 public class Request {
 
     private String path;
