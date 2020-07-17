@@ -15,10 +15,10 @@ public class Request {
 
     private String path;
     private HttpMethod method;
-    private Map<String, Object> headers;
-    private Map<String, Object> parameterMap;
+    private Map<String, String> headers;
+    private Map<String, String> parameterMap;
 
-    private Request(String path, HttpMethod method, Map<String, Object> headers, Map<String, Object> parameterMap) {
+    private Request(String path, HttpMethod method, Map<String, String> headers, Map<String, String> parameterMap) {
         this.path = path;
         this.method = method;
         this.headers = headers;
@@ -28,10 +28,10 @@ public class Request {
     public static Request create(BufferedReader br) {
         UrlParser urlParser = new UrlParser(br);
 
-        Map<String, Object> headers = urlParser.getHeaders();
+        Map<String, String> headers = urlParser.getHeaders();
         HttpMethod method = urlParser.getMethod();
         String path = urlParser.getPath();
-        Map<String, Object> parameters = urlParser.getParameters();
+        Map<String, String> parameters = urlParser.getParameters();
 
         return new Request(path, method, headers, parameters);
     }
@@ -44,7 +44,7 @@ public class Request {
         return this.method;
     }
 
-    public Object getParameter(String key) {
+    public String getParameter(String key) {
         return this.parameterMap.get(key);
     }
 
@@ -56,15 +56,15 @@ public class Request {
         return headers.keySet();
     }
 
-    public Object getHeader(String key) {
+    public String getHeader(String key) {
         return headers.get(key);
     }
 
     private static class UrlParser {
         private String path;
         private HttpMethod method;
-        private Map<String, Object> headers = new HashMap<>();
-        private Map<String, Object> parameters = new HashMap<>();
+        private Map<String, String> headers = new HashMap<>();
+        private Map<String, String> parameters = new HashMap<>();
 
         public UrlParser(BufferedReader br) {
             try {
@@ -124,7 +124,7 @@ public class Request {
             });
         }
 
-        public Map<String, Object> getHeaders() {
+        public Map<String, String> getHeaders() {
             return this.headers;
         }
 
@@ -136,7 +136,7 @@ public class Request {
             return this.path;
         }
 
-        public Map<String, Object> getParameters() {
+        public Map<String, String> getParameters() {
             return this.parameters;
         }
     }

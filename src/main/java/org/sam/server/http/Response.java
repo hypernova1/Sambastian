@@ -30,8 +30,7 @@ public class Response {
 
     private String returnPath;
     private HttpStatus httpStatus;
-
-    private boolean isRestApi;
+    private String contentMimeType;
 
     public Response(PrintWriter out, BufferedOutputStream dataOut, String path) {
         this.out = out;
@@ -41,14 +40,6 @@ public class Response {
 
     public static Response create(PrintWriter out, BufferedOutputStream dataOut, String path) {
         return new Response(out, dataOut, path);
-    }
-
-    public void execute() throws IOException {
-        if (this.returnPath.endsWith("/")) {
-            returnPath = DEFAULT_FILE;
-        }
-
-        returnFile(returnPath, HttpStatus.OK);
     }
 
     private byte[] readFileData(File file, int fileLength) throws IOException {
@@ -80,7 +71,7 @@ public class Response {
         headers.put("Date", LocalDateTime.now());
         headers.put("Content-Type", getContentMimeType());
 
-        if (!isRestApi) {
+        if (!getContentMimeType().equals(ContentType.JSON.getValue())) {
             dataOut.write(fileData, 0, fileLength);
         } else {
             fileLength = 0;
@@ -112,8 +103,20 @@ public class Response {
         returnFile(METHOD_NOT_SUPPORTED, HttpStatus.NOT_IMPLEMENTED);
     }
 
+    public void returnIndexFile() throws IOException {
+        if (this.returnPath.endsWith("/")) {
+            returnPath = DEFAULT_FILE;
+        }
+
+        returnFile(returnPath, HttpStatus.OK);
+    }
+
+    public void setContentMimeType(ContentType contentMimeType) {
+        this.contentMimeType = contentMimeType.getValue();
+    }
+
     public String getContentMimeType() {
-        if (isRestApi) return ContentType.JSON.getValue();
+        if (contentMimeType != null) return contentMimeType;
         if (httpStatus.equals(HttpStatus.NOT_FOUND) || httpStatus.equals(HttpStatus.NOT_IMPLEMENTED)) return "text/html";
         if (this.returnPath.endsWith(".html")) return "text/html";
         return "text/plain";
@@ -121,10 +124,6 @@ public class Response {
 
     public void setHeader(String key, String value) {
         this.headers.put(key, value);
-    }
-
-    public void isRestApi(boolean isRestApi) {
-        this.isRestApi = isRestApi;
     }
 
     public Object getHeader(String key) {

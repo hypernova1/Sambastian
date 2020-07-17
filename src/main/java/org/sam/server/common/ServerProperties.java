@@ -1,6 +1,4 @@
-package org.sam.server.util;
-
-import org.sam.server.HttpServer;
+package org.sam.server.common;
 
 import java.io.IOException;
 import java.io.InputStream;

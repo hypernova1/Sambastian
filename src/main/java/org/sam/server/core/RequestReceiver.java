@@ -1,9 +1,11 @@
-package org.sam.server.http;
+package org.sam.server.core;
 
 import org.sam.server.annotation.handle.*;
-import org.sam.server.constant.HttpMethod;
-import org.sam.server.core.BeanLoader;
+import org.sam.server.common.PrimitiveWrapper;
+import org.sam.server.constant.ContentType;
 import org.sam.server.exception.NotFoundHandlerException;
+import org.sam.server.http.Request;
+import org.sam.server.http.Response;
 
 import java.io.*;
 import java.lang.annotation.Annotation;
@@ -12,6 +14,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -20,9 +23,12 @@ import java.util.List;
  * Date: 2020/07/17
  * Time: 1:34 PM
  */
-public abstract class RequestReceiver {
+public class RequestReceiver {
 
     private final Socket connect;
+
+    private Request request;
+    private Response response;
 
     private List<Class<? extends Annotation>> handleAnnotations =
             Arrays.asList(GetHandle.class, PostHandle.class, PutHandle.class, DeleteHandle.class);
@@ -36,22 +42,17 @@ public abstract class RequestReceiver {
              PrintWriter out = new PrintWriter(connect.getOutputStream());
              BufferedOutputStream dataOut = new BufferedOutputStream(connect.getOutputStream())) {
 
-            Request request = Request.create(in);
-            Response response = Response.create(out, dataOut, request.getPath());
+            this.request = Request.create(in);
+            this.response = Response.create(out, dataOut, request.getPath());
 
-            if (!request.getMethod().equals(HttpMethod.GET) && !request.getMethod().equals(HttpMethod.HEAD)) {
-                response.methodNotImplemented();
-                return;
-            }
-
-            executeHandler(request, response);
+            executeHandler();
 
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void executeHandler(Request request, Response response) throws IOException {
+    private void executeHandler() throws IOException {
         List<Class<?>> handlerClasses = BeanLoader.getHandlerClasses();
 
         for (Class<?> handlerClass : handlerClasses) {
@@ -65,31 +66,40 @@ public abstract class RequestReceiver {
             }
 
             try {
-                Method handlerMethod = findMethod(handlerClass, requestPath, response);
-                Object[] parameters = getHandlerMethodParameters(handlerMethod, request);
+                Method handlerMethod = findMethod(handlerClass, requestPath);
+                Object[] parameters = getHandlerMethodParameters(handlerMethod.getParameters()).toArray();
                 handlerMethod.invoke(handlerClass.newInstance(), parameters);
-            } catch (NotFoundHandlerException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException e) {
-                notFound(response);
+            } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
+                e.printStackTrace();
+                notFoundHandler();
             } finally {
                 connect.close();
             }
         }
     }
 
-    private Object[] getHandlerMethodParameters(Method handlerMethod, Request request) {
-        Parameter[] parameters = handlerMethod.getParameters();
-
-        Arrays.stream(parameters).forEach(parameter -> {
+    private List<Object> getHandlerMethodParameters(Parameter[] parameters) {
+        List<Object> params = new ArrayList<>();
+        for (Parameter parameter : parameters) {
             String name = parameter.getName();
-            Object value = request.getParameter(name);
-            Class<?> type = parameter.getType();
-        });
+            String value = request.getParameter(name);
 
-        return null;
+            if (value != null) {
+                Class<?> type = parameter.getType();
+                if (type.isPrimitive()) {
+                    Object autoBoxingValue = PrimitiveWrapper.wrapPrimitiveValue(type, value);
+                    params.add(autoBoxingValue);
+                }
+                if (type.equals(String.class)) {
+                    params.add(value);
+                }
+            }
+        };
+
+        return params;
     }
 
-
-    private Method findMethod(Class<?> handlerClass, String requestPath, Response response) throws NotFoundHandlerException {
+    private Method findMethod(Class<?> handlerClass, String requestPath) throws NotFoundHandlerException {
         Method[] declaredMethods = handlerClass.getDeclaredMethods();
 
         for (Method declaredMethod : declaredMethods) {
@@ -104,7 +114,7 @@ public abstract class RequestReceiver {
 
                             if (requestPath.equals(path)) {
                                 if (declaredMethod.getDeclaredAnnotation(RestApi.class) != null) {
-                                    response.isRestApi(true);
+                                    this.response.setContentMimeType(ContentType.JSON);
                                 }
                                 return declaredMethod;
                             }
@@ -119,8 +129,8 @@ public abstract class RequestReceiver {
         throw new NotFoundHandlerException();
     }
 
-    private void notFound(Response response) {
-        response.fileNotFound();
+    private void notFoundHandler() {
+        this.response.fileNotFound();
     }
 
 }

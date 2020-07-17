@@ -1,4 +1,4 @@
-package org.sam.api;
+package org.sam.api.handler;
 
 import org.sam.server.annotation.handle.GetHandle;
 import org.sam.server.annotation.handle.Handler;
@@ -14,7 +14,7 @@ public class TestHandler {
 
     @GetHandle("/test")
     @RestApi
-    public void testMethod(String a, Integer b) {
+    public void testMethod(String a, int b) {
         System.out.println("Test Method Handler");
     }
 }

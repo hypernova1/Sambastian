@@ -1,7 +1,7 @@
 package org.sam.server.core;
 
 import org.sam.server.annotation.handle.Handler;
-import org.sam.server.util.ServerProperties;
+import org.sam.server.common.ServerProperties;
 
 import java.io.File;
 import java.io.IOException;

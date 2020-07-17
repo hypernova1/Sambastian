@@ -1,7 +1,7 @@
 package org.sam.server;
 
-import org.sam.api.DefaultRequestReceiver;
-import org.sam.server.util.ServerProperties;
+import org.sam.server.core.RequestReceiver;
+import org.sam.server.common.ServerProperties;
 
 import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
@@ -75,6 +75,6 @@ public class HttpServer implements Runnable {
     }
 
     public void run() {
-        new DefaultRequestReceiver(connect).requestAnalyze();
+        new RequestReceiver(connect).requestAnalyze();
     }
 }
