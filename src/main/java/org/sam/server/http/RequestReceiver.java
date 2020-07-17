@@ -30,7 +30,6 @@ public abstract class RequestReceiver {
             Arrays.asList(GetHandle.class, PostHandle.class, PutHandle.class, DeleteHandle.class);
 
     public RequestReceiver(Socket connect) {
-
         this.connect = connect;
     }
 
@@ -78,7 +77,6 @@ public abstract class RequestReceiver {
             } finally {
                 connect.close();
             }
-
         }
     }
 

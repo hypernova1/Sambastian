@@ -63,8 +63,8 @@ public class Request {
     private static class UrlParser {
         private String path;
         private HttpMethod method;
-        private Map<String, Object> headers;
-        private Map<String, Object> parameters;
+        private Map<String, Object> headers = new HashMap<>();
+        private Map<String, Object> parameters = new HashMap<>();
 
         public UrlParser(BufferedReader br) {
             try {
@@ -74,7 +74,11 @@ public class Request {
                 String requestPath = parse.nextToken().toLowerCase();
 
                 String rawParameters = parsePath(requestPath);
-                parseParameters(rawParameters);
+
+                if (rawParameters != null) {
+                    parseParameters(rawParameters);
+                }
+
                 parseHeaders(br);
                 parseMethod(method);
             } catch (IOException e) {
@@ -84,21 +88,18 @@ public class Request {
         }
 
         private void parseHeaders(BufferedReader br) {
-            Map<String, Object> map = new HashMap<>();
             try {
                 String s = br.readLine();
                 while (!s.trim().equals("")) {
                     int index = s.indexOf(": ");
                     String key = s.substring(0, index).toLowerCase();
                     String value = s.substring(index);
-                    map.put(key, value);
+                    this.headers.put(key, value);
                     s = br.readLine();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-            this.headers = map;
         }
 
         private void parseMethod(String method) {
@@ -116,16 +117,11 @@ public class Request {
         }
 
         private void parseParameters(String parameters) {
-            Map<String, Object> map = new HashMap<>();
-            if (parameters == null) return;
-
             String[] rawParameters = parameters.split("&");
             Arrays.stream(rawParameters).forEach(parameter -> {
                 String[] parameterPair = parameter.split("=");
-                map.put(parameterPair[0], parameterPair[1]);
+                this.parameters.put(parameterPair[0], parameterPair[1]);
             });
-
-            this.parameters = map;
         }
 
         public Map<String, Object> getHeaders() {

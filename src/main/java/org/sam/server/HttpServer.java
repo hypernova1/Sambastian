@@ -57,7 +57,6 @@ public class HttpServer implements Runnable {
                     new SynchronousQueue<>()
             );
 
-
             if (verbose) {
                 System.out.println("server started..");
             }
