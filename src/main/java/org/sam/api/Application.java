@@ -9,6 +9,6 @@ import org.sam.server.HttpServer;
  */
 public class Application {
     public static void main(String[] args) {
-        HttpServer.execute();
+        HttpServer.start(Application.class);
     }
 }

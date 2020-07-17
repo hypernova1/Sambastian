@@ -1,5 +1,7 @@
 package org.sam.server.common;
 
+import org.sam.api.Application;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -13,8 +15,8 @@ public class ServerProperties {
 
     private static Properties properties = new Properties();
 
-    static {
-        InputStream resourceAsStream = ServerProperties.class.getClassLoader().getResourceAsStream("config/application.properties");
+    public static void loadClass(Class<Application> applicationClass) {
+        InputStream resourceAsStream = applicationClass.getClassLoader().getResourceAsStream("config/application.properties");
         if (resourceAsStream != null) {
             try {
                 properties.load(resourceAsStream);

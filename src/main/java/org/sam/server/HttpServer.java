@@ -1,5 +1,6 @@
 package org.sam.server;
 
+import org.sam.api.Application;
 import org.sam.server.core.RequestReceiver;
 import org.sam.server.common.ServerProperties;
 
@@ -27,8 +28,9 @@ public class HttpServer implements Runnable {
         this.connect = connect;
     }
 
-    public static void execute() {
+    public static void start(Class<Application> applicationClass) {
 
+        ServerProperties.loadClass(applicationClass);
         String keyStore = ServerProperties.get("keyStore");
         String password = ServerProperties.get("keyStorePassword");
         int port = Integer.parseInt(ServerProperties.get("server.port"));
