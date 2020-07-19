@@ -9,8 +9,12 @@ $ mvn install
 2. maven project 생성
 3. resources/static/resource/application.properties 에 설정 추가
 ~~~properties
-root-package=org.sam.api
-server.port=8080
+root-package=[루트 패키지 경로]
+server.port=[포트 번호]
+
+# SSL 활성화시
+keyStore=[keyStore 파일명]
+keyStorePassword=[keyStore 비밀번호]
 ~~~
 4. 루트 패키지에 메인 클래스 생성 후 함수 호출
 ~~~java
@@ -27,12 +31,7 @@ server started..
 server port: 8080
 ~~~
 
-#### SSL 활성화 방법
-resources/config/application.properties
-* keyStore: keyStore 파일명
-* keyStorePassword: keyStore 비밀번호
-
-### 구현 객체
+### 구현 클래스
 #### HttpServer
 요청을 받을 때 마다 스레드를 생성하여 위임한다.
 #### BeanLoader
