@@ -47,7 +47,7 @@ public class Response {
     public void pass(String filePath, HttpStatus status) throws IOException {
         this.httpStatus = status;
 
-        int fileLength = 0;
+        int fileLength;
         if (getContentMimeType().equals(ContentType.JSON.getValue())) {
             fileLength = creteJson(filePath);
         } else {
@@ -66,15 +66,15 @@ public class Response {
     }
 
     private int createStaticFile(String filePath) throws IOException {
-        URL fileUrl = classLoader.getResource(filePath);
-        if (fileUrl == null) {
+        InputStream fis = classLoader.getResourceAsStream(filePath);
+
+        if (fis == null) {
             fileNotFound();
             return 0;
         }
 
-        File file = new File(fileUrl.getFile());
-        int fileLength = (int) file.length();
-        byte[] fileData = readFile(file, fileLength);
+        byte[] fileData = new byte[1024];
+        int fileLength = fis.read(fileData);
         bos.write(fileData, 0, fileLength);
 
         return fileLength;
@@ -93,13 +93,6 @@ public class Response {
         out.println("HTTP/1.1 " + httpStatus.getCode() + " " + httpStatus.getMessage());
         headers.keySet().forEach(key -> out.println(key + ": " + headers.get(key)));
         out.println();
-    }
-
-    private byte[] readFile(File file, int fileLength) throws IOException {
-        byte[] fileData = new byte[fileLength];
-        FileInputStream fis = new FileInputStream(file);
-        fis.read(fileData);
-        return fileData;
     }
 
     public void fileNotFound() {

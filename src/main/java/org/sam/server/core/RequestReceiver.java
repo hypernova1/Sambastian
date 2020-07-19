@@ -4,13 +4,14 @@ import com.google.gson.Gson;
 import org.sam.server.annotation.handle.*;
 import org.sam.server.common.PrimitiveWrapper;
 import org.sam.server.constant.ContentType;
-import org.sam.server.constant.HttpMethod;
 import org.sam.server.constant.HttpStatus;
 import org.sam.server.exception.NotFoundHandlerException;
 import org.sam.server.http.Request;
 import org.sam.server.http.Response;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -47,9 +48,7 @@ public class RequestReceiver {
 
             this.request = Request.create(in);
             this.response = Response.create(connect.getOutputStream(), request.getPath());
-
             executeHandler();
-
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -57,7 +56,6 @@ public class RequestReceiver {
 
     private void executeHandler() throws IOException {
         List<Class<?>> handlerClasses = BeanLoader.getHandlerClasses();
-
         for (Class<?> handlerClass : handlerClasses) {
             String requestPath = request.getPath();
             String handlerPath = handlerClass.getDeclaredAnnotation(Handler.class).value();
@@ -97,10 +95,12 @@ public class RequestReceiver {
                 if (type.isPrimitive()) {
                     Object autoBoxingValue = PrimitiveWrapper.wrapPrimitiveValue(type, value);
                     params.add(autoBoxingValue);
-                }
-                if (type.equals(String.class)) {
+                } else if (type.equals(String.class)) {
+                    params.add(value);
+                } else {
                     params.add(value);
                 }
+
             }
         };
 
@@ -109,7 +109,6 @@ public class RequestReceiver {
 
     private Method findMethod(Class<?> handlerClass, String requestPath) throws NotFoundHandlerException {
         Method[] declaredMethods = handlerClass.getDeclaredMethods();
-
         for (Method declaredMethod : declaredMethods) {
             Annotation[] declaredAnnotations = declaredMethod.getDeclaredAnnotations();
             for (Annotation declaredAnnotation : declaredAnnotations) {
