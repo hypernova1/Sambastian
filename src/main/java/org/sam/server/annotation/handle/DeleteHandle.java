@@ -1,6 +1,7 @@
 package org.sam.server.annotation.handle;
 
 import org.sam.server.constant.ContentType;
+import org.sam.server.constant.HttpMethod;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -18,4 +19,5 @@ import java.lang.annotation.Target;
 public @interface DeleteHandle {
     String value() default "/";
     ContentType contentType() default ContentType.JSON;
+    HttpMethod method() default HttpMethod.DELETE;
 }

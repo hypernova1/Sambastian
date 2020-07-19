@@ -115,12 +115,17 @@ public class RequestReceiver {
             for (Annotation declaredAnnotation : declaredAnnotations) {
                 for (Class<? extends Annotation> handleAnnotation : handleAnnotations) {
                     if (handleAnnotation.equals(declaredAnnotation.annotationType())) {
-                        Method method;
+                        Method pathValue;
+                        Method methodValue;
                         try {
-                            method = handleAnnotation.getDeclaredMethod("value");
-                            Object path = method.invoke(declaredAnnotation);
 
-                            if (requestPath.equals(path)) {
+                            pathValue = handleAnnotation.getDeclaredMethod("value");
+                            methodValue = handleAnnotation.getDeclaredMethod("method");
+                            String path = pathValue.invoke(declaredAnnotation).toString();
+                            String method = methodValue.invoke(declaredAnnotation).toString();
+
+
+                            if (requestPath.equals(path) && request.getMethod().equals(HttpMethod.get(method))) {
                                 if (declaredMethod.getDeclaredAnnotation(RestApi.class) != null) {
                                     this.response.setContentMimeType(ContentType.JSON);
                                 }

@@ -80,8 +80,11 @@ public class Response {
         return fileLength;
     }
 
-    private int creteJson(String filePath) throws IOException {
-        byte[] bytes = filePath.getBytes();
+    private int creteJson(String json) throws IOException {
+        if (httpStatus.equals(HttpStatus.NOT_FOUND) ||
+                httpStatus.equals(HttpStatus.BAD_REQUEST)) return 0;
+
+        byte[] bytes = json.getBytes();
         bos.write(bytes);
         return bytes.length;
     }

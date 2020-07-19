@@ -19,5 +19,5 @@ import java.lang.annotation.Target;
 public @interface GetHandle {
     String value() default "/";
     ContentType contentType() default ContentType.JSON;
-    HttpMethod method = HttpMethod.GET;
+    HttpMethod method() default HttpMethod.GET;
 }
