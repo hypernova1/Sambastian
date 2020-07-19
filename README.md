@@ -1,6 +1,32 @@
 # HTTP Server
 자바로 웹 서버 구현
 
+### 사용 방법
+1. 로컬 저장소에 jar 배포
+~~~
+$ mvn install
+~~~
+2. maven project 생성
+3. resources/static/resource/application.properties 에 설정 추가
+~~~properties
+root-package=org.sam.api
+server.port=8080
+~~~
+4. 루트 패키지에 메인 클래스 생성 후 함수 호출
+~~~java
+public class Application {
+    public static void main(String[] args) {
+        HttpServer.start();
+    }
+}
+~~~
+
+5. 실행
+~~~
+server started..
+server port: 8080
+~~~
+
 #### SSL 활성화 방법
 resources/config/application.properties
 * keyStore: keyStore 파일명
