@@ -57,6 +57,11 @@
                 <version>2.2</version>
                 <configuration>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                        </manifest>
+                    </archive>
                 </configuration>
             </plugin>
         </plugins>

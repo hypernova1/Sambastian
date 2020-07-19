@@ -95,10 +95,12 @@ public class RequestReceiver {
                 if (type.isPrimitive()) {
                     Object autoBoxingValue = PrimitiveWrapper.wrapPrimitiveValue(type, value);
                     params.add(autoBoxingValue);
-                }
-                if (type.equals(String.class)) {
+                } else if (type.equals(String.class)) {
+                    params.add(value);
+                } else {
                     params.add(value);
                 }
+
             }
         };
 

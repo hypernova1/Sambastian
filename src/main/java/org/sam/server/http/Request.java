@@ -120,7 +120,12 @@ public class Request {
             String[] rawParameters = parameters.split("&");
             Arrays.stream(rawParameters).forEach(parameter -> {
                 String[] parameterPair = parameter.split("=");
-                this.parameters.put(parameterPair[0], parameterPair[1]);
+                String name = parameterPair[0];
+                String value = null;
+                if (parameterPair.length == 2) {
+                    value = parameterPair[1];
+                }
+                this.parameters.put(name, value);
             });
         }
 

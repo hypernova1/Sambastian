@@ -23,7 +23,6 @@ public class BeanLoader {
     private static List<Class<?>> handlerClasses;
     private static String rootPackageName = ServerProperties.get("root-package");
 
-
     static {
         loadClasses();
     }
