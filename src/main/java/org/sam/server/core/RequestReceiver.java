@@ -118,12 +118,10 @@ public class RequestReceiver {
                         Method pathValue;
                         Method methodValue;
                         try {
-
                             pathValue = handleAnnotation.getDeclaredMethod("value");
                             methodValue = handleAnnotation.getDeclaredMethod("method");
                             String path = pathValue.invoke(declaredAnnotation).toString();
                             String method = methodValue.invoke(declaredAnnotation).toString();
-
 
                             if (requestPath.equals(path) && request.getMethod().equals(HttpMethod.get(method))) {
                                 if (declaredMethod.getDeclaredAnnotation(RestApi.class) != null) {
