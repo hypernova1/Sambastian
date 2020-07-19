@@ -4,13 +4,14 @@ import com.google.gson.Gson;
 import org.sam.server.annotation.handle.*;
 import org.sam.server.common.PrimitiveWrapper;
 import org.sam.server.constant.ContentType;
-import org.sam.server.constant.HttpMethod;
 import org.sam.server.constant.HttpStatus;
 import org.sam.server.exception.NotFoundHandlerException;
 import org.sam.server.http.Request;
 import org.sam.server.http.Response;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -88,8 +89,6 @@ public class RequestReceiver {
         for (Parameter parameter : parameters) {
             String name = parameter.getName();
             String value = request.getParameter(name);
-            System.out.println(name);
-            System.out.println(value);
 
             if (value != null) {
                 Class<?> type = parameter.getType();

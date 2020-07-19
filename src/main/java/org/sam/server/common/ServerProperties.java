@@ -16,7 +16,7 @@ public class ServerProperties {
     private static Properties properties = new Properties();
 
     public static void loadClass() {
-        InputStream resourceAsStream = HttpServer.applicationClass.getClassLoader()
+        InputStream resourceAsStream = ServerProperties.class.getClassLoader()
                 .getResourceAsStream("config/application.properties");
         if (resourceAsStream != null) {
             try {

@@ -34,9 +34,8 @@ public class BeanLoader {
                 .collect(Collectors.toList());
     }
 
-
     private static void loadClasses() {
-        ClassLoader classLoader = HttpServer.applicationClass.getClassLoader();
+        ClassLoader classLoader = HttpServer.class.getClassLoader();
 
         assert classLoader != null;
         String path = rootPackageName.replace(".", "/");

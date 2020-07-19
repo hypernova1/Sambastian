@@ -1,7 +1,6 @@
 package org.sam.server;
 
 import org.sam.server.common.ServerProperties;
-import org.sam.server.core.BeanLoader;
 import org.sam.server.core.RequestReceiver;
 
 import javax.net.ssl.SSLServerSocketFactory;
@@ -30,8 +29,7 @@ public class HttpServer implements Runnable {
         this.connect = connect;
     }
 
-    public static void start(Class<?> applicationClass) {
-        HttpServer.applicationClass = applicationClass;
+    public static void start() {
 
         ServerProperties.loadClass();
         String keyStore = ServerProperties.get("keyStore");
