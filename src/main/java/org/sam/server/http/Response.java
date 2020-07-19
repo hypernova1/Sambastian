@@ -23,7 +23,7 @@ public class Response {
     private static final String FILE_NOT_FOUND = "static/404.html";
     private static final String METHOD_NOT_SUPPORTED = "static/not_supported";
 
-    private final ClassLoader classLoader = getClass().getClassLoader();
+    private final ClassLoader classLoader = HttpServer.applicationClass.getClassLoader();
 
     private final PrintWriter out;
     private final BufferedOutputStream bos;
@@ -67,6 +67,7 @@ public class Response {
 
     private int createStaticFile(String filePath) throws IOException {
         URL fileUrl = classLoader.getResource(filePath);
+        System.out.println(filePath);
         if (fileUrl == null) {
             fileNotFound();
             return 0;

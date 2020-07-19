@@ -47,9 +47,7 @@ public class RequestReceiver {
 
             this.request = Request.create(in);
             this.response = Response.create(connect.getOutputStream(), request.getPath());
-
             executeHandler();
-
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -57,7 +55,6 @@ public class RequestReceiver {
 
     private void executeHandler() throws IOException {
         List<Class<?>> handlerClasses = BeanLoader.getHandlerClasses();
-
         for (Class<?> handlerClass : handlerClasses) {
             String requestPath = request.getPath();
             String handlerPath = handlerClass.getDeclaredAnnotation(Handler.class).value();
@@ -91,6 +88,8 @@ public class RequestReceiver {
         for (Parameter parameter : parameters) {
             String name = parameter.getName();
             String value = request.getParameter(name);
+            System.out.println(name);
+            System.out.println(value);
 
             if (value != null) {
                 Class<?> type = parameter.getType();
@@ -109,7 +108,6 @@ public class RequestReceiver {
 
     private Method findMethod(Class<?> handlerClass, String requestPath) throws NotFoundHandlerException {
         Method[] declaredMethods = handlerClass.getDeclaredMethods();
-
         for (Method declaredMethod : declaredMethods) {
             Annotation[] declaredAnnotations = declaredMethod.getDeclaredAnnotations();
             for (Annotation declaredAnnotation : declaredAnnotations) {

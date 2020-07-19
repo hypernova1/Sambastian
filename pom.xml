@@ -38,8 +38,11 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.5.1</version>
                 <configuration>
+                    <verbose>true</verbose>
+                    <fork>true</fork>
                     <source>1.8</source>
                     <target>1.8</target>
+                    <compilerVersion>1.8</compilerVersion>
                     <compilerArgument>-parameters</compilerArgument>
                 </configuration>
             </plugin>

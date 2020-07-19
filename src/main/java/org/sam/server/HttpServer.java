@@ -1,8 +1,8 @@
 package org.sam.server;
 
-import org.sam.api.Application;
-import org.sam.server.core.RequestReceiver;
 import org.sam.server.common.ServerProperties;
+import org.sam.server.core.BeanLoader;
+import org.sam.server.core.RequestReceiver;
 
 import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
@@ -22,15 +22,18 @@ public class HttpServer implements Runnable {
 
     public static boolean verbose = true;
 
+    public static Class<?> applicationClass;
+
     private final Socket connect;
 
     public HttpServer(Socket connect) {
         this.connect = connect;
     }
 
-    public static void start(Class<Application> applicationClass) {
+    public static void start(Class<?> applicationClass) {
+        HttpServer.applicationClass = applicationClass;
 
-        ServerProperties.loadClass(applicationClass);
+        ServerProperties.loadClass();
         String keyStore = ServerProperties.get("keyStore");
         String password = ServerProperties.get("keyStorePassword");
         int port = Integer.parseInt(ServerProperties.get("server.port"));
@@ -61,6 +64,8 @@ public class HttpServer implements Runnable {
 
             if (verbose) {
                 System.out.println("server started..");
+                System.out.println("server port: " + port);
+
             }
 
             while (!Thread.currentThread().isInterrupted()) {

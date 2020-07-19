@@ -1,5 +1,6 @@
 package org.sam.server.core;
 
+import org.sam.server.HttpServer;
 import org.sam.server.annotation.handle.Handler;
 import org.sam.server.common.ServerProperties;
 
@@ -22,6 +23,7 @@ public class BeanLoader {
     private static List<Class<?>> handlerClasses;
     private static String rootPackageName = ServerProperties.get("root-package");
 
+
     static {
         loadClasses();
     }
@@ -34,7 +36,7 @@ public class BeanLoader {
 
 
     private static void loadClasses() {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        ClassLoader classLoader = HttpServer.applicationClass.getClassLoader();
 
         assert classLoader != null;
         String path = rootPackageName.replace(".", "/");
@@ -88,5 +90,6 @@ public class BeanLoader {
     public static List<Class<?>> getHandlerClasses() {
         return handlerClasses;
     }
+
 
 }
