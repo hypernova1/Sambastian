@@ -40,7 +40,7 @@ public class HandlerFinder {
         this.gson = new Gson();
     }
 
-    public void findHandler() throws IOException {
+    public void findClass() throws IOException {
         List<Class<?>> handlerClasses = BeanLoader.getHandlerClasses();
         for (Class<?> handlerClass : handlerClasses) {
             String requestPath = request.getPath();
@@ -53,11 +53,11 @@ public class HandlerFinder {
             }
 
             try {
-                Method handlerMethod = findHandleMethod(handlerClass, requestPath);
-                Object[] parameters = getHandlerMethodParameters(handlerMethod.getParameters()).toArray();
+                Method handlerMethod = findMethod(handlerClass, requestPath);
+                Object[] parameters = getMethodParameters(handlerMethod.getParameters()).toArray();
                 Object returnValue = handlerMethod.invoke(handlerClass.newInstance(), parameters);
                 String json = gson.toJson(returnValue);
-                response.pass(json, HttpStatus.OK);
+                response.execute(json, HttpStatus.OK);
             } catch (IllegalAccessException | InstantiationException | InvocationTargetException | NotFoundHandlerException e) {
                 e.printStackTrace();
                 notFoundHandler();
@@ -68,7 +68,7 @@ public class HandlerFinder {
         }
     }
 
-    private Method findHandleMethod(Class<?> handlerClass, String requestPath) throws NotFoundHandlerException {
+    private Method findMethod(Class<?> handlerClass, String requestPath) throws NotFoundHandlerException {
         Method[] declaredMethods = handlerClass.getDeclaredMethods();
         for (Method declaredMethod : declaredMethods) {
             Annotation[] declaredAnnotations = declaredMethod.getDeclaredAnnotations();
@@ -100,13 +100,20 @@ public class HandlerFinder {
         throw new NotFoundHandlerException();
     }
 
-    private List<Object> getHandlerMethodParameters(Parameter[] parameters) {
+    private List<Object> getMethodParameters(Parameter[] parameters) {
         List<Object> params = new ArrayList<>();
         for (Parameter parameter : parameters) {
             String name = parameter.getName();
             String value = request.getParameter(name);
 
             Class<?> type = parameter.getType();
+
+            if (parameter.getDeclaredAnnotation(JsonRequest.class) != null) {
+                Object object = Converter.jsonToObject(request.getJson(), type);
+                params.add(object);
+                continue;
+            }
+
             if (value != null) {
                 if (type.isPrimitive()) {
                     Object autoBoxingValue = PrimitiveWrapper.wrapPrimitiveValue(type, value);

@@ -1,12 +1,10 @@
 package org.sam.server.common;
 
-import org.sam.server.http.Request;
+import com.google.gson.Gson;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by melchor
@@ -34,8 +32,9 @@ public class Converter {
         return instance;
     }
 
-    public static <T> void jsonToObject(String json, Class<T> type) {
-
+    public static <T> T jsonToObject(String json, Class<T> type) {
+        Gson gson = new Gson();
+        return gson.fromJson(json, type);
     }
 
 }

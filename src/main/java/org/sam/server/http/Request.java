@@ -1,5 +1,6 @@
 package org.sam.server.http;
 
+import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
 
 import java.io.BufferedReader;
@@ -13,27 +14,29 @@ import java.util.*;
  */
 public class Request {
 
-    private String path;
-    private HttpMethod method;
-    private Map<String, String> headers;
-    private Map<String, String> parameterMap;
+    private final String path;
+    private final HttpMethod method;
+    private final Map<String, String> headers;
+    private final Map<String, String> parameterMap;
+    private final String json;
 
-    private Request(String path, HttpMethod method, Map<String, String> headers, Map<String, String> parameterMap) {
+    private Request(String path, HttpMethod method, Map<String, String> headers, Map<String, String> parameterMap, String json) {
         this.path = path;
         this.method = method;
         this.headers = headers;
         this.parameterMap = parameterMap;
+        this.json = json;
     }
 
     public static Request create(BufferedReader br) {
         UrlParser urlParser = new UrlParser(br);
 
-        Map<String, String> headers = urlParser.getHeaders();
-        HttpMethod method = urlParser.getMethod();
-        String path = urlParser.getPath();
-        Map<String, String> parameters = urlParser.getParameters();
+        Map<String, String> headers = urlParser.headers;
+        HttpMethod method = urlParser.method;
+        String path = urlParser.path;
+        Map<String, String> parameters = urlParser.parameters;
 
-        return new Request(path, method, headers, parameters);
+        return new Request(path, method, headers, parameters, urlParser.json);
     }
 
     public String getPath() {
@@ -64,11 +67,16 @@ public class Request {
         return headers.get(key);
     }
 
+    public String getJson() {
+        return this.json;
+    }
+
     private static class UrlParser {
         private String path;
         private HttpMethod method;
         private Map<String, String> headers = new HashMap<>();
         private Map<String, String> parameters = new HashMap<>();
+        private String json;
 
         public UrlParser(BufferedReader br) {
             try {
@@ -77,14 +85,30 @@ public class Request {
                 String method = parse.nextToken().toUpperCase();
                 String requestPath = parse.nextToken().toLowerCase();
 
-                String rawParameters = parsePath(requestPath);
-
-                if (rawParameters != null) {
-                    parseParameters(rawParameters);
-                }
-
+                String rawParameter = parsePath(requestPath);
+                StringBuilder rawParameters = new StringBuilder(rawParameter);
                 parseHeaders(br);
                 parseMethod(method);
+
+                String requestBody;
+                if (HttpMethod.get(method).equals(HttpMethod.POST) ||
+                        HttpMethod.get(method).equals(HttpMethod.PUT) ||
+                        ContentType.JSON.getValue().equals(headers.get("content-type"))) {
+                    while ((requestBody = br.readLine()) != null) {
+                        rawParameters.append(requestBody);
+                    }
+
+                    String s = headers.get("content-type");
+                    if (ContentType.JSON.getValue().equals(headers.get("content-type"))) {
+                        this.json = rawParameters.toString();
+                        return;
+                    }
+                }
+
+                if (!rawParameters.toString().equals("")) {
+                    parseParameters(rawParameters.toString());
+                }
+
             } catch (IOException e) {
                 System.out.println("terminate thread..");
                 e.printStackTrace();
@@ -97,7 +121,7 @@ public class Request {
                 while (!s.trim().equals("")) {
                     int index = s.indexOf(": ");
                     String key = s.substring(0, index).toLowerCase();
-                    String value = s.substring(index);
+                    String value = s.substring(index + 2);
                     this.headers.put(key, value);
                     s = br.readLine();
                 }
@@ -117,10 +141,13 @@ public class Request {
                 this.path = requestPath.substring(0, index);
                 return requestPath.substring(index + 1);
             }
-            return null;
+            return "";
         }
 
         private void parseParameters(String parameters) {
+            if (parameters.startsWith("{")) {
+                return;
+            }
             String[] rawParameters = parameters.split("&");
             Arrays.stream(rawParameters).forEach(parameter -> {
                 String[] parameterPair = parameter.split("=");
@@ -132,21 +159,6 @@ public class Request {
                 this.parameters.put(name, value);
             });
         }
-
-        public Map<String, String> getHeaders() {
-            return this.headers;
-        }
-
-        public HttpMethod getMethod() {
-            return this.method;
-        }
-
-        public String getPath() {
-            return this.path;
-        }
-
-        public Map<String, String> getParameters() {
-            return this.parameters;
-        }
     }
+
 }

@@ -43,7 +43,7 @@ public class Response {
         return new Response(os, path);
     }
 
-    public void pass(String filePath, HttpStatus status) throws IOException {
+    public void execute(String filePath, HttpStatus status) throws IOException {
         this.httpStatus = status;
 
         int fileLength;
@@ -99,7 +99,7 @@ public class Response {
             System.out.println("File " + requestPath + " not found");
         }
         try {
-            pass(FILE_NOT_FOUND, HttpStatus.NOT_FOUND);
+            execute(FILE_NOT_FOUND, HttpStatus.NOT_FOUND);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -110,7 +110,7 @@ public class Response {
             System.out.println("Bad Request");
         }
         try {
-            pass(BAD_REQUEST, HttpStatus.BAD_REQUEST);
+            execute(BAD_REQUEST, HttpStatus.BAD_REQUEST);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -121,7 +121,7 @@ public class Response {
             System.out.println("501 not implemented :" + requestPath + "method");
         }
 
-        pass(METHOD_NOT_SUPPORTED, HttpStatus.NOT_IMPLEMENTED);
+        execute(METHOD_NOT_SUPPORTED, HttpStatus.NOT_IMPLEMENTED);
     }
 
     public void returnIndexFile() throws IOException {
@@ -129,7 +129,7 @@ public class Response {
             filePath = DEFAULT_FILE;
         }
 
-        pass(filePath, HttpStatus.OK);
+        execute(filePath, HttpStatus.OK);
     }
 
     public void setContentMimeType(ContentType contentMimeType) {

@@ -26,7 +26,7 @@ public class RequestReceiver {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(connect.getInputStream(), StandardCharsets.UTF_8))) {
             Request request = Request.create(in);
             Response response = Response.create(connect.getOutputStream(), request.getPath());
-            new HandlerFinder(request, response).findHandler();
+            new HandlerFinder(request, response).findClass();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
