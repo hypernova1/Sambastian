@@ -2,6 +2,7 @@ package org.sam.server.core;
 
 import com.google.gson.Gson;
 import org.sam.server.annotation.handle.*;
+import org.sam.server.common.Converter;
 import org.sam.server.common.PrimitiveWrapper;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
@@ -39,7 +40,7 @@ public class HandlerFinder {
         this.gson = new Gson();
     }
 
-    public void executeHandler() throws IOException {
+    public void findHandler() throws IOException {
         List<Class<?>> handlerClasses = BeanLoader.getHandlerClasses();
         for (Class<?> handlerClass : handlerClasses) {
             String requestPath = request.getPath();
@@ -52,7 +53,7 @@ public class HandlerFinder {
             }
 
             try {
-                Method handlerMethod = findMethod(handlerClass, requestPath);
+                Method handlerMethod = findHandleMethod(handlerClass, requestPath);
                 Object[] parameters = getHandlerMethodParameters(handlerMethod.getParameters()).toArray();
                 Object returnValue = handlerMethod.invoke(handlerClass.newInstance(), parameters);
                 String json = gson.toJson(returnValue);
@@ -67,7 +68,7 @@ public class HandlerFinder {
         }
     }
 
-    private Method findMethod(Class<?> handlerClass, String requestPath) throws NotFoundHandlerException {
+    private Method findHandleMethod(Class<?> handlerClass, String requestPath) throws NotFoundHandlerException {
         Method[] declaredMethods = handlerClass.getDeclaredMethods();
         for (Method declaredMethod : declaredMethods) {
             Annotation[] declaredAnnotations = declaredMethod.getDeclaredAnnotations();
@@ -105,16 +106,17 @@ public class HandlerFinder {
             String name = parameter.getName();
             String value = request.getParameter(name);
 
+            Class<?> type = parameter.getType();
             if (value != null) {
-                Class<?> type = parameter.getType();
                 if (type.isPrimitive()) {
                     Object autoBoxingValue = PrimitiveWrapper.wrapPrimitiveValue(type, value);
                     params.add(autoBoxingValue);
                 } else if (type.equals(String.class)) {
                     params.add(value);
-                } else {
-                    params.add(value);
                 }
+            } else {
+                Object object = Converter.parameterToObject(request.getParameters(), type);
+                params.add(object);
             }
         }
         return params;

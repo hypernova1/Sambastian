@@ -5,7 +5,6 @@ import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpStatus;
 
 import java.io.*;
-import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;

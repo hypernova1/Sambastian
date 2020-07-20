@@ -2,6 +2,7 @@
 자바로 웹 서버 구현
 
 ### 사용 방법
+0. jdk 1.8 이상 설치
 1. 로컬 저장소에 jar 배포
 ~~~
 $ mvn install
@@ -33,7 +34,7 @@ server port: 8080
 
 ### 구현 클래스
 #### HttpServer
-요청을 받을 때 마다 스레드를 생성하여 위임한다.
+요청을 받을 때 마다 스레드를 생성하여 RequestReceiver에 위임한다.
 #### BeanLoader
 핸들러 클래스를 찾아 클래스 정보를 저장한다.
 #### RequestReceiver

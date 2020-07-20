@@ -48,6 +48,10 @@ public class Request {
         return this.parameterMap.get(key);
     }
 
+    public Map<String, String> getParameters() {
+        return this.parameterMap;
+    }
+
     public Set<String> getParameterNames() {
         return this.parameterMap.keySet();
     }
