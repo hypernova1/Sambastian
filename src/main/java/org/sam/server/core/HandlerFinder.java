@@ -10,6 +10,7 @@ import org.sam.server.constant.HttpStatus;
 import org.sam.server.exception.NotFoundHandlerException;
 import org.sam.server.http.Request;
 import org.sam.server.http.Response;
+import org.sam.server.http.ResponseEntity;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -56,8 +57,16 @@ public class HandlerFinder {
                 Method handlerMethod = findMethod(handlerClass, requestPath);
                 Object[] parameters = getMethodParameters(handlerMethod.getParameters()).toArray();
                 Object returnValue = handlerMethod.invoke(handlerClass.newInstance(), parameters);
+
+                HttpStatus httpStatus = HttpStatus.OK;
+                if (returnValue.getClass().equals(ResponseEntity.class)) {
+                    ResponseEntity<?> responseEntity = ResponseEntity.class.cast(returnValue);
+                    httpStatus = responseEntity.getHttpStatus();
+                    returnValue = responseEntity.getValue();
+                }
+
                 String json = gson.toJson(returnValue);
-                response.execute(json, HttpStatus.OK);
+                response.execute(json, httpStatus);
             } catch (IllegalAccessException | InstantiationException | InvocationTargetException | NotFoundHandlerException e) {
                 e.printStackTrace();
                 notFoundHandler();
@@ -92,7 +101,6 @@ public class HandlerFinder {
                         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                             e.printStackTrace();
                         }
-
                     }
                 }
             }

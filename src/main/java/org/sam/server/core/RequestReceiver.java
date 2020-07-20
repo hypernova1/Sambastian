@@ -22,7 +22,7 @@ public class RequestReceiver {
         this.connect = connect;
     }
 
-    public void requestAnalyze() {
+    public void analyzeRequest() {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(connect.getInputStream(), StandardCharsets.UTF_8))) {
             Request request = Request.create(in);
             Response response = Response.create(connect.getOutputStream(), request.getPath());

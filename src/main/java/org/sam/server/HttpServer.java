@@ -80,6 +80,6 @@ public class HttpServer implements Runnable {
     }
 
     public void run() {
-        new RequestReceiver(connect).requestAnalyze();
+        new RequestReceiver(connect).analyzeRequest();
     }
 }
