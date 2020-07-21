@@ -14,6 +14,7 @@ import java.util.Properties;
 public class ServerProperties {
 
     private static Properties properties = new Properties();
+    public static boolean IS_SSL = false;
 
     public static void loadClass() {
         InputStream resourceAsStream = ServerProperties.class.getClassLoader()

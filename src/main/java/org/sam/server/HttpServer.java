@@ -48,6 +48,8 @@ public class HttpServer implements Runnable {
                         (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
                 serverSocket =
                         sslserversocketfactory.createServerSocket(port);
+
+                ServerProperties.IS_SSL = true;
             } else {
                 serverSocket = new ServerSocket(port);
             }

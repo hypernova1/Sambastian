@@ -1,14 +1,13 @@
 package org.sam.server.http;
 
 import org.sam.server.HttpServer;
+import org.sam.server.common.ServerProperties;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpStatus;
 
 import java.io.*;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by melchor
@@ -27,6 +26,7 @@ public class Response {
     private final PrintWriter out;
     private final BufferedOutputStream bos;
     private final Map<String, Object> headers = new HashMap<>();
+    private List<Cookie> cookies = new ArrayList<>();
     private final String requestPath;
 
     private String filePath;
@@ -48,9 +48,9 @@ public class Response {
 
         int fileLength;
         if (getContentMimeType().equals(ContentType.JSON.getValue())) {
-            fileLength = creteJson(filePath);
+            fileLength = loadJson(filePath);
         } else {
-            fileLength = createStaticFile(filePath);
+            fileLength = loadStaticFile(filePath);
         }
 
         headers.put("Server", "Java HTTP Server from sam : 1.0");
@@ -64,7 +64,11 @@ public class Response {
         bos.flush();
     }
 
-    private int createStaticFile(String filePath) throws IOException {
+    public void addCookies(Cookie cookie) {
+        this.cookies.add(cookie);
+    }
+
+    private int loadStaticFile(String filePath) throws IOException {
         InputStream fis = classLoader.getResourceAsStream(filePath);
 
         if (fis == null) {
@@ -79,7 +83,7 @@ public class Response {
         return fileLength;
     }
 
-    private int creteJson(String json) throws IOException {
+    private int loadJson(String json) throws IOException {
         if (httpStatus.equals(HttpStatus.NOT_FOUND) ||
                 httpStatus.equals(HttpStatus.BAD_REQUEST)) return 0;
 
@@ -91,7 +95,29 @@ public class Response {
     private void printHeader() {
         out.println("HTTP/1.1 " + httpStatus.getCode() + " " + httpStatus.getMessage());
         headers.keySet().forEach(key -> out.println(key + ": " + headers.get(key)));
+        printCookies();
         out.println();
+    }
+
+    private void printCookies() {
+        StringBuilder line = new StringBuilder("");
+        for (Cookie cookie : cookies) {
+            line.append("Set-Cookie: ");
+            line.append(cookie.getName()).append("=").append(cookie.getValue());
+            if (cookie.getMaxAge() != 0) {
+                line.append("; Expires=").append(cookie.getExpires());
+                line.append("; Max-Age=").append(cookie.getMaxAge());
+            }
+            if (ServerProperties.IS_SSL) {
+                line.append("; Secure");
+            }
+            if (cookie.isHttpOnly()) {
+                line.append("; HttpOnly");
+            }
+
+            line.append("; Path=").append(cookie.getPath());
+        }
+        out.println(line.toString());
     }
 
     public void fileNotFound() {
@@ -138,7 +164,9 @@ public class Response {
 
     public String getContentMimeType() {
         if (contentMimeType != null) return contentMimeType;
-        if (httpStatus.equals(HttpStatus.NOT_FOUND) || httpStatus.equals(HttpStatus.BAD_REQUEST) || httpStatus.equals(HttpStatus.NOT_IMPLEMENTED)) return "text/html";
+        if (httpStatus.equals(HttpStatus.NOT_FOUND) ||
+                httpStatus.equals(HttpStatus.BAD_REQUEST) ||
+                httpStatus.equals(HttpStatus.NOT_IMPLEMENTED)) return "text/html";
         if (this.requestPath.endsWith(".html")) return "text/html";
         return "text/plain";
     }

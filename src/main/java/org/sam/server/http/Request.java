@@ -18,14 +18,16 @@ public class Request {
     private final HttpMethod method;
     private final Map<String, String> headers;
     private final Map<String, String> parameterMap;
+    private final List<Cookie> cookies;
     private final String json;
 
-    private Request(String path, HttpMethod method, Map<String, String> headers, Map<String, String> parameterMap, String json) {
+    private Request(String path, HttpMethod method, Map<String, String> headers, Map<String, String> parameterMap, String json, List<Cookie> cookies) {
         this.path = path;
         this.method = method;
         this.headers = headers;
         this.parameterMap = parameterMap;
         this.json = json;
+        this.cookies = cookies;
     }
 
     public static Request create(BufferedReader br) {
@@ -35,8 +37,9 @@ public class Request {
         HttpMethod method = urlParser.method;
         String path = urlParser.path;
         Map<String, String> parameters = urlParser.parameters;
+        List<Cookie> cookies = urlParser.cookies;
 
-        return new Request(path, method, headers, parameters, urlParser.json);
+        return new Request(path, method, headers, parameters, urlParser.json, cookies);
     }
 
     public String getPath() {
@@ -71,11 +74,16 @@ public class Request {
         return this.json;
     }
 
+    public List<Cookie> getCookies() {
+        return this.cookies;
+    }
+
     private static class UrlParser {
         private String path;
         private HttpMethod method;
         private Map<String, String> headers = new HashMap<>();
         private Map<String, String> parameters = new HashMap<>();
+        private List<Cookie> cookies = new ArrayList<>();
         private String json;
 
         public UrlParser(BufferedReader br) {
@@ -122,6 +130,13 @@ public class Request {
                     int index = s.indexOf(": ");
                     String key = s.substring(0, index).toLowerCase();
                     String value = s.substring(index + 2);
+                    if ("cookie".equals(key)) {
+                        CookieStore cookieStore = new CookieStore();
+                        this.cookies = cookieStore.parseCookie(value);
+                        s = br.readLine();
+                        continue;
+                    }
+
                     this.headers.put(key, value);
                     s = br.readLine();
                 }

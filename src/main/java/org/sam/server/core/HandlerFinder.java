@@ -114,7 +114,16 @@ public class HandlerFinder {
             String name = parameter.getName();
             String value = request.getParameter(name);
 
+
             Class<?> type = parameter.getType();
+            if (type.equals(Request.class)) {
+                params.add(request);
+                continue;
+            }
+            if (type.equals(Response.class)) {
+                params.add(response);
+                continue;
+            }
 
             if (parameter.getDeclaredAnnotation(JsonRequest.class) != null) {
                 Object object = Converter.jsonToObject(request.getJson(), type);
