@@ -14,34 +14,43 @@ import java.util.*;
 public interface Request {
 
     static HttpRequest create(InputStream in) {
-
-        Request.UrlParser urlParser = new Request.UrlParser(in);
-
-        Map<String, String> headers = urlParser.headers;
-        HttpMethod method = urlParser.method;
-        String path = urlParser.path;
-        Map<String, String> parameters = urlParser.parameters;
-        Map<String, String> attributes = urlParser.attributes;
-        String json = urlParser.json;
-        List<Cookie> cookies = urlParser.cookies;
-
-        System.out.println(headers.get("Content-Type"));
-//        if (ContentType.valueOf(headers.get("Content-Type")).equals(ContentType.MULTIPART_FORM_DATA)) {
-//            return new HttpMultipartRequest(path, method, headers, parameters, attributes, json, cookies, null);
-//        }
-        return new HttpRequest(path, method, headers, parameters, attributes, json, cookies);
+        return new Request.UrlParser(in).createRequest();
     }
+
+    String getPath();
+
+    HttpMethod getMethod();
+
+    String getParameter(String key);
+
+    Map<String, String> getParameters();
+
+    Set<String> getParameterNames();
+
+    Set<String> getHeaderNames();
+
+    String getHeader(String key);
+
+    Map<String, Object> getAttributes();
+
+    String getJson();
+
+    List<Cookie> getCookies();
 
     class UrlParser {
         protected String path;
         protected HttpMethod method;
         protected Map<String, String> headers = new HashMap<>();
         protected Map<String, String> parameters = new HashMap<>();
-        protected Map<String, String> attributes = new HashMap<>();
+        protected Map<String, Object> attributes = new HashMap<>();
         protected String json;
         protected List<Cookie> cookies = new ArrayList<>();
 
         public UrlParser(InputStream in) {
+            parse(in);
+        }
+
+        private void parse(InputStream in) {
             try {
                 BufferedReader br = new BufferedReader(new InputStreamReader(in));
 
@@ -49,7 +58,6 @@ public interface Request {
                 StringTokenizer parse = new StringTokenizer(input);
                 String method = parse.nextToken().toUpperCase();
                 String requestPath = parse.nextToken().toLowerCase();
-
                 String query = parsePathAndGetQuery(requestPath);
 
                 if (!query.isEmpty()) {
@@ -59,19 +67,29 @@ public interface Request {
                 parseHeaders(br);
                 parseMethod(method);
 
-                String contentType = headers.get("content-type");
+                String contentType = headers.get("content-type") != null ? headers.get("content-type") : "";
+                String boundary = null;
+                if (contentType.startsWith(ContentType.MULTIPART_FORM_DATA.getValue())) {
+                    boundary = "--" + contentType.split("; ")[1].split("=")[1];
+                }
+
                 if (HttpMethod.get(method).equals(HttpMethod.POST) ||
                         HttpMethod.get(method).equals(HttpMethod.PUT) ||
                         ContentType.APPLICATION_JSON.getValue().equals(contentType)) {
-                    String requestBody;
 
-                    while ((requestBody = br.readLine()) != null) {
-                        System.out.println(requestBody);
+                    String temp;
+                    StringBuilder requestBody = new StringBuilder();
+                    while ((temp = br.readLine()) != null) {
+                        System.out.println(temp);
+                        requestBody.append(temp).append("\n");
                     }
-                    this.attributes = parseQuery(requestBody);
-                    System.out.println(requestBody);
                     if (ContentType.APPLICATION_JSON.getValue().equals(contentType) && this.attributes == null) {
-                        this.json = requestBody;
+                        this.json = requestBody.toString();
+                    }
+                    if (boundary != null) {
+                        this.attributes = parseMultipartBody(requestBody.toString(), boundary);
+                    } else {
+                        this.attributes = parseRequestBody(requestBody.toString());
                     }
                 }
             } catch (IOException e) {
@@ -117,8 +135,6 @@ public interface Request {
         }
 
         private Map<String, String> parseQuery(String parameters) {
-            if (parameters.startsWith("{") && parameters.endsWith("}")) return null;
-
             Map<String, String> map = new HashMap<>();
             String[] rawParameters = parameters.split("&");
             Arrays.stream(rawParameters).forEach(parameter -> {
@@ -131,6 +147,51 @@ public interface Request {
                 map.put(name, value);
             });
             return map;
+        }
+
+        private Map<String, Object> parseRequestBody(String requestBody) {
+            if (requestBody.startsWith("{") && requestBody.endsWith("}")) return null;
+            Map<String, Object> map = new HashMap<>();
+            String[] rawParameters = requestBody.split("&");
+            Arrays.stream(rawParameters).forEach(parameter -> {
+                String[] parameterPair = parameter.split("=");
+                String name = parameterPair[0];
+                String value = null;
+                if (parameterPair.length == 2) {
+                    value = parameterPair[1];
+                }
+                map.put(name, value);
+            });
+            return map;
+        }
+
+        private Map<String, Object> parseMultipartBody(String requestBody, String boundary) {
+
+            String[] elements = requestBody.split(boundary);
+            for (int i = 1; i < elements.length; i++) {
+//                System.out.print(elements[i]);
+                String[] nodes = elements[i].split("; ");
+                if (nodes.length == 1) {
+
+                }
+            }
+            return null;
+        }
+
+        public HttpRequest createRequest() {
+            Map<String, String> headers = this.headers;
+            HttpMethod method = this.method;
+            String path = this.path;
+            Map<String, String> parameters = this.parameters;
+            Map<String, Object> attributes = this.attributes;
+            String json = this.json;
+            List<Cookie> cookies = this.cookies;
+
+            String contentType = headers.get("content-type") != null ? headers.get("content-type") : "";
+            if (contentType.startsWith(ContentType.MULTIPART_FORM_DATA.getValue())) {
+                return new HttpMultipartRequest(path, method, headers, parameters, attributes, json, cookies, null);
+            }
+            return new HttpRequest(path, method, headers, parameters, attributes, json, cookies);
         }
     }
 }

@@ -6,6 +6,7 @@ import org.sam.server.common.Converter;
 import org.sam.server.common.PrimitiveWrapper;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.constant.HttpStatus;
+import org.sam.server.http.HttpMultipartRequest;
 import org.sam.server.http.HttpRequest;
 import org.sam.server.http.HttpResponse;
 import org.sam.server.http.ResponseEntity;
@@ -35,7 +36,7 @@ public class HandlerExecutor {
 
     public void execute() {
         try {
-            Map<String, String> requestParams;
+            Map<String, ?> requestParams;
             if (httpRequest.getMethod().equals(HttpMethod.POST) || httpRequest.getMethod().equals(HttpMethod.PUT)) {
                 requestParams = httpRequest.getAttributes();
             } else {
@@ -61,14 +62,14 @@ public class HandlerExecutor {
         }
     }
 
-    private List<Object> getParameters(Parameter[] parameters, Map<String, String> requestParams) {
+    private List<Object> getParameters(Parameter[] parameters, Map<String, ?> requestParams) {
         List<Object> params = new ArrayList<>();
         for (Parameter parameter : parameters) {
             String name = parameter.getName();
             Object value = requestParams.get(name);
 
             Class<?> type = parameter.getType();
-            if (type.equals(HttpRequest.class)) {
+            if (HttpRequest.class.isAssignableFrom(type)) {
                 params.add(httpRequest);
                 continue;
             }
