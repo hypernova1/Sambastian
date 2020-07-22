@@ -43,25 +43,29 @@ public class Response {
         return new Response(os, path);
     }
 
-    public void execute(String filePath, HttpStatus status) throws IOException {
+    public void execute(String filePath, HttpStatus status) {
         this.httpStatus = status;
 
         int fileLength;
-        if (getContentMimeType().equals(ContentType.JSON.getValue())) {
-            fileLength = loadJson(filePath);
-        } else {
-            fileLength = loadStaticFile(filePath);
+        try {
+            if (getContentMimeType().equals(ContentType.JSON.getValue())) {
+                fileLength = loadJson(filePath);
+            } else {
+                fileLength = loadStaticFile(filePath);
+            }
+
+            headers.put("Server", "Java HTTP Server from sam : 1.0");
+            headers.put("Date", LocalDateTime.now());
+            headers.put("Content-Type", getContentMimeType());
+            headers.put("Content-length", fileLength);
+
+            printHeader();
+
+            out.flush();
+            bos.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-
-        headers.put("Server", "Java HTTP Server from sam : 1.0");
-        headers.put("Date", LocalDateTime.now());
-        headers.put("Content-Type", getContentMimeType());
-        headers.put("Content-length", fileLength);
-
-        printHeader();
-
-        out.flush();
-        bos.flush();
     }
 
     public void addCookies(Cookie cookie) {
@@ -89,7 +93,7 @@ public class Response {
 
         byte[] bytes = json.getBytes();
         bos.write(bytes);
-        return bytes.length;
+        return bytes.length + 1;
     }
 
     private void printHeader() {
@@ -100,7 +104,7 @@ public class Response {
     }
 
     private void printCookies() {
-        StringBuilder line = new StringBuilder("");
+        StringBuilder line = new StringBuilder();
         for (Cookie cookie : cookies) {
             line.append("Set-Cookie: ");
             line.append(cookie.getName()).append("=").append(cookie.getValue());
@@ -124,22 +128,14 @@ public class Response {
         if (HttpServer.verbose) {
             System.out.println("File " + requestPath + " not found");
         }
-        try {
-            execute(FILE_NOT_FOUND, HttpStatus.NOT_FOUND);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        execute(FILE_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
     public void badRequest() {
         if (HttpServer.verbose) {
             System.out.println("Bad Request");
         }
-        try {
-            execute(BAD_REQUEST, HttpStatus.BAD_REQUEST);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        execute(BAD_REQUEST, HttpStatus.BAD_REQUEST);
     }
 
     public void methodNotImplemented() throws IOException {

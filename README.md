@@ -8,7 +8,15 @@
 $ mvn install
 ~~~
 2. maven project 생성
-3. resources/static/resource/application.properties 에 설정 추가
+3. pom.xml 의존성 추가
+~~~xml
+<dependency>
+    <groupId>org.sam.server</groupId>
+    <artifactId>sam-server</artifactId>
+    <version>1.0-SNAPSHOT</version>
+</dependency>
+~~~
+4. resources/static/resource/application.properties 에 설정 추가
 ~~~properties
 root-package=[루트 패키지 경로]
 server.port=[포트 번호]
@@ -17,7 +25,7 @@ server.port=[포트 번호]
 keyStore=[keyStore 파일명]
 keyStorePassword=[keyStore 비밀번호]
 ~~~
-4. 루트 패키지에 메인 클래스 생성 후 함수 호출
+5. 루트 패키지에 메인 클래스 생성 후 함수 호출
 ~~~java
 public class Application {
     public static void main(String[] args) {
@@ -26,7 +34,7 @@ public class Application {
 }
 ~~~
 
-5. 실행
+6. 실행
 ~~~
 server started..
 server port: 8080

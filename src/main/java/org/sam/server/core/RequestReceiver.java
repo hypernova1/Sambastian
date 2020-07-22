@@ -1,5 +1,6 @@
 package org.sam.server.core;
 
+import org.sam.server.exception.NotFoundHandlerException;
 import org.sam.server.http.Request;
 import org.sam.server.http.Response;
 
@@ -26,7 +27,14 @@ public class RequestReceiver {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(connect.getInputStream(), StandardCharsets.UTF_8))) {
             Request request = Request.create(in);
             Response response = Response.create(connect.getOutputStream(), request.getPath());
-            new HandlerFinder(request, response).findClass();
+            try {
+                HandlerInfo handlerInfo = new HandlerFinder(request, response).findHandlerMethod();
+                HandlerExecutor handlerExecutor = new HandlerExecutor(request, response, handlerInfo);
+                handlerExecutor.execute();
+            } catch (NotFoundHandlerException e) {
+                response.fileNotFound();
+                throw new IOException(e);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
