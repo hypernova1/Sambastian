@@ -14,7 +14,7 @@ import java.util.*;
  * Date: 2020/07/17
  * Time: 1:34 PM
  */
-public class Response {
+public class HttpResponse {
 
     private static final String DEFAULT_FILE = "static/index.html";
     private static final String BAD_REQUEST = "static/400.html";
@@ -33,14 +33,14 @@ public class Response {
     private HttpStatus httpStatus;
     private String contentMimeType;
 
-    public Response(OutputStream os, String path) {
+    public HttpResponse(OutputStream os, String path) {
         this.out = new PrintWriter(os);
         this.bos = new BufferedOutputStream(os);
         this.requestPath = path;
     }
 
-    public static Response create(OutputStream os, String path) {
-        return new Response(os, path);
+    public static HttpResponse create(OutputStream os, String path) {
+        return new HttpResponse(os, path);
     }
 
     public void execute(String filePath, HttpStatus status) {
@@ -48,7 +48,7 @@ public class Response {
 
         int fileLength;
         try {
-            if (getContentMimeType().equals(ContentType.JSON.getValue())) {
+            if (getContentMimeType().equals(ContentType.APPLICATION_JSON.getValue())) {
                 fileLength = loadJson(filePath);
             } else {
                 fileLength = loadStaticFile(filePath);

@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Date: 2020/07/17
  * Time: 3:47 PM
  */
-class RequestReceiverTest {
+class HttpRequestReceiverTest {
 
     @Test
     void test() {

@@ -18,6 +18,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface PutHandle {
     String value() default "/";
-    ContentType contentType() default ContentType.JSON;
+    ContentType contentType() default ContentType.APPLICATION_JSON;
     HttpMethod method() default HttpMethod.PUT;
 }

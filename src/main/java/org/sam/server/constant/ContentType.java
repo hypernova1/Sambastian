@@ -6,9 +6,10 @@ package org.sam.server.constant;
  * Time: 1:38 PM
  */
 public enum ContentType {
-    PLAIN("text/plain", EncodingType.UTF_8),
-    HTML("text/html", EncodingType.UTF_8),
-    JSON("application/json", EncodingType.UTF_8);
+    TEXT_PLAIN("text/plain", EncodingType.UTF_8),
+    TEXT_HTML("text/html", EncodingType.UTF_8),
+    APPLICATION_JSON("application/json", EncodingType.UTF_8),
+    MULTIPART_FORM_DATA("multipart/form-data", EncodingType.UTF_8);
 
     private String value;
     private EncodingType encodingType;

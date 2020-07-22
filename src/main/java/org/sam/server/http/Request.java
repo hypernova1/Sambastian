@@ -3,120 +3,77 @@ package org.sam.server.http;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
 
-import java.io.BufferedReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 /**
  * Created by melchor
- * Date: 2020/07/17
- * Time: 1:34 PM
+ * Date: 2020/07/22
+ * Time: 5:19 PM
  */
-public class Request {
+public interface Request {
 
-    private final String path;
-    private final HttpMethod method;
-    private final Map<String, String> headers;
-    private final Map<String, String> parameterMap;
-    private final List<Cookie> cookies;
-    private final String json;
+    static HttpRequest create(InputStream in) {
 
-    private Request(String path, HttpMethod method, Map<String, String> headers, Map<String, String> parameterMap, String json, List<Cookie> cookies) {
-        this.path = path;
-        this.method = method;
-        this.headers = headers;
-        this.parameterMap = parameterMap;
-        this.json = json;
-        this.cookies = cookies;
-    }
-
-    public static Request create(BufferedReader br) {
-        UrlParser urlParser = new UrlParser(br);
+        Request.UrlParser urlParser = new Request.UrlParser(in);
 
         Map<String, String> headers = urlParser.headers;
         HttpMethod method = urlParser.method;
         String path = urlParser.path;
         Map<String, String> parameters = urlParser.parameters;
+        Map<String, String> attributes = urlParser.attributes;
+        String json = urlParser.json;
         List<Cookie> cookies = urlParser.cookies;
 
-        return new Request(path, method, headers, parameters, urlParser.json, cookies);
+        System.out.println(headers.get("Content-Type"));
+//        if (ContentType.valueOf(headers.get("Content-Type")).equals(ContentType.MULTIPART_FORM_DATA)) {
+//            return new HttpMultipartRequest(path, method, headers, parameters, attributes, json, cookies, null);
+//        }
+        return new HttpRequest(path, method, headers, parameters, attributes, json, cookies);
     }
 
-    public String getPath() {
-        return this.path;
-    }
+    class UrlParser {
+        protected String path;
+        protected HttpMethod method;
+        protected Map<String, String> headers = new HashMap<>();
+        protected Map<String, String> parameters = new HashMap<>();
+        protected Map<String, String> attributes = new HashMap<>();
+        protected String json;
+        protected List<Cookie> cookies = new ArrayList<>();
 
-    public HttpMethod getMethod() {
-        return this.method;
-    }
-
-    public String getParameter(String key) {
-        return this.parameterMap.get(key);
-    }
-
-    public Map<String, String> getParameters() {
-        return this.parameterMap;
-    }
-
-    public Set<String> getParameterNames() {
-        return this.parameterMap.keySet();
-    }
-
-    public Set<String> getHeaderNames() {
-        return headers.keySet();
-    }
-
-    public String getHeader(String key) {
-        return headers.get(key);
-    }
-
-    public String getJson() {
-        return this.json;
-    }
-
-    public List<Cookie> getCookies() {
-        return this.cookies;
-    }
-
-    private static class UrlParser {
-        private String path;
-        private HttpMethod method;
-        private Map<String, String> headers = new HashMap<>();
-        private Map<String, String> parameters = new HashMap<>();
-        private List<Cookie> cookies = new ArrayList<>();
-        private String json;
-
-        public UrlParser(BufferedReader br) {
+        public UrlParser(InputStream in) {
             try {
+                BufferedReader br = new BufferedReader(new InputStreamReader(in));
+
                 String input = br.readLine();
                 StringTokenizer parse = new StringTokenizer(input);
                 String method = parse.nextToken().toUpperCase();
                 String requestPath = parse.nextToken().toLowerCase();
 
-                String rawParameter = parsePath(requestPath);
-                StringBuilder rawParameters = new StringBuilder(rawParameter);
+                String query = parsePathAndGetQuery(requestPath);
+
+                if (!query.isEmpty()) {
+                    this.parameters = parseQuery(query);
+                }
+
                 parseHeaders(br);
                 parseMethod(method);
 
-                String requestBody;
+                String contentType = headers.get("content-type");
                 if (HttpMethod.get(method).equals(HttpMethod.POST) ||
                         HttpMethod.get(method).equals(HttpMethod.PUT) ||
-                        ContentType.JSON.getValue().equals(headers.get("content-type"))) {
+                        ContentType.APPLICATION_JSON.getValue().equals(contentType)) {
+                    String requestBody;
+
                     while ((requestBody = br.readLine()) != null) {
-                        rawParameters.append(requestBody);
+                        System.out.println(requestBody);
                     }
-
-                    String s = headers.get("content-type");
-                    if (ContentType.JSON.getValue().equals(headers.get("content-type"))) {
-                        this.json = rawParameters.toString();
-                        return;
+                    this.attributes = parseQuery(requestBody);
+                    System.out.println(requestBody);
+                    if (ContentType.APPLICATION_JSON.getValue().equals(contentType) && this.attributes == null) {
+                        this.json = requestBody;
                     }
                 }
-
-                if (!rawParameters.toString().equals("")) {
-                    parseParameters(rawParameters.toString());
-                }
-
             } catch (IOException e) {
                 System.out.println("terminate thread..");
                 e.printStackTrace();
@@ -149,20 +106,20 @@ public class Request {
             this.method = HttpMethod.get(method);
         }
 
-        private String parsePath(String requestPath) {
-            this.path = requestPath;
-            int index = path.indexOf("?");
+        private String parsePathAndGetQuery(String requestPath) {
+            int index = requestPath.indexOf("?");
             if (index != -1) {
                 this.path = requestPath.substring(0, index);
                 return requestPath.substring(index + 1);
             }
+            this.path = requestPath;
             return "";
         }
 
-        private void parseParameters(String parameters) {
-            if (parameters.startsWith("{")) {
-                return;
-            }
+        private Map<String, String> parseQuery(String parameters) {
+            if (parameters.startsWith("{") && parameters.endsWith("}")) return null;
+
+            Map<String, String> map = new HashMap<>();
             String[] rawParameters = parameters.split("&");
             Arrays.stream(rawParameters).forEach(parameter -> {
                 String[] parameterPair = parameter.split("=");
@@ -171,9 +128,9 @@ public class Request {
                 if (parameterPair.length == 2) {
                     value = parameterPair[1];
                 }
-                this.parameters.put(name, value);
+                map.put(name, value);
             });
+            return map;
         }
     }
-
 }

@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Date: 2020/07/20
  * Time: 1:30 AM
  */
-class ResponseTest {
+class HttpResponseTest {
 
     @Test
     void test() {

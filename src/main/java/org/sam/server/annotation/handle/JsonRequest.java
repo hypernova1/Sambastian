@@ -16,5 +16,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 public @interface JsonRequest {
-    ContentType contentType() default ContentType.JSON;
+    ContentType contentType() default ContentType.APPLICATION_JSON;
 }
