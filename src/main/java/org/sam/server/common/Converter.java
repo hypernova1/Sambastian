@@ -23,7 +23,7 @@ public class Converter {
                     String propertyName = methodName.replace("set", "");
                     propertyName = propertyName.substring(0, 1).toLowerCase() + propertyName.substring(1);
                     String parameter = parameters.get(propertyName);
-                        declaredMethod.invoke(instance, parameter);
+                    declaredMethod.invoke(instance, parameter);
                 }
             }
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
