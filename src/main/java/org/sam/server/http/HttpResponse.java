@@ -122,7 +122,6 @@ public class HttpResponse {
             }
 
             line.append("; Path=").append(cookie.getPath());
-            System.out.println(line.toString());
             out.println(line.toString());
         }
     }

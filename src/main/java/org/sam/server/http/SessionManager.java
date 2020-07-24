@@ -27,16 +27,22 @@ public class SessionManager extends TimerTask {
         return null;
     }
 
+    public void removeSession(String id) {
+        sessionList.removeIf(session -> session.getId().equals(id));
+    }
+
     @Override
     public void run() {
-        sessionList.forEach(session -> {
+        Iterator<Session> iterator = sessionList.iterator();
+        while (iterator.hasNext()) {
+            Session session = iterator.next();
             long accessTime = session.getAccessTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
             long now = System.currentTimeMillis();
             int timeout = session.getTimeout() * 1000;
-            if (timeout > now - accessTime) {
-                sessionList.remove(session);
+            if (now - accessTime > timeout) {
+                iterator.remove();
                 System.out.println("remove Session:" + session.getId());
             }
-        });
+        }
     }
 }

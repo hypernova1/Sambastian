@@ -1,5 +1,7 @@
 package org.sam.server.http;
 
+import org.sam.server.HttpServer;
+
 import java.time.LocalDateTime;
 import java.util.Hashtable;
 import java.util.Map;
@@ -28,6 +30,10 @@ public class Session {
 
         Cookie cookie = new Cookie("sessionId", this.id);
         CookieStore.getCookies().add(cookie);
+    }
+
+    public void invalidate() {
+        HttpServer.sessionManager.removeSession(this.id);
     }
 
     public Object getAttribute(String key) {
@@ -68,10 +74,6 @@ public class Session {
 
     public int getTimeout() {
         return timeout;
-    }
-
-    public Map<String, Object> getAttribute() {
-        return attribute;
     }
 
     public void setAttribute(Map<String, Object> attribute) {
