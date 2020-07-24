@@ -42,7 +42,7 @@ public class HandlerExecutor {
                 requestParams = httpRequest.getParameters();
             }
 
-            Object[] parameters = getParameters(handlerInfo.getHandlerMethod().getParameters(), requestParams).toArray();
+            Object[] parameters = createParameters(handlerInfo.getHandlerMethod().getParameters(), requestParams).toArray();
             Object returnValue = handlerInfo.getHandlerMethod().invoke(handlerInfo.getHandlerClass().newInstance(), parameters);
             HttpStatus httpStatus = HttpStatus.OK;
             if (returnValue.getClass().equals(ResponseEntity.class)) {
@@ -61,44 +61,44 @@ public class HandlerExecutor {
         }
     }
 
-    private List<Object> getParameters(Parameter[] parameters, Map<String, ?> requestParams) {
-        List<Object> params = new ArrayList<>();
-        for (Parameter parameter : parameters) {
-            String name = parameter.getName();
+    private List<Object> createParameters(Parameter[] handlerParameters, Map<String, ?> requestParams) {
+        List<Object> inputParameter = new ArrayList<>();
+        for (Parameter handlerParameter : handlerParameters) {
+            String name = handlerParameter.getName();
             Object value = requestParams.get(name);
 
-            Class<?> type = parameter.getType();
+            Class<?> type = handlerParameter.getType();
             if (HttpRequest.class.isAssignableFrom(type)) {
-                params.add(httpRequest);
+                inputParameter.add(httpRequest);
                 continue;
             }
             if (type.equals(HttpResponse.class)) {
-                params.add(httpResponse);
+                inputParameter.add(httpResponse);
                 continue;
             }
             if (type.equals(Session.class)) {
-                addSession(params);
+                addSession(inputParameter);
                 continue;
             }
-            if (parameter.getDeclaredAnnotation(JsonRequest.class) != null) {
+            if (handlerParameter.getDeclaredAnnotation(JsonRequest.class) != null) {
                 Object object = Converter.jsonToObject(httpRequest.getJson(), type);
-                params.add(object);
+                inputParameter.add(object);
                 continue;
             }
 
             if (value != null) {
                 if (type.isPrimitive()) {
                     Object autoBoxingValue = PrimitiveWrapper.wrapPrimitiveValue(type, value.toString());
-                    params.add(autoBoxingValue);
+                    inputParameter.add(autoBoxingValue);
                 } else if (type.equals(String.class)) {
-                    params.add(value);
+                    inputParameter.add(value);
                 }
             } else {
                 Object object = Converter.parameterToObject(httpRequest.getParameters(), type);
-                params.add(object);
+                inputParameter.add(object);
             }
         }
-        return params;
+        return inputParameter;
     }
 
     private void addSession(List<Object> params) {

@@ -4,8 +4,10 @@ import org.sam.server.HttpServer;
 import org.sam.server.common.ServerProperties;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpStatus;
+import org.sam.server.exception.StaticResourcesNotFoundException;
 
 import java.io.*;
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -76,17 +78,32 @@ public class HttpResponse {
 
     private int loadStaticFile(String filePath) throws IOException {
         InputStream fis = classLoader.getResourceAsStream(filePath);
+        File staticFile = new File("src/main" + filePath);
 
-        if (fis == null) {
+        if (fis == null && !staticFile.exists()) {
             fileNotFound();
             return 0;
         }
 
         byte[] fileData = new byte[1024];
-        int fileLength = fis.read(fileData);
+        int fileLength = 0;
+        if (staticFile.exists()) {
+            fileLength = (int) staticFile.length();
+            fileData = readFileData(staticFile, fileLength);
+        } else {
+            assert fis != null;
+        }
+
         bos.write(fileData, 0, fileLength);
 
         return fileLength;
+    }
+
+    private byte[] readFileData(File file, int fileLength) throws IOException {
+        byte[] fileData = new byte[fileLength];
+        FileInputStream fileIn = new FileInputStream(file);
+        fileIn.read(fileData);
+        return fileData;
     }
 
     private int loadJson(String json) throws IOException {
@@ -122,7 +139,6 @@ public class HttpResponse {
             }
 
             line.append("; Path=").append(cookie.getPath());
-            System.out.println(line.toString());
             out.println(line.toString());
         }
     }
@@ -165,9 +181,12 @@ public class HttpResponse {
         if (contentMimeType != null) return contentMimeType;
         if (httpStatus.equals(HttpStatus.NOT_FOUND) ||
                 httpStatus.equals(HttpStatus.BAD_REQUEST) ||
-                httpStatus.equals(HttpStatus.NOT_IMPLEMENTED)) return "text/html";
-        if (this.requestPath.endsWith(".html")) return "text/html";
-        return "text/plain";
+                httpStatus.equals(HttpStatus.NOT_IMPLEMENTED) ||
+                this.requestPath.endsWith(".html")) return ContentType.TEXT_HTML.getValue();
+        if (requestPath.endsWith(".css")) return ContentType.CSS.getValue();
+        if (requestPath.endsWith(".js")) return ContentType.JAVASCRIPT.getValue();
+
+        return ContentType.TEXT_PLAIN.getValue();
     }
 
     public void setHeader(String key, String value) {
@@ -182,4 +201,8 @@ public class HttpResponse {
         return headers.keySet();
     }
 
+    public void getStaticResources() {
+        String filePath = requestPath.replace("/resources", "/resources/static");
+        execute(filePath, HttpStatus.OK);
+    }
 }

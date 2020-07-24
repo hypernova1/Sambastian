@@ -65,7 +65,6 @@ public class HttpServer implements Runnable {
             if (verbose) {
                 System.out.println("server started..");
                 System.out.println("server port: " + port);
-
             }
 
             sessionManager = new SessionManager();

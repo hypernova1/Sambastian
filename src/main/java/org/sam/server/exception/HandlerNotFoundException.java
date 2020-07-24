@@ -5,8 +5,8 @@ package org.sam.server.exception;
  * Date: 2020/07/17
  * Time: 4:53 PM
  */
-public class NotFoundHandlerException extends RuntimeException {
-    public NotFoundHandlerException() {
+public class HandlerNotFoundException extends RuntimeException {
+    public HandlerNotFoundException() {
         super("not found handler");
     }
 }

@@ -1,15 +1,13 @@
 package org.sam.server.core;
 
-import org.sam.server.exception.NotFoundHandlerException;
+import org.sam.server.constant.HttpStatus;
+import org.sam.server.exception.HandlerNotFoundException;
 import org.sam.server.http.HttpRequest;
 import org.sam.server.http.HttpResponse;
 import org.sam.server.http.Request;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Created by melchor
@@ -29,10 +27,14 @@ public class RequestReceiver {
             HttpRequest httpRequest = Request.create(connect.getInputStream());
             HttpResponse httpResponse = HttpResponse.create(connect.getOutputStream(), httpRequest.getPath());
             try {
-                HandlerInfo handlerInfo = new HandlerFinder(httpRequest, httpResponse).findHandlerMethod();
-                HandlerExecutor handlerExecutor = new HandlerExecutor(httpRequest, httpResponse, handlerInfo);
-                handlerExecutor.execute();
-            } catch (NotFoundHandlerException e) {
+                if (httpRequest.getPath().startsWith("/resources")) {
+                    httpResponse.getStaticResources();
+                } else {
+                    HandlerInfo handlerInfo = new HandlerFinder(httpRequest, httpResponse).findHandlerMethod();
+                    HandlerExecutor handlerExecutor = new HandlerExecutor(httpRequest, httpResponse, handlerInfo);
+                    handlerExecutor.execute();
+                }
+            } catch (HandlerNotFoundException e) {
                 httpResponse.fileNotFound();
                 throw new IOException(e);
             }

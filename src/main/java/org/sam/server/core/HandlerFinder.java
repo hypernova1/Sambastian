@@ -3,7 +3,7 @@ package org.sam.server.core;
 import org.sam.server.annotation.handle.*;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
-import org.sam.server.exception.NotFoundHandlerException;
+import org.sam.server.exception.HandlerNotFoundException;
 import org.sam.server.http.HttpRequest;
 import org.sam.server.http.HttpResponse;
 
@@ -31,17 +31,17 @@ public class HandlerFinder {
         this.httpResponse = httpResponse;
     }
 
-    public HandlerInfo findHandlerMethod() throws NotFoundHandlerException {
+    public HandlerInfo findHandlerMethod() throws HandlerNotFoundException {
         List<Class<?>> handlerClasses = BeanLoader.getHandlerClasses();
         for (Class<?> handlerClass : handlerClasses) {
             String requestPath = replaceRequestPath(handlerClass);
             Method handlerMethod = findMethod(handlerClass, requestPath);
             return new HandlerInfo(handlerClass, handlerMethod);
         }
-        throw new NotFoundHandlerException();
+        throw new HandlerNotFoundException();
     }
 
-    private Method findMethod(Class<?> handlerClass, String requestPath) throws NotFoundHandlerException {
+    private Method findMethod(Class<?> handlerClass, String requestPath) throws HandlerNotFoundException {
         Method[] declaredMethods = handlerClass.getDeclaredMethods();
         for (Method declaredMethod : declaredMethods) {
             Annotation[] declaredAnnotations = declaredMethod.getDeclaredAnnotations();
@@ -67,7 +67,7 @@ public class HandlerFinder {
                 }
             }
         }
-        throw new NotFoundHandlerException();
+        throw new HandlerNotFoundException();
     }
 
     private String replaceRequestPath(Class<?> handlerClass) {
