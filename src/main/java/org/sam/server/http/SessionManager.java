@@ -1,8 +1,7 @@
 package org.sam.server.http;
 
 import java.time.ZoneId;
-import java.util.List;
-import java.util.TimerTask;
+import java.util.*;
 
 /**
  * Created by melchor
@@ -11,7 +10,7 @@ import java.util.TimerTask;
  */
 public class SessionManager extends TimerTask {
 
-    private List<Session> sessionList;
+    private Set<Session> sessionList = new HashSet<>();
 
     public Session createSession() {
         Session session = new Session();
@@ -36,6 +35,7 @@ public class SessionManager extends TimerTask {
             int timeout = session.getTimeout() * 1000;
             if (timeout > now - accessTime) {
                 sessionList.remove(session);
+                System.out.println("remove Session:" + session.getId());
             }
         });
     }

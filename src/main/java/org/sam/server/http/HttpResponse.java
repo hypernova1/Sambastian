@@ -26,7 +26,7 @@ public class HttpResponse {
     private final PrintWriter out;
     private final BufferedOutputStream bos;
     private final Map<String, Object> headers = new HashMap<>();
-    private List<Cookie> cookies = new ArrayList<>();
+    private Set<Cookie> cookies = CookieStore.getCookies();
     private final String requestPath;
 
     private String filePath;
@@ -60,6 +60,8 @@ public class HttpResponse {
             headers.put("Content-length", fileLength);
 
             printHeader();
+
+            CookieStore.vacateList();
 
             out.flush();
             bos.flush();
@@ -104,8 +106,8 @@ public class HttpResponse {
     }
 
     private void printCookies() {
-        StringBuilder line = new StringBuilder();
         for (Cookie cookie : cookies) {
+            StringBuilder line = new StringBuilder();
             line.append("Set-Cookie: ");
             line.append(cookie.getName()).append("=").append(cookie.getValue());
             if (cookie.getMaxAge() != 0) {
@@ -120,8 +122,9 @@ public class HttpResponse {
             }
 
             line.append("; Path=").append(cookie.getPath());
+            System.out.println(line.toString());
+            out.println(line.toString());
         }
-        out.println(line.toString());
     }
 
     public void fileNotFound() {

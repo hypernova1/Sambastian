@@ -20,10 +20,10 @@ public class HttpRequest implements Request {
     private final Map<String, String> parameterMap;
     private final Map<String, Object> attributes;
     private final String json;
-    private final List<Cookie> cookies;
+    private final Set<Cookie> cookies;
 
     protected HttpRequest(String path, HttpMethod method, Map<String, String> headers, Map<String, String> parameterMap,
-                          Map<String, Object> attributes, String json, List<Cookie> cookies) {
+                          Map<String, Object> attributes, String json, Set<Cookie> cookies) {
         this.path = path;
         this.method = method;
         this.headers = headers;
@@ -69,7 +69,7 @@ public class HttpRequest implements Request {
         return json;
     }
 
-    public List<Cookie> getCookies() {
+    public Set<Cookie> getCookies() {
         return this.cookies;
     }
 

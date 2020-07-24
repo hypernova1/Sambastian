@@ -4,6 +4,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.TimeZone;
 
 /**
@@ -88,4 +89,18 @@ public class Cookie {
         this.path = path;
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, value);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof Cookie))
+            return false;
+        Cookie cookie = (Cookie) o;
+        return this.name.equals(cookie.name);
+    }
 }

@@ -35,7 +35,7 @@ public interface Request {
 
     String getJson();
 
-    List<Cookie> getCookies();
+    Set<Cookie> getCookies();
 
     class UrlParser {
         protected String path;
@@ -44,7 +44,7 @@ public interface Request {
         protected Map<String, String> parameters = new HashMap<>();
         protected Map<String, Object> attributes = new HashMap<>();
         protected String json;
-        protected List<Cookie> cookies = new ArrayList<>();
+        protected Set<Cookie> cookies = new HashSet<>();
 
         public UrlParser(InputStream in) {
             parse(in);
@@ -106,8 +106,7 @@ public interface Request {
                     String key = s.substring(0, index).toLowerCase();
                     String value = s.substring(index + 2);
                     if ("cookie".equals(key)) {
-                        CookieStore cookieStore = new CookieStore();
-                        this.cookies = cookieStore.parseCookie(value);
+                        this.cookies = CookieStore.parseCookie(value);
                         s = br.readLine();
                         continue;
                     }
@@ -185,7 +184,7 @@ public interface Request {
             Map<String, String> parameters = this.parameters;
             Map<String, Object> attributes = this.attributes;
             String json = this.json;
-            List<Cookie> cookies = this.cookies;
+            Set<Cookie> cookies = this.cookies;
 
             String contentType = headers.get("content-type") != null ? headers.get("content-type") : "";
             if (contentType.startsWith(ContentType.MULTIPART_FORM_DATA.getValue())) {

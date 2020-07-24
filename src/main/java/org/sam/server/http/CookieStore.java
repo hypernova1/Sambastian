@@ -1,7 +1,7 @@
 package org.sam.server.http;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by melchor
@@ -10,17 +10,27 @@ import java.util.List;
  */
 public class CookieStore {
 
-    List<Cookie> cookies = new ArrayList<>();
+    private static Set<Cookie> cookies = new HashSet<>();
 
-    public List<Cookie> parseCookie(String cookies) {
-        String[] cookiePairs = cookies.split("; ");
+    protected static Set<Cookie> getCookies() {
+        return cookies;
+    }
+
+    protected static Set<Cookie> parseCookie(String cookieStr) {
+        String[] cookiePairs = cookieStr.split("; ");
         for (String cookiePairStr : cookiePairs) {
             String[] cookiePair = cookiePairStr.split("=");
             String name = cookiePair[0];
             String value = cookiePair[1];
-            this.cookies.add(new Cookie(name, value));
+            cookies.add(new Cookie(name, value));
         }
 
-        return this.cookies;
+        return cookies;
     }
+
+    public static void vacateList() {
+        cookies = new HashSet<>();
+    }
+
+
 }

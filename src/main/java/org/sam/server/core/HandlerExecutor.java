@@ -1,21 +1,20 @@
 package org.sam.server.core;
 
 import com.google.gson.Gson;
+import org.sam.server.HttpServer;
 import org.sam.server.annotation.handle.JsonRequest;
 import org.sam.server.common.Converter;
 import org.sam.server.common.PrimitiveWrapper;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.constant.HttpStatus;
-import org.sam.server.http.HttpMultipartRequest;
-import org.sam.server.http.HttpRequest;
-import org.sam.server.http.HttpResponse;
-import org.sam.server.http.ResponseEntity;
+import org.sam.server.http.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by melchor
@@ -77,6 +76,10 @@ public class HandlerExecutor {
                 params.add(httpResponse);
                 continue;
             }
+            if (type.equals(Session.class)) {
+                addSession(params);
+                continue;
+            }
             if (parameter.getDeclaredAnnotation(JsonRequest.class) != null) {
                 Object object = Converter.jsonToObject(httpRequest.getJson(), type);
                 params.add(object);
@@ -96,5 +99,26 @@ public class HandlerExecutor {
             }
         }
         return params;
+    }
+
+    private void addSession(List<Object> params) {
+        SessionManager sessionManager = HttpServer.sessionManager;
+        Set<Cookie> cookies = httpRequest.getCookies();
+
+        if (cookies.size() == 0) {
+            Session session = sessionManager.createSession();
+            params.add(session);
+            return;
+        }
+        for (Cookie cookie : cookies) {
+            Session session = sessionManager.getSession(cookie.getValue());
+            if (cookie.getName().equals("sessionId") && session != null) {
+                session.renewAccessTime();
+                params.add(session);
+                return;
+            }
+        }
+        Session session = sessionManager.createSession();
+        params.add(session);
     }
 }

@@ -3,6 +3,7 @@ package org.sam.server.http;
 import java.time.LocalDateTime;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -17,21 +18,23 @@ public class Session {
     private LocalDateTime accessTime;
     private int timeout;
 
+    private Map<String, Object> attribute = new Hashtable<>();
+
     public Session() {
         this.id = UUID.randomUUID().toString();
         this.creationTime = LocalDateTime.now();
+        this.accessTime = LocalDateTime.now();
         this.timeout = 30;
+
+        Cookie cookie = new Cookie("sessionId", this.id);
+        CookieStore.getCookies().add(cookie);
     }
 
-    private Map<String, Object> attribute = new Hashtable<>();
-
     public Object getAttribute(String key) {
-        this.accessTime = LocalDateTime.now();
         return this.attribute.get(key);
     }
 
-    public void setAttribute(String key, String value) {
-        if (creationTime == null)
+    public void addAttribute(String key, String value) {
         this.attribute.put(key, value);
     }
 
@@ -77,5 +80,22 @@ public class Session {
 
     public LocalDateTime getExpired() {
         return this.accessTime.plusMinutes(this.timeout);
+    }
+
+    public void renewAccessTime() {
+        this.accessTime = LocalDateTime.now();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Session session = (Session) o;
+        return id.equals(session.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

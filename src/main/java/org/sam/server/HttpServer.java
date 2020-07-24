@@ -2,12 +2,14 @@ package org.sam.server;
 
 import org.sam.server.common.ServerProperties;
 import org.sam.server.core.RequestReceiver;
+import org.sam.server.http.SessionManager;
 
 import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalDateTime;
+import java.util.Timer;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -21,7 +23,7 @@ public class HttpServer implements Runnable {
 
     public static boolean verbose = true;
 
-    public static Class<?> applicationClass;
+    public static SessionManager sessionManager;
 
     private final Socket connect;
 
@@ -65,6 +67,9 @@ public class HttpServer implements Runnable {
                 System.out.println("server port: " + port);
 
             }
+
+            sessionManager = new SessionManager();
+            new Timer().schedule(sessionManager, 0, 60 * 1000);
 
             while (!Thread.currentThread().isInterrupted()) {
                 HttpServer httpServer = new HttpServer(serverSocket.accept());
