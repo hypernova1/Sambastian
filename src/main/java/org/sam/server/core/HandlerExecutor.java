@@ -111,11 +111,15 @@ public class HandlerExecutor {
             return;
         }
         for (Cookie cookie : cookies) {
-            Session session = sessionManager.getSession(cookie.getValue());
-            if (cookie.getName().equals("sessionId") && session != null) {
-                session.renewAccessTime();
-                params.add(session);
-                return;
+            if (cookie.getName().equals("sessionId")) {
+                Session session = sessionManager.getSession(cookie.getValue());
+                if (session == null) {
+                    cookies.remove(cookie);
+                } else {
+                    session.renewAccessTime();
+                    params.add(session);
+                    return;
+                }
             }
         }
         Session session = sessionManager.createSession();
