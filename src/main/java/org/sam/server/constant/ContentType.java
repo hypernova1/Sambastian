@@ -9,6 +9,11 @@ public enum ContentType {
     TEXT_PLAIN("text/plain", EncodingType.UTF_8),
     TEXT_HTML("text/html", EncodingType.UTF_8),
     APPLICATION_JSON("application/json", EncodingType.UTF_8),
+    CSS("text/css", EncodingType.UTF_8),
+    JAVASCRIPT("text/javascript", EncodingType.UTF_8),
+    PNG("image/png", EncodingType.UTF_8),
+    JPG("image/jpg", EncodingType.UTF_8),
+    JPEG("image/jpeg", EncodingType.UTF_8),
     MULTIPART_FORM_DATA("multipart/form-data", EncodingType.UTF_8);
 
     private String value;
