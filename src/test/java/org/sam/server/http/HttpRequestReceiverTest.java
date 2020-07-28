@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -26,7 +27,7 @@ class HttpRequestReceiverTest {
 
     @Test
     void test2() {
-        String multipart = "------WebKitFormBoundarybN8S4aB20v24VBLR\n" +
+        String formData = "------WebKitFormBoundarybN8S4aB20v24VBLR\n" +
                 "Content-Disposition: form-data; name=\"name\"\n" +
                 "\n" +
                 "sam\n" +
@@ -54,12 +55,19 @@ class HttpRequestReceiverTest {
                 "</html>\n" +
                 "------WebKitFormBoundarybN8S4aB20v24VBLR--";
 
-        String[] split = multipart.replace("/\\s/g", "").split("------WebKitFormBoundarybN8S4aB20v24VBLR");
+        String[] split = formData.replace("/\\s/g", "").split("------WebKitFormBoundarybN8S4aB20v24VBLR");
         List<String> multipartList = Arrays.asList(split);
-        List<String> strings = multipartList.subList(1, multipartList.size() - 1);
+        multipartList = multipartList.subList(1, multipartList.size() - 1);
 
-        System.out.println(strings.size());
+        List<Object> collect = multipartList.stream().map(multipart -> {
+            List<String> lines = Arrays.asList(multipart.split("\\n"));
+            lines = lines.stream().filter(line -> !line.isEmpty()).collect(Collectors.toList());
+            return lines;
+        }).collect(Collectors.toList());
 
+        System.out.println(collect.get(0));
+        System.out.println("--------------------");
+        System.out.println(collect.get(1));
     }
 
 }
