@@ -105,11 +105,6 @@ public class HandlerExecutor {
         SessionManager sessionManager = HttpServer.sessionManager;
         Set<Cookie> cookies = httpRequest.getCookies();
 
-        if (cookies.size() == 0) {
-            Session session = sessionManager.createSession();
-            params.add(session);
-            return;
-        }
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals("sessionId")) {
                 Session session = sessionManager.getSession(cookie.getValue());
@@ -122,6 +117,7 @@ public class HandlerExecutor {
                 }
             }
         }
+
         Session session = sessionManager.createSession();
         params.add(session);
     }

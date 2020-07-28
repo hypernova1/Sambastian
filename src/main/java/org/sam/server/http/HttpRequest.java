@@ -1,11 +1,9 @@
 package org.sam.server.http;
 
-import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by melchor

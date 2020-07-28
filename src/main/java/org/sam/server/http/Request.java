@@ -5,6 +5,9 @@ import org.sam.server.constant.HttpMethod;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Created by melchor
@@ -45,6 +48,7 @@ public interface Request {
         protected Map<String, Object> attributes = new HashMap<>();
         protected String json;
         protected Set<Cookie> cookies = new HashSet<>();
+        protected Map<String, Object> files = new HashMap<>();
 
         public UrlParser(InputStream in) {
             parse(in);
@@ -87,7 +91,7 @@ public interface Request {
                         this.json = requestBody.toString();
                     }
                     if (boundary != null) {
-                        this.attributes = parseMultipartBody(requestBody.toString(), boundary);
+                        parseMultipartBody(requestBody.toString(), boundary);
                     } else {
                         this.attributes = parseRequestBody(requestBody.toString());
                     }
@@ -164,17 +168,41 @@ public interface Request {
             return map;
         }
 
-        private Map<String, Object> parseMultipartBody(String requestBody, String boundary) {
+        private void parseMultipartBody(String requestBody, String boundary) {
+            String[] rawFormDataList = requestBody.replace("/\\s/g", "").split(boundary);
+            List<String> multipartList = Arrays.asList(rawFormDataList);
+            multipartList = multipartList.subList(1, multipartList.size() - 1);
 
-            String[] elements = requestBody.split(boundary);
-            for (int i = 1; i < elements.length; i++) {
-//                System.out.print(elements[i]);
-                String[] nodes = elements[i].split("; ");
-                if (nodes.length == 1) {
+            List<List<String>> multipartFormDataList = multipartList.stream().map(multipart -> {
+                List<String> lines = Arrays.asList(multipart.split("\\n\\n"));
+                lines = lines.stream().filter(line -> !line.isEmpty()).collect(Collectors.toList());
+                return lines;
+            }).collect(Collectors.toList());
 
+            Pattern pattern = Pattern.compile("\\\"(.*?)\\\"");
+
+            multipartFormDataList.forEach(multipartFormData -> {
+                String[] descriptions = multipartFormData.get(0).trim().split("\\n");
+
+                String name = descriptions[0].split("; ")[1];
+                Matcher matcher = pattern.matcher(name);
+                while(matcher.find()) {
+                    name = matcher.group().replace("\"", "");
                 }
-            }
-            return null;
+                if (descriptions.length == 1) {
+                    String value = multipartFormData.get(1).trim();
+                    attributes.put(name, value);
+                } else {
+                    String fileName = descriptions[0].split("; ")[2];
+                    matcher = pattern.matcher(fileName);
+                    while (matcher.find()) fileName = matcher.group().replace("\"", "");
+                    String fileType = descriptions[1].split(": ")[1];
+                    String fileData = multipartFormData.get(1);
+                    File file = new File(fileName, fileType, fileData);
+
+                    files.put(name, file);
+                }
+            });
         }
 
         public HttpRequest createRequest() {
@@ -188,7 +216,7 @@ public interface Request {
 
             String contentType = headers.get("content-type") != null ? headers.get("content-type") : "";
             if (contentType.startsWith(ContentType.MULTIPART_FORM_DATA.getValue())) {
-                return new HttpMultipartRequest(path, method, headers, parameters, attributes, json, cookies, null);
+                return new HttpMultipartRequest(path, method, headers, parameters, attributes, json, cookies, files);
             }
             return new HttpRequest(path, method, headers, parameters, attributes, json, cookies);
         }

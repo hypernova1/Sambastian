@@ -55,19 +55,37 @@ class HttpRequestReceiverTest {
                 "</html>\n" +
                 "------WebKitFormBoundarybN8S4aB20v24VBLR--";
 
-        String[] split = formData.replace("/\\s/g", "").split("------WebKitFormBoundarybN8S4aB20v24VBLR");
-        List<String> multipartList = Arrays.asList(split);
+        String[] rawFormDataList = formData.replace("/\\s/g", "").split("------WebKitFormBoundarybN8S4aB20v24VBLR");
+        List<String> multipartList = Arrays.asList(rawFormDataList);
         multipartList = multipartList.subList(1, multipartList.size() - 1);
 
-        List<Object> collect = multipartList.stream().map(multipart -> {
-            List<String> lines = Arrays.asList(multipart.split("\\n"));
+        List<List<String>> multipartFormDataList = multipartList.stream().map(multipart -> {
+            List<String> lines = Arrays.asList(multipart.split("\\n\\n"));
             lines = lines.stream().filter(line -> !line.isEmpty()).collect(Collectors.toList());
             return lines;
         }).collect(Collectors.toList());
 
-        System.out.println(collect.get(0));
-        System.out.println("--------------------");
-        System.out.println(collect.get(1));
+        Pattern pattern = Pattern.compile("\\\"(.*?)\\\"");
+
+        multipartFormDataList.forEach(multipartFormData -> {
+            String[] descriptions = multipartFormData.get(0).trim().split("\\n");
+
+            String name = descriptions[0].split("; ")[1];
+            Matcher matcher = pattern.matcher(name);
+            while(matcher.find()) {
+                name = matcher.group().replace("\"", "");
+            }
+            if (descriptions.length == 1) {
+                String data = multipartFormData.get(1).trim();
+            } else {
+                String fileName = descriptions[0].split("; ")[2];
+                matcher = pattern.matcher(fileName);
+                while (matcher.find()) fileName = matcher.group().replace("\"", "");
+                String contentType = descriptions[1].split(": ")[1];
+                String file = multipartFormData.get(1);
+            }
+
+        });
     }
 
 }
