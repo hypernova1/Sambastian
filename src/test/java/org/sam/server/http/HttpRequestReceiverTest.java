@@ -2,6 +2,8 @@ package org.sam.server.http;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,13 +54,11 @@ class HttpRequestReceiverTest {
                 "</html>\n" +
                 "------WebKitFormBoundarybN8S4aB20v24VBLR--";
 
-        String boundary = "------WebKitFormBoundarybN8S4aB20v24VBLR";
-        Pattern pattern = Pattern.compile("\\"+ boundary +".*?\\)" + boundary);
-        Matcher match = pattern.matcher(multipart);
+        String[] split = multipart.replace("/\\s/g", "").split("------WebKitFormBoundarybN8S4aB20v24VBLR");
+        List<String> multipartList = Arrays.asList(split);
+        List<String> strings = multipartList.subList(1, multipartList.size() - 1);
 
-        while (match.find()) {
-            System.out.println(match.group());
-        }
+        System.out.println(strings.size());
 
     }
 
