@@ -4,12 +4,12 @@ import org.sam.server.HttpServer;
 import org.sam.server.common.ServerProperties;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpStatus;
-import org.sam.server.exception.StaticResourcesNotFoundException;
 
 import java.io.*;
-import java.net.URL;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by melchor
@@ -18,15 +18,15 @@ import java.util.*;
  */
 public class HttpResponse {
 
+    private final ClassLoader classLoader = getClass().getClassLoader();
+
     private static final String DEFAULT_FILE = "static/index.html";
     private static final String BAD_REQUEST = "static/400.html";
     private static final String FILE_NOT_FOUND = "static/404.html";
     private static final String METHOD_NOT_SUPPORTED = "static/not_supported";
 
-    private final ClassLoader classLoader = getClass().getClassLoader();
-
-    private final PrintWriter out;
-    private final BufferedOutputStream bos;
+    private final PrintWriter writer;
+    private final BufferedOutputStream outputStream;
     private final Map<String, Object> headers = new HashMap<>();
     private Set<Cookie> cookies = CookieStore.getCookies();
     private final String requestPath;
@@ -36,8 +36,8 @@ public class HttpResponse {
     private String contentMimeType;
 
     public HttpResponse(OutputStream os, String path) {
-        this.out = new PrintWriter(os);
-        this.bos = new BufferedOutputStream(os);
+        this.writer = new PrintWriter(os);
+        this.outputStream = new BufferedOutputStream(os);
         this.requestPath = path;
     }
 
@@ -51,10 +51,8 @@ public class HttpResponse {
         int fileLength;
         try {
             if (getContentMimeType().equals(ContentType.APPLICATION_JSON.getValue())) {
-                fileLength = loadJson(filePath);
-            } else {
-                fileLength = loadStaticFile(filePath);
-            }
+                fileLength = readJson(filePath);
+            } else  fileLength = loadStaticFile(filePath);
 
             headers.put("Server", "Java HTTP Server from sam : 1.0");
             headers.put("Date", LocalDateTime.now());
@@ -64,8 +62,8 @@ public class HttpResponse {
             printHeader();
 
             CookieStore.vacateList();
-            out.flush();
-            bos.flush();
+            writer.flush();
+            outputStream.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -85,15 +83,16 @@ public class HttpResponse {
         }
 
         byte[] fileData = new byte[1024];
-        int fileLength = 0;
+        int fileLength;
         if (staticFile.exists()) {
             fileLength = (int) staticFile.length();
             fileData = readFileData(staticFile, fileLength);
         } else {
             assert fis != null;
+            fileLength = fis.read(fileData);
         }
 
-        bos.write(fileData, 0, fileLength);
+        outputStream.write(fileData, 0, fileLength);
 
         return fileLength;
     }
@@ -105,20 +104,20 @@ public class HttpResponse {
         return fileData;
     }
 
-    private int loadJson(String json) throws IOException {
+    private int readJson(String json) throws IOException {
         if (httpStatus.equals(HttpStatus.NOT_FOUND) ||
                 httpStatus.equals(HttpStatus.BAD_REQUEST)) return 0;
 
         byte[] bytes = json.getBytes();
-        bos.write(bytes);
+        outputStream.write(bytes);
         return bytes.length;
     }
 
     private void printHeader() {
-        out.println("HTTP/1.1 " + httpStatus.getCode() + " " + httpStatus.getMessage());
-        headers.keySet().forEach(key -> out.println(key + ": " + headers.get(key)));
+        writer.println("HTTP/1.1 " + httpStatus.getCode() + " " + httpStatus.getMessage());
+        headers.keySet().forEach(key -> writer.println(key + ": " + headers.get(key)));
         printCookies();
-        out.println();
+        writer.println();
     }
 
     private void printCookies() {
@@ -138,7 +137,7 @@ public class HttpResponse {
             }
 
             line.append("; Path=").append(cookie.getPath());
-            out.println(line.toString());
+            writer.println(line.toString());
         }
     }
 

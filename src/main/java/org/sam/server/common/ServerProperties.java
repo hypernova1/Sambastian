@@ -1,7 +1,5 @@
 package org.sam.server.common;
 
-import org.sam.server.HttpServer;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;

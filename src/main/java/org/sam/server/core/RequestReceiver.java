@@ -7,6 +7,8 @@ import org.sam.server.http.HttpResponse;
 import org.sam.server.http.Request;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 
 /**
@@ -24,8 +26,11 @@ public class RequestReceiver {
 
     public void analyzeRequest() {
         try {
-            HttpRequest httpRequest = Request.create(connect.getInputStream());
-            HttpResponse httpResponse = HttpResponse.create(connect.getOutputStream(), httpRequest.getPath());
+            InputStream inputStream = connect.getInputStream();
+            OutputStream outputStream = connect.getOutputStream();
+
+            HttpRequest httpRequest = Request.create(inputStream);
+            HttpResponse httpResponse = HttpResponse.create(outputStream, httpRequest.getPath());
             try {
                 if (httpRequest.getPath().startsWith("/resources")) {
                     httpResponse.getStaticResources();
@@ -40,12 +45,6 @@ public class RequestReceiver {
             }
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                connect.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 }

@@ -32,7 +32,6 @@ public class HttpServer implements Runnable {
     }
 
     public static void start() {
-
         ServerProperties.loadClass();
         String keyStore = ServerProperties.get("keyStore");
         String password = ServerProperties.get("keyStorePassword");
