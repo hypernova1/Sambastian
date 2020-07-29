@@ -48,7 +48,7 @@ public interface Request {
         protected Map<String, Object> attributes = new HashMap<>();
         protected String json;
         protected Set<Cookie> cookies = new HashSet<>();
-        protected Map<String, Object> files = new HashMap<>();
+        protected Map<String, MultipartFile> files = new HashMap<>();
 
         public UrlParser(InputStream in) {
             parse(in);
@@ -84,7 +84,6 @@ public interface Request {
                     String temp;
                     StringBuilder requestBody = new StringBuilder();
                     while ((temp = br.readLine()) != null) {
-                        System.out.println(temp);
                         requestBody.append(temp).append("\n");
                     }
                     if (ContentType.APPLICATION_JSON.getValue().equals(contentType) && this.attributes == null) {
@@ -198,7 +197,7 @@ public interface Request {
                     while (matcher.find()) fileName = matcher.group().replace("\"", "");
                     String fileType = descriptions[1].split(": ")[1];
                     String fileData = multipartFormData.get(1);
-                    File file = new File(fileName, fileType, fileData);
+                    MultipartFile file = new MultipartFile(fileName, fileType, fileData);
 
                     files.put(name, file);
                 }

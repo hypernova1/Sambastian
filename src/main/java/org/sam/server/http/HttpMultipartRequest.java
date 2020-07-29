@@ -2,9 +2,7 @@ package org.sam.server.http;
 
 import org.sam.server.constant.HttpMethod;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -15,16 +13,16 @@ import java.util.Set;
  */
 public class HttpMultipartRequest extends HttpRequest {
 
-    private Map<String, File> files;
+    private Map<String, MultipartFile> files;
 
     protected HttpMultipartRequest(String path, HttpMethod method, Map<String, String> headers,
                                    Map<String, String> parameterMap, Map<String, Object> attributes,
-                                   String json, Set<Cookie> cookies, Map<String, File> files) {
+                                   String json, Set<Cookie> cookies, Map<String, MultipartFile> files) {
         super(path, method, headers, parameterMap, attributes, json, cookies);
         this.files = files;
     }
 
-    public void getFile(String name) {
-
+    public MultipartFile getFile(String name) {
+        return files.get(name);
     }
 }

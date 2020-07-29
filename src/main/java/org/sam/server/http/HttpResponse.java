@@ -64,7 +64,6 @@ public class HttpResponse {
             printHeader();
 
             CookieStore.vacateList();
-
             out.flush();
             bos.flush();
         } catch (IOException e) {
@@ -112,7 +111,7 @@ public class HttpResponse {
 
         byte[] bytes = json.getBytes();
         bos.write(bytes);
-        return bytes.length + 1;
+        return bytes.length;
     }
 
     private void printHeader() {
