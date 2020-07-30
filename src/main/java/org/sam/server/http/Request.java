@@ -83,7 +83,7 @@ public interface Request {
 
                     String temp;
                     StringBuilder requestBody = new StringBuilder();
-                    while ((temp = br.readLine()) != null) {
+                    while (br.ready() && (temp = br.readLine()) != null) {
                         requestBody.append(temp).append("\n");
                     }
                     if (ContentType.APPLICATION_JSON.getValue().equals(contentType) && this.attributes == null) {
