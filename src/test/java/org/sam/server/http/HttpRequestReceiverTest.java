@@ -2,6 +2,9 @@ package org.sam.server.http;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -26,7 +29,7 @@ class HttpRequestReceiverTest {
     }
 
     @Test
-    void test2() {
+    void test2() throws IOException {
         String formData = "------WebKitFormBoundarybN8S4aB20v24VBLR\n" +
                 "Content-Disposition: form-data; name=\"name\"\n" +
                 "\n" +
@@ -58,6 +61,48 @@ class HttpRequestReceiverTest {
         String[] rawFormDataList = formData.replace("/\\s/g", "").split("------WebKitFormBoundarybN8S4aB20v24VBLR");
         List<String> multipartList = Arrays.asList(rawFormDataList);
         multipartList = multipartList.subList(1, multipartList.size() - 1);
+
+        multipartList.forEach(multipartText -> {
+            Pattern pattern = Pattern.compile("\\\"(.*?)\\\"");
+            String name;
+            int doubleNewLineIndex = multipartText.indexOf("\n\n");
+            String fileInfo = multipartText.substring(0, doubleNewLineIndex).replaceAll("^\\s+","");
+            int isFileData = fileInfo.indexOf("\n");
+            if (isFileData == -1) {
+                name = fileInfo.split("; ")[1];
+                String value = multipartText.substring(doubleNewLineIndex).trim();
+            } else {
+                String[] fileInfoArr = fileInfo.split("\n");
+                name = fileInfoArr[0].split("; ")[1];
+                String contentType = fileInfoArr[1].split(": ")[1];
+                String fileData = multipartText.substring(doubleNewLineIndex).replaceAll("^\\s+", "");
+                String fileName = fileInfoArr[0].split("; ")[2];
+                Matcher matcher = pattern.matcher(fileName);
+                while(matcher.find()) {
+                    fileName = matcher.group().replace("\"", "");
+                }
+            }
+            Matcher matcher = pattern.matcher(name);
+            while(matcher.find()) {
+                name = matcher.group().replace("\"", "");
+            }
+        });
+
+
+        String text = multipartList.get(0);
+        int doubleNewLineIndex = text.indexOf("\n\n");
+
+        String fileInfo = text.substring(0, doubleNewLineIndex);
+        int isFileData = fileInfo.replaceAll("^\\s+","").indexOf("\n");
+
+
+        String fileData = multipartList.get(1).replaceAll("^\\s+", "");
+        int index = fileData.indexOf("\n\n");
+        String substring2 = fileData.substring(0, index);
+        String substring = fileData.substring(index).replaceAll("^\\s+", "");
+        FileOutputStream fileOutputStream = new FileOutputStream("/Users/melchor/test.txt");
+        fileOutputStream.write(substring.getBytes());
+
 
         List<List<String>> multipartFormDataList = multipartList.stream().map(multipart -> {
             List<String> lines = Arrays.asList(multipart.split("\\n\\n"));

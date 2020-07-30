@@ -171,34 +171,40 @@ public interface Request {
             String[] rawFormDataList = requestBody.replace("/\\s/g", "").split(boundary);
             List<String> multipartList = Arrays.asList(rawFormDataList);
             multipartList = multipartList.subList(1, multipartList.size() - 1);
-
-            List<List<String>> multipartFormDataList = multipartList.stream().map(multipart -> {
-                List<String> lines = Arrays.asList(multipart.split("\\n\\n"));
-                lines = lines.stream().filter(line -> !line.isEmpty()).collect(Collectors.toList());
-                return lines;
-            }).collect(Collectors.toList());
-
-            Pattern pattern = Pattern.compile("\\\"(.*?)\\\"");
-
-            multipartFormDataList.forEach(multipartFormData -> {
-                String[] descriptions = multipartFormData.get(0).trim().split("\\n");
-
-                String name = descriptions[0].split("; ")[1];
+            multipartList.forEach(multipartText -> {
+                Pattern pattern = Pattern.compile("\\\"(.*?)\\\"");
+                String name;
+                String value;
+                String contentType = null;
+                String fileName = null;
+                int doubleNewLineIndex = multipartText.indexOf("\n\n");
+                String fileInfo = multipartText.substring(0, doubleNewLineIndex).replaceAll("^\\s+","");
+                int isFileData = fileInfo.indexOf("\n");
+                if (isFileData == -1) {
+                    name = fileInfo.split("; ")[1];
+                    value = multipartText.substring(doubleNewLineIndex).trim();
+                } else {
+                    String[] fileInfoArr = fileInfo.split("\n");
+                    name = fileInfoArr[0].split("; ")[1];
+                    contentType = fileInfoArr[1].split(": ")[1];
+                    value = multipartText.substring(doubleNewLineIndex).replaceAll("^\\s+", "");
+                    int lastNewLineIndex = value.lastIndexOf("\n");
+                    value = value.substring(0, lastNewLineIndex);
+                    fileName = fileInfoArr[0].split("; ")[2];
+                    Matcher matcher = pattern.matcher(fileName);
+                    while(matcher.find()) {
+                        fileName = matcher.group().replace("\"", "");
+                    }
+                }
                 Matcher matcher = pattern.matcher(name);
                 while(matcher.find()) {
                     name = matcher.group().replace("\"", "");
                 }
-                if (descriptions.length == 1) {
-                    String value = multipartFormData.get(1).trim();
+
+                if (fileName == null) {
                     attributes.put(name, value);
                 } else {
-                    String fileName = descriptions[0].split("; ")[2];
-                    matcher = pattern.matcher(fileName);
-                    while (matcher.find()) fileName = matcher.group().replace("\"", "");
-                    String fileType = descriptions[1].split(": ")[1];
-                    String fileData = multipartFormData.get(1);
-                    MultipartFile file = new MultipartFile(fileName, fileType, fileData);
-
+                    MultipartFile file = new MultipartFile(fileName, contentType, value);
                     files.put(name, file);
                 }
             });

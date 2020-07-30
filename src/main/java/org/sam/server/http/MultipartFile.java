@@ -22,7 +22,10 @@ public class MultipartFile {
 
     public void saveTo(String path) throws IOException {
         FileOutputStream outputStream = new FileOutputStream(path);
-        outputStream.write(fileData.getBytes());
+        byte[] bytes = fileData.getBytes();
+        outputStream.write(bytes);
+        outputStream.flush();
+        outputStream.close();
     }
 
     public String getName() {
