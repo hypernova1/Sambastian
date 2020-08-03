@@ -3,9 +3,7 @@ package org.sam.server.http;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.*;
 
 /**
@@ -232,46 +230,56 @@ public interface Request {
             StringBuilder sb = new StringBuilder();
             int i;
             int loopCnt = 0;
+            String name = null;
+            String value;
+            String filename = null;
+            String contentType = null;
+            boolean isFile = false;
             while ((i = in.read()) != -1) {
-                String name = null;
-                String value;
-                String filename = null;
-                String contentType = null;
                 char c = (char) i;
                 sb.append(c);
-                if (sb.toString().endsWith("\r\n") && !sb.toString().trim().equals("")) {
+                String line = sb.toString();
+                if (!line.equals("\r\n") && line.endsWith("\r\n")) {
                     if (loopCnt == 0) {
-                        String contentDisposition = sb.toString();
-                        System.out.println(contentDisposition);
-                        String[] split = contentDisposition.split("\"");
+                        String[] split = line.split("\"");
                         name = split[1];
-                        if (split.length == 4) {
+                        loopCnt++;
+                        sb.setLength(0);
+                        if (split.length == 5) {
                             filename = split[3];
+                            isFile = true;
                         }
-                    } else if (loopCnt == 1 && !sb.toString().equals("\r\n")) {
+                        continue;
+                    } else if (loopCnt == 1 && isFile) {
                         int index = sb.toString().indexOf(": ");
                         contentType = sb.toString().substring(index + 2);
                         parseFile(in, boundary);
-                    }
-
-                    if (sb.toString().contains(boundary + "--")) return;
-
-                    if (sb.toString().contains(boundary)) {
-                        System.out.println("name: " + name);
-                        System.out.println("filename: " + filename);
-                        System.out.println("contentType: " + contentType);
                         loopCnt = 0;
                         sb.setLength(0);
                         continue;
+                    } else if (loopCnt == 1) {
+                        value = line;
                     }
-                    sb.setLength(0);
-                    loopCnt++;
+
+                    if (line.contains(boundary)) {
+                        loopCnt = 0;
+                        sb.setLength(0);
+                    }
+                    if (line.contains(boundary + "--")) return;
                 }
             }
         }
 
-        private void parseFile(BufferedInputStream in, String boundary) {
-
+        private void parseFile(BufferedInputStream in, String boundary) throws IOException {
+            FileOutputStream fos = new FileOutputStream("/Users/melchor/보안카드.jpeg");
+            int i;
+            in.read();
+            in.read();
+            while ((i = in.read()) != -1) {
+                fos.write(i);
+            }
+            fos.flush();
+            fos.close();
         }
 
         public HttpRequest createRequest() {

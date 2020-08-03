@@ -15,28 +15,28 @@ class MultipartFileTest {
 
     @Test
     void writeFile() throws IOException {
-        InputStream fis = new FileInputStream("/Users/melchor/Downloads/download.jpeg");
-        BufferedReader br = new BufferedReader(new InputStreamReader(fis));
-
-        FileWriter writer = new FileWriter(new File("/Users/melchor/download.jpeg"));
-        BufferedWriter bw = new BufferedWriter(writer);
-        int j ;
-        while ((j = br.read()) != -1) {
+        InputStream fis = new FileInputStream("/Users/melchor/Downloads/보안카드.jpeg");
+//        BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+//
+//        FileWriter writer = new FileWriter(new File("/Users/melchor/download.jpeg"));
+//        BufferedWriter bw = new BufferedWriter(writer);
+//        int j ;
+//        while ((j = br.read()) != -1) {
 //            bw.write(j);
-            System.out.println(j);
-        }
-        bw.flush();
-        bw.close();
-
-//        int i;
-//        File file = new File("/Users/melchor/download.jpeg");
-//        FileOutputStream fos = new FileOutputStream(file);
-//        while ((i = fis.read()) != -1) {
-//            fos.write(i);
-//            System.out.println(i);
+//            System.out.println(j);
 //        }
-//        fos.flush();
-//        fos.close();
+//        bw.flush();
+//        bw.close();
+
+        int i;
+        File file = new File("/Users/melchor/download.jpeg");
+        FileOutputStream fos = new FileOutputStream(file);
+        while ((i = fis.read()) != -1) {
+            fos.write(i);
+            System.out.println(i);
+        }
+        fos.flush();
+        fos.close();
     }
 
 }
