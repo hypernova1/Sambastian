@@ -1,7 +1,7 @@
 package org.sam.server.http;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Created by melchor
@@ -21,11 +21,19 @@ public class MultipartFile {
     }
 
     public void saveTo(String path) throws IOException {
-        FileOutputStream outputStream = new FileOutputStream(path);
         byte[] bytes = fileData.getBytes();
-        outputStream.write(bytes);
-        outputStream.flush();
-        outputStream.close();
+        ByteArrayInputStream fis = new ByteArrayInputStream(bytes);
+        for (byte b : bytes) {
+            System.out.println(b);
+        }
+//        int i;
+//        File file = new File(path);
+//        FileOutputStream fos = new FileOutputStream(file);
+//        while ((i = fis.read()) != -1) {
+//            fos.write(i);
+//        }
+//        fos.flush();
+//        fos.close();
     }
 
     public String getName() {

@@ -85,8 +85,8 @@ public class HttpResponse extends Response {
     }
 
     private int readJson(String json) throws IOException {
-        if (httpStatus.equals(HttpStatus.NOT_FOUND) ||
-                httpStatus.equals(HttpStatus.BAD_REQUEST)) return 0;
+        if (httpStatus.equals(HttpStatus.NOT_FOUND) || httpStatus.equals(HttpStatus.BAD_REQUEST))
+            return 0;
 
         byte[] bytes = json.getBytes();
         outputStream.write(bytes);

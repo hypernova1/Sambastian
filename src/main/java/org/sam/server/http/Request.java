@@ -7,7 +7,6 @@ import java.io.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * Created by melchor
@@ -56,6 +55,18 @@ public interface Request {
 
         private void parse(InputStream in) {
             try {
+
+                int i;
+                StringBuffer sb = new StringBuffer();
+                BufferedInputStream bis = new BufferedInputStream(in);
+                StringBuilder line = new StringBuilder();
+                while ((i = bis.read()) != -1) {
+//                    if (i == '\n') System.out.println("\\n");
+                    char c = (char) i;
+                    line.append(c);
+                }
+                System.out.println(line.toString());
+
                 BufferedReader br = new BufferedReader(new InputStreamReader(in));
 
                 String input = br.readLine();
