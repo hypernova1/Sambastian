@@ -133,4 +133,13 @@ class HttpRequestReceiverTest {
         });
     }
 
+    @Test
+    void split() {
+        String str = "Content-Disposition: form-data; name=\"file\"; filename=\"Untitled2.rtf\"";
+        String[] split = str.split("\"");
+        System.out.println(split.length);
+        System.out.println(split[1]);
+        System.out.println(split[3]);
+    }
+
 }
