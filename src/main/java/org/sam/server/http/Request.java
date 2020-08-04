@@ -181,7 +181,7 @@ public interface Request {
             while ((i = in.read()) != -1) {
                 char c = (char) i;
                 sb.append(c);
-                if (sb.toString().contains(boundary)) {
+                if (sb.toString().contains(boundary + "\r\n")) {
                     lineParser(in, boundary);
                     sb.setLength(0);
                 }
@@ -191,35 +191,38 @@ public interface Request {
         private void lineParser(BufferedInputStream in, String boundary) throws IOException {
             StringBuilder sb = new StringBuilder();
             int i;
+            int j = 0;
             int loopCnt = 0;
             String name = null;
             String value;
             String filename = null;
             String contentType = null;
             boolean isFile = false;
+            int available = in.available();
+            byte[] data = new byte[available];
             while ((i = in.read()) != -1) {
-                sb.append((char) i);
-                String line = sb.toString();
-                if (!line.equals("\r\n") && line.endsWith("\r\n")) {
-                    System.out.println(line);
+                data[j] = (byte) i;
+                if (data[j] == '\n') {
+                    data = Arrays.copyOfRange(data, 0, j);
+                    String line = new String(data, StandardCharsets.UTF_8);
+                    data = new byte[available];
+                    j = 0;
                     if (loopCnt == 0) {
                         String[] split = line.split("\"");
                         name = split[1];
                         loopCnt++;
-                        sb.setLength(0);
                         if (split.length == 5) {
                             filename = split[3];
                             isFile = true;
                         }
                         continue;
                     } else if (loopCnt == 1 && isFile) {
-                        int index = sb.toString().indexOf(": ");
-                        contentType = sb.toString().substring(index + 2);
+                        int index = line.indexOf(": ");
+                        contentType = line.substring(index + 2);
                         byte[] fileData = parseFile(in, boundary);
                         FileOutputStream fos = new FileOutputStream("/Users/melchor/" + filename);
                         fos.write(fileData);
                         loopCnt = 0;
-                        sb.setLength(0);
                         continue;
                     } else if (loopCnt == 1) {
                         value = line;
@@ -227,10 +230,11 @@ public interface Request {
 
                     if (line.contains(boundary)) {
                         loopCnt = 0;
-                        sb.setLength(0);
                     }
                     if (line.contains(boundary + "--")) return;
+
                 }
+                j++;
             }
         }
 
