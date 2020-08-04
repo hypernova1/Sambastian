@@ -1,7 +1,8 @@
 package org.sam.server.http;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 /**
  * Created by melchor
@@ -10,38 +11,30 @@ import java.nio.charset.StandardCharsets;
  */
 public class MultipartFile {
 
-    private final String name;
-    private final String type;
-    private final String fileData;
+    private final String fileName;
+    private final String contentType;
+    private final byte[] fileData;
 
-    protected MultipartFile(String name, String type, String fileData) {
-        this.name = name;
-        this.type = type;
+    protected MultipartFile(String fileName, String contentType, byte[] fileData) {
+        this.fileName = fileName;
+        this.contentType = contentType;
         this.fileData = fileData;
     }
 
     public void saveTo(String path) throws IOException {
-        byte[] bytes = fileData.getBytes();
-        ByteArrayInputStream fis = new ByteArrayInputStream(bytes);
-        for (byte b : bytes) {
-            System.out.println(b);
-        }
-//        int i;
-//        File file = new File(path);
-//        FileOutputStream fos = new FileOutputStream(file);
-//        while ((i = fis.read()) != -1) {
-//            fos.write(i);
-//        }
-//        fos.flush();
-//        fos.close();
+        File file = new File(path);
+        FileOutputStream fos = new FileOutputStream(file);
+        fos.write(fileData);
+        fos.flush();
+        fos.close();
     }
 
-    public String getName() {
-        return name;
+    public String getContentType() {
+        return contentType;
     }
 
-    public String getType() {
-        return type;
+    public String getFileName() {
+        return fileName;
     }
 
 }

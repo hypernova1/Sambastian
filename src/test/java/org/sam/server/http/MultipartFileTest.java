@@ -16,17 +16,6 @@ class MultipartFileTest {
     @Test
     void writeFile() throws IOException {
         InputStream fis = new FileInputStream("/Users/melchor/Downloads/download.jpeg");
-//        BufferedReader br = new BufferedReader(new InputStreamReader(fis));
-//
-//        FileWriter writer = new FileWriter(new File("/Users/melchor/download.jpeg"));
-//        BufferedWriter bw = new BufferedWriter(writer);
-//        int j ;
-//        while ((j = br.read()) != -1) {
-//            bw.write(j);
-//            System.out.println(j);
-//        }
-//        bw.flush();
-//        bw.close();
 
         int i;
         File file = new File("/Users/melchor/download.jpeg");
