@@ -3,7 +3,10 @@ package org.sam.server.http;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -183,47 +186,6 @@ public interface Request {
                     sb.setLength(0);
                 }
             }
-
-//            String[] rawFormDataList = requestBody.replace("/\\s/g", "").split(boundary);
-//            List<String> multipartList = Arrays.asList(rawFormDataList);
-//            multipartList = multipartList.subList(1, multipartList.size() - 1);
-//            multipartList.forEach(multipartText -> {
-//                Pattern pattern = Pattern.compile("\\\"(.*?)\\\"");
-//                String name;
-//                String value;
-//                String contentType = null;
-//                String fileName = null;
-//                int doubleNewLineIndex = multipartText.indexOf("\n\n");
-//                String fileInfo = multipartText.substring(0, doubleNewLineIndex).replaceAll("^\\s+","");
-//                int isFileData = fileInfo.indexOf("\n");
-//                if (isFileData == -1) {
-//                    name = fileInfo.split("; ")[1];
-//                    value = multipartText.substring(doubleNewLineIndex).trim();
-//                } else {
-//                    String[] fileInfoArr = fileInfo.split("\n");
-//                    name = fileInfoArr[0].split("; ")[1];
-//                    contentType = fileInfoArr[1].split(": ")[1];
-//                    value = multipartText.substring(doubleNewLineIndex).replaceAll("^\\s+", "");
-//                    int lastNewLineIndex = value.lastIndexOf("\n");
-//                    value = value.substring(0, lastNewLineIndex);
-//                    fileName = fileInfoArr[0].split("; ")[2];
-//                    Matcher matcher = pattern.matcher(fileName);
-//                    while(matcher.find()) {
-//                        fileName = matcher.group().replace("\"", "");
-//                    }
-//                }
-//                Matcher matcher = pattern.matcher(name);
-//                while(matcher.find()) {
-//                    name = matcher.group().replace("\"", "");
-//                }
-//
-//                if (fileName == null) {
-//                    attributes.put(name, value);
-//                } else {
-//                    MultipartFile file = new MultipartFile(fileName, contentType, value);
-//                    files.put(name, file);
-//                }
-//            });
         }
 
         private void lineParser(BufferedInputStream in, String boundary) throws IOException {
@@ -236,10 +198,10 @@ public interface Request {
             String contentType = null;
             boolean isFile = false;
             while ((i = in.read()) != -1) {
-                char c = (char) i;
-                sb.append(c);
+                sb.append((char) i);
                 String line = sb.toString();
                 if (!line.equals("\r\n") && line.endsWith("\r\n")) {
+                    System.out.println(line);
                     if (loopCnt == 0) {
                         String[] split = line.split("\"");
                         name = split[1];
@@ -254,6 +216,8 @@ public interface Request {
                         int index = sb.toString().indexOf(": ");
                         contentType = sb.toString().substring(index + 2);
                         byte[] fileData = parseFile(in, boundary);
+                        FileOutputStream fos = new FileOutputStream("/Users/melchor/" + filename);
+                        fos.write(fileData);
                         loopCnt = 0;
                         sb.setLength(0);
                         continue;
@@ -273,26 +237,25 @@ public interface Request {
         private byte[] parseFile(BufferedInputStream in, String boundary) throws IOException {
             in.read();
             in.read();
-            byte[] data = new byte[in.available()];
+            byte[] data = new byte[1024 * 8];
             int i;
-            int j = 0;
             int fileLength = 0;
             while ((i = in.read()) != -1) {
-                data[j] = (byte) i;
-                if (data[j] == '\n') {
-                    String content = new String(data, StandardCharsets.UTF_8);
-                    String content2 = new String(boundary.getBytes(), StandardCharsets.UTF_8);
-                    int index = content.indexOf(content2);
-                    if (index != -1) {
-                        fileLength = j;
-                        break;
-                    }
+                if (data.length == fileLength) {
+                    byte[] temp = new byte[data.length * 2];
+                    System.arraycopy(data, 0, temp, 0, data.length);
+                    data = temp;
                 }
-                j++;
+                data[fileLength] = (byte) i;
+                if (data[fileLength] == '\n') {
+                    String content = new String(data, StandardCharsets.UTF_8);
+                    String boundayByte = new String(boundary.getBytes(), StandardCharsets.UTF_8);
+                    int index = content.indexOf(boundayByte);
+                    if (index != -1) break;
+                }
+                fileLength++;
             }
-            data = Arrays.copyOfRange(data, 0, data.length - 6 - boundary.getBytes().length);
-            FileOutputStream fos = new FileOutputStream("/Users/melchor/test.pptx");
-            fos.write(data);
+            data = Arrays.copyOfRange(data, 0, fileLength - boundary.getBytes().length - 5);
             return data;
         }
 

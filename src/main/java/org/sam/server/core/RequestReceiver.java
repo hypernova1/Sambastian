@@ -1,6 +1,5 @@
 package org.sam.server.core;
 
-import org.sam.server.constant.HttpStatus;
 import org.sam.server.exception.HandlerNotFoundException;
 import org.sam.server.http.HttpRequest;
 import org.sam.server.http.HttpResponse;
