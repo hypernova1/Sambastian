@@ -1,5 +1,5 @@
 # HTTP Server
-Socket을 이용하여 자바로 웹 서버 구현
+자바 Socket을 이용하여 HTTP 서버 구현
 
 ### 사용 방법
 0. jdk 1.8 이상 설치

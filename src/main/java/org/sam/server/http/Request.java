@@ -4,7 +4,6 @@ import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
 
 import java.io.BufferedInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -177,18 +176,16 @@ public interface Request {
             int i;
             StringBuilder sb = new StringBuilder();
             while ((i = in.read()) != -1) {
-                char c = (char) i;
-                sb.append(c);
+                sb.append((char) i);
                 if (sb.toString().contains(boundary + "\r\n")) {
-                    lineParser(in, boundary);
+                    lineParse(in, boundary);
                     return;
                 }
             }
         }
 
-        private void lineParser(BufferedInputStream in, String boundary) throws IOException {
-            int i;
-            int j = 0;
+        private void lineParse(BufferedInputStream in, String boundary) throws IOException {
+            int i = 0;
             int loopCnt = 0;
             String name = "";
             String value = "";
@@ -198,14 +195,15 @@ public interface Request {
             boolean isFile = false;
             int available = in.available();
             byte[] data = new byte[available];
-            while ((i = in.read()) != -1) {
-                data[j] = (byte) i;
-                if (data[j] == '\n') {
-                    data = Arrays.copyOfRange(data, 0, j);
+            int binary;
+            while ((binary = in.read()) != -1) {
+                data[i] = (byte) binary;
+                if (data[i] == '\n') {
+                    data = Arrays.copyOfRange(data, 0, i);
                     String line = new String(data, StandardCharsets.UTF_8);
 //                    System.out.println(loopCnt + ": " + line);
                     data = new byte[available];
-                    j = 0;
+                    i = 0;
                     if (loopCnt == 0) {
                         String[] split = line.split("\"");
                         name = split[1];
@@ -219,8 +217,6 @@ public interface Request {
                         int index = line.indexOf(": ");
                         contentType = line.substring(index + 2);
                         fileData = parseFile(in, boundary);
-//                        FileOutputStream fos = new FileOutputStream("/Users/melchor/" + filename);
-//                        fos.write(fileData);
                         loopCnt = 0;
                         line = boundary;
                     } else if (loopCnt == 1 && !line.contains(boundary)) {
@@ -243,16 +239,14 @@ public interface Request {
                     }
                     if (in.available() == 0) return;
                 }
-                j++;
+                i++;
             }
         }
 
         private byte[] parseFile(BufferedInputStream in, String boundary) throws IOException {
-            in.read();
-            in.read();
-            byte[] data = new byte[1024 * 8];
             int i;
             int fileLength = 0;
+            byte[] data = new byte[1024 * 8];
             while ((i = in.read()) != -1) {
                 if (data.length == fileLength) {
                     byte[] temp = new byte[data.length * 2];
@@ -268,7 +262,7 @@ public interface Request {
                 }
                 fileLength++;
             }
-            data = Arrays.copyOfRange(data, 0, fileLength - boundary.getBytes().length - 5);
+            data = Arrays.copyOfRange(data, 2, fileLength - boundary.getBytes().length - 5);
             return data;
         }
 
