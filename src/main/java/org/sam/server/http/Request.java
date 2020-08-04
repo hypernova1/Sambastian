@@ -235,7 +235,6 @@ public interface Request {
                                 Object file = this.files.get(name);
                                 if (file.getClass().equals(ArrayList.class)) {
                                     ((ArrayList<MultipartFile>) file).add(multipartFile);
-                                    System.out.println(((ArrayList<MultipartFile>) file).toString());
                                 } else {
                                     List<MultipartFile> files = new ArrayList<>();
                                     MultipartFile preFile = (MultipartFile) file;
