@@ -4,6 +4,7 @@ import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -54,7 +55,6 @@ public interface Request {
 
         private void parse(InputStream in) {
             try {
-
                 String headersPart = "";
                 int i;
                 BufferedInputStream bis = new BufferedInputStream(in);
@@ -253,7 +253,7 @@ public interface Request {
                     } else if (loopCnt == 1 && isFile) {
                         int index = sb.toString().indexOf(": ");
                         contentType = sb.toString().substring(index + 2);
-                        parseFile(in, boundary);
+                        byte[] fileData = parseFile(in, boundary);
                         loopCnt = 0;
                         sb.setLength(0);
                         continue;
@@ -270,16 +270,30 @@ public interface Request {
             }
         }
 
-        private void parseFile(BufferedInputStream in, String boundary) throws IOException {
-            FileOutputStream fos = new FileOutputStream("/Users/melchor/보안카드.jpeg");
+        private byte[] parseFile(BufferedInputStream in, String boundary) throws IOException {
+            in.read();
+            in.read();
+            byte[] data = new byte[in.available()];
             int i;
-            in.read();
-            in.read();
+            int j = 0;
+            int fileLength = 0;
             while ((i = in.read()) != -1) {
-                fos.write(i);
+                data[j] = (byte) i;
+                if (data[j] == '\n') {
+                    String content = new String(data, StandardCharsets.UTF_8);
+                    String content2 = new String(boundary.getBytes(), StandardCharsets.UTF_8);
+                    int index = content.indexOf(content2);
+                    if (index != -1) {
+                        fileLength = j;
+                        break;
+                    }
+                }
+                j++;
             }
-            fos.flush();
-            fos.close();
+            data = Arrays.copyOfRange(data, 0, data.length - 6 - boundary.getBytes().length);
+            FileOutputStream fos = new FileOutputStream("/Users/melchor/test.pptx");
+            fos.write(data);
+            return data;
         }
 
         public HttpRequest createRequest() {

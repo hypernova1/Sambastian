@@ -15,7 +15,7 @@ class MultipartFileTest {
 
     @Test
     void writeFile() throws IOException {
-        InputStream fis = new FileInputStream("/Users/melchor/Downloads/보안카드.jpeg");
+        InputStream fis = new FileInputStream("/Users/melchor/Downloads/download.jpeg");
 //        BufferedReader br = new BufferedReader(new InputStreamReader(fis));
 //
 //        FileWriter writer = new FileWriter(new File("/Users/melchor/download.jpeg"));
