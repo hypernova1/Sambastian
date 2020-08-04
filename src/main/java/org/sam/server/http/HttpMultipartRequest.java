@@ -2,7 +2,8 @@ package org.sam.server.http;
 
 import org.sam.server.constant.HttpMethod;
 
-import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -13,16 +14,33 @@ import java.util.Set;
  */
 public class HttpMultipartRequest extends HttpRequest {
 
-    private Map<String, MultipartFile> files;
+    private Map<String, Object> files;
 
     protected HttpMultipartRequest(String path, HttpMethod method, Map<String, String> headers,
                                    Map<String, String> parameterMap, Map<String, Object> attributes,
-                                   String json, Set<Cookie> cookies, Map<String, MultipartFile> files) {
+                                   String json, Set<Cookie> cookies, Map<String, Object> files) {
         super(path, method, headers, parameterMap, attributes, json, cookies);
         this.files = files;
     }
 
-    public MultipartFile getFile(String name) {
-        return files.get(name);
+    public MultipartFile getFile(String name) throws IllegalAccessException {
+        MultipartFile multipartFile = null;
+        try {
+            multipartFile = (MultipartFile) files.get(name);
+        } catch (ClassCastException e) {
+            throw new IllegalAccessException("파일이 0개 이거나 여러개입니다.");
+        }
+        return multipartFile;
+    }
+
+    public List<MultipartFile> getFiles(String name) throws IllegalAccessException {
+        ArrayList<MultipartFile> multipartFiles = null;
+        try {
+            multipartFiles = (ArrayList<MultipartFile>) files.get(name);
+        } catch (ClassCastException e) {
+            throw new IllegalAccessException("파일을 리스트로 받을 수 없습니다.");
+        }
+
+        return multipartFiles;
     }
 }

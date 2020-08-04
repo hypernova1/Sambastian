@@ -49,7 +49,7 @@ public interface Request {
         protected Map<String, Object> attributes = new HashMap<>();
         protected String json;
         protected Set<Cookie> cookies = new HashSet<>();
-        protected Map<String, MultipartFile> files = new HashMap<>();
+        protected Map<String, Object> files = new HashMap<>();
 
         public UrlParser(InputStream in) {
             parse(in);
@@ -177,6 +177,7 @@ public interface Request {
             StringBuilder sb = new StringBuilder();
             while ((i = in.read()) != -1) {
                 sb.append((char) i);
+                //첫 번째 바운더리에 도달하면
                 if (sb.toString().contains(boundary + "\r\n")) {
                     lineParse(in, boundary);
                     return;
@@ -198,35 +199,53 @@ public interface Request {
             int binary;
             while ((binary = in.read()) != -1) {
                 data[i] = (byte) binary;
-                if (data[i] == '\n') {
+                if (i != 0 && data[i - 1] == '\r' && data[i] == '\n') {
                     data = Arrays.copyOfRange(data, 0, i);
                     String line = new String(data, StandardCharsets.UTF_8);
-//                    System.out.println(loopCnt + ": " + line);
                     data = new byte[available];
                     i = 0;
                     if (loopCnt == 0) {
+                        loopCnt++;
+                        int index = line.indexOf("\"");
+                        if (index == -1) continue;
                         String[] split = line.split("\"");
                         name = split[1];
                         if (split.length == 5) {
                             filename = split[3];
                             isFile = true;
                         }
-                        loopCnt++;
                         continue;
                     } else if (loopCnt == 1 && isFile) {
                         int index = line.indexOf(": ");
                         contentType = line.substring(index + 2);
                         fileData = parseFile(in, boundary);
                         loopCnt = 0;
+                        if (fileData == null) continue;
                         line = boundary;
                     } else if (loopCnt == 1 && !line.contains(boundary)) {
                         value = line;
+                        loopCnt = 0;
+                        continue;
                     }
 
                     if (line.contains(boundary)) {
-                        if (fileData != null) {
+                        if (!filename.equals("")) {
                             MultipartFile multipartFile = new MultipartFile(filename, contentType, fileData);
-                            this.files.put(name, multipartFile);
+                            if (this.files.get(name) != null) {
+                                Object file = this.files.get(name);
+                                if (file.getClass().equals(ArrayList.class)) {
+                                    ((ArrayList<MultipartFile>) file).add(multipartFile);
+                                    System.out.println(((ArrayList<MultipartFile>) file).toString());
+                                } else {
+                                    List<MultipartFile> files = new ArrayList<>();
+                                    MultipartFile preFile = (MultipartFile) file;
+                                    files.add(preFile);
+                                    files.add(multipartFile);
+                                    this.files.put(name, files);
+                                }
+                            } else {
+                                this.files.put(name, multipartFile);
+                            }
                         } else {
                             this.attributes.put(name, value);
                         }
@@ -256,14 +275,16 @@ public interface Request {
                 data[fileLength] = (byte) i;
                 if (fileLength != 0 && data[fileLength - 1] == '\r' && data[fileLength] == '\n') {
                     String content = new String(data, StandardCharsets.UTF_8);
+                    if (content.trim().equals(boundary)) return null;
                     boundary = new String(boundary.getBytes(), StandardCharsets.UTF_8);
                     int index = content.indexOf(boundary);
                     if (index != -1) break;
                 }
                 fileLength++;
             }
-            data = Arrays.copyOfRange(data, 2, fileLength - boundary.getBytes().length - 5);
-            return data;
+
+
+            return Arrays.copyOfRange(data, 2, fileLength - boundary.getBytes().length);
         }
 
         public HttpRequest createRequest() {
