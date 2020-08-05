@@ -58,10 +58,10 @@ public interface Request {
         private void parse(InputStream in) {
             try {
                 String headersPart = "";
-                int i;
-                BufferedInputStream bis = new BufferedInputStream(in);
+                BufferedInputStream inputStream = new BufferedInputStream(in);
                 StringBuilder sb = new StringBuilder();
-                while ((i = bis.read()) != -1) {
+                int i;
+                while ((i = inputStream.read()) != -1) {
                     char c = (char) i;
                     sb.append(c);
                     if (sb.toString().endsWith("\r\n\r\n")) {
@@ -93,15 +93,9 @@ public interface Request {
                     String boundary;
                     if (contentType.startsWith(ContentType.MULTIPART_FORM_DATA.getValue())) {
                         boundary = "--" + contentType.split("; ")[1].split("=")[1];
-                        parseMultipartBody(bis, boundary);
+                        parseMultipartBody(inputStream, boundary);
                     } else {
-                        sb = new StringBuilder();
-                        while ((i = bis.read()) != -1) {
-                            char c = (char) i;
-                            sb.append(c);
-                        }
-                        requestBody = sb.toString();
-                        this.attributes = parseRequestBody(requestBody);
+                        parseRequestBody(inputStream);
                         return;
                     }
                     if (ContentType.APPLICATION_JSON.getValue().equals(contentType) && this.attributes == null) {
@@ -112,6 +106,19 @@ public interface Request {
                 System.out.println("terminate thread..");
                 e.printStackTrace();
             }
+        }
+
+        private void parseRequestBody(InputStream inputStream) throws IOException {
+            StringBuilder sb;
+            int i;
+            String requestBody;
+            sb = new StringBuilder();
+            while ((i = inputStream.read()) != -1) {
+                char c = (char) i;
+                sb.append(c);
+            }
+            requestBody = sb.toString();
+            this.attributes = parseRequestBody(requestBody);
         }
 
         private void parseHeaders(String[] headers) {
@@ -172,20 +179,19 @@ public interface Request {
             return map;
         }
 
-        private void parseMultipartBody(BufferedInputStream in, String boundary) throws IOException {
+        private void parseMultipartBody(InputStream inputStream, String boundary) throws IOException {
             int i;
             StringBuilder sb = new StringBuilder();
-            while ((i = in.read()) != -1) {
+            while ((i = inputStream.read()) != -1) {
                 sb.append((char) i);
-                //첫 번째 바운더리에 도달하면
                 if (sb.toString().contains(boundary + "\r\n")) {
-                    lineParse(in, boundary);
+                    parseMultipartLine(inputStream, boundary);
                     return;
                 }
             }
         }
 
-        private void lineParse(BufferedInputStream in, String boundary) throws IOException {
+        private void parseMultipartLine(InputStream inputStream, String boundary) throws IOException {
             int i = 0;
             int loopCnt = 0;
             String name = "";
@@ -194,15 +200,15 @@ public interface Request {
             String contentType = "";
             byte[] fileData = null;
             boolean isFile = false;
-            int available = in.available();
-            byte[] data = new byte[available];
+            int inputStreamLength = inputStream.available();
+            byte[] data = new byte[inputStreamLength];
             int binary;
-            while ((binary = in.read()) != -1) {
+            while ((binary = inputStream.read()) != -1) {
                 data[i] = (byte) binary;
                 if (i != 0 && data[i - 1] == '\r' && data[i] == '\n') {
                     data = Arrays.copyOfRange(data, 0, i);
                     String line = new String(data, StandardCharsets.UTF_8);
-                    data = new byte[available];
+                    data = new byte[inputStreamLength];
                     i = 0;
                     if (loopCnt == 0) {
                         loopCnt++;
@@ -218,7 +224,7 @@ public interface Request {
                     } else if (loopCnt == 1 && isFile) {
                         int index = line.indexOf(": ");
                         contentType = line.substring(index + 2);
-                        fileData = parseFile(in, boundary);
+                        fileData = parseFile(inputStream, boundary);
                         loopCnt = 0;
                         if (fileData == null) continue;
                         line = boundary;
@@ -229,25 +235,9 @@ public interface Request {
                     }
 
                     if (line.contains(boundary)) {
-                        if (!filename.equals("")) {
-                            MultipartFile multipartFile = new MultipartFile(filename, contentType, fileData);
-                            if (this.files.get(name) != null) {
-                                Object file = this.files.get(name);
-                                if (file.getClass().equals(ArrayList.class)) {
-                                    ((ArrayList<MultipartFile>) file).add(multipartFile);
-                                } else {
-                                    List<MultipartFile> files = new ArrayList<>();
-                                    MultipartFile preFile = (MultipartFile) file;
-                                    files.add(preFile);
-                                    files.add(multipartFile);
-                                    this.files.put(name, files);
-                                }
-                            } else {
-                                this.files.put(name, multipartFile);
-                            }
-                        } else {
-                            this.attributes.put(name, value);
-                        }
+                        if (!filename.equals("")) createMultipartFile(name, filename, contentType, fileData);
+                        else this.attributes.put(name, value);
+
                         name = "";
                         value = "";
                         filename = "";
@@ -255,17 +245,39 @@ public interface Request {
                         fileData = null;
                         loopCnt = 0;
                     }
-                    if (in.available() == 0) return;
+                    if (inputStream.available() == 0) return;
                 }
                 i++;
             }
         }
 
-        private byte[] parseFile(BufferedInputStream in, String boundary) throws IOException {
+        private void createMultipartFile(String name, String filename, String contentType, byte[] fileData) {
+            MultipartFile multipartFile = new MultipartFile(filename, contentType, fileData);
+            if (this.files.get(name) == null) {
+                this.files.put(name, multipartFile);
+                return;
+            }
+            Object file = this.files.get(name);
+            addMultipartFileToList(name, multipartFile, file);
+        }
+
+        private void addMultipartFileToList(String name, MultipartFile multipartFile, Object file) {
+            if (file.getClass().equals(ArrayList.class)) {
+                ((ArrayList<MultipartFile>) file).add(multipartFile);
+                return;
+            }
+            List<MultipartFile> files = new ArrayList<>();
+            MultipartFile preFile = (MultipartFile) file;
+            files.add(preFile);
+            files.add(multipartFile);
+            this.files.put(name, files);
+        }
+
+        private byte[] parseFile(InputStream inputStream, String boundary) throws IOException {
             int i;
             int fileLength = 0;
             byte[] data = new byte[1024 * 8];
-            while ((i = in.read()) != -1) {
+            while ((i = inputStream.read()) != -1) {
                 if (data.length == fileLength) {
                     byte[] temp = new byte[data.length * 2];
                     System.arraycopy(data, 0, temp, 0, data.length);
@@ -281,8 +293,6 @@ public interface Request {
                 }
                 fileLength++;
             }
-
-
             return Arrays.copyOfRange(data, 2, fileLength - boundary.getBytes().length);
         }
 
@@ -294,7 +304,6 @@ public interface Request {
             Map<String, Object> attributes = this.attributes;
             String json = this.json;
             Set<Cookie> cookies = this.cookies;
-
             String contentType = headers.get("content-type") != null ? headers.get("content-type") : "";
             if (contentType.startsWith(ContentType.MULTIPART_FORM_DATA.getValue())) {
                 return new HttpMultipartRequest(path, method, headers, parameters, attributes, json, cookies, files);

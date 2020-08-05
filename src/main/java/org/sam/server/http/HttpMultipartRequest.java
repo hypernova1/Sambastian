@@ -23,8 +23,8 @@ public class HttpMultipartRequest extends HttpRequest {
         this.files = files;
     }
 
-    public MultipartFile getFile(String name) throws IllegalAccessException {
-        MultipartFile multipartFile = null;
+    public MultipartFile getMultipartFile(String name) throws IllegalAccessException {
+        MultipartFile multipartFile;
         try {
             multipartFile = (MultipartFile) files.get(name);
         } catch (ClassCastException e) {
@@ -33,8 +33,8 @@ public class HttpMultipartRequest extends HttpRequest {
         return multipartFile;
     }
 
-    public List<MultipartFile> getFiles(String name) throws IllegalAccessException {
-        ArrayList<MultipartFile> multipartFiles = null;
+    public List<MultipartFile> getMultipartFileList(String name) throws IllegalAccessException {
+        List<MultipartFile> multipartFiles;
         try {
             multipartFiles = (ArrayList<MultipartFile>) files.get(name);
         } catch (ClassCastException e) {
