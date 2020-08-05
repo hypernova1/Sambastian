@@ -33,6 +33,7 @@ public class HttpMultipartRequest extends HttpRequest {
         return multipartFile;
     }
 
+    @SuppressWarnings("unchecked")
     public List<MultipartFile> getMultipartFileList(String name) throws IllegalAccessException {
         List<MultipartFile> multipartFiles;
         try {

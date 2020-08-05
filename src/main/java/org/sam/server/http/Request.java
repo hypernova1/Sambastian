@@ -261,6 +261,7 @@ public interface Request {
             addMultipartFileToList(name, multipartFile, file);
         }
 
+        @SuppressWarnings("unchecked")
         private void addMultipartFileToList(String name, MultipartFile multipartFile, Object file) {
             if (file.getClass().equals(ArrayList.class)) {
                 ((ArrayList<MultipartFile>) file).add(multipartFile);

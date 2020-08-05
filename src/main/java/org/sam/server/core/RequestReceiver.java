@@ -6,8 +6,6 @@ import org.sam.server.http.HttpResponse;
 import org.sam.server.http.Request;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.Socket;
 
 /**
@@ -25,25 +23,25 @@ public class RequestReceiver {
 
     public void analyzeRequest() {
         try {
-            InputStream inputStream = connect.getInputStream();
-            OutputStream outputStream = connect.getOutputStream();
-
-            HttpRequest httpRequest = Request.create(inputStream);
-            HttpResponse httpResponse = HttpResponse.create(outputStream, httpRequest.getPath());
-            try {
-                if (httpRequest.getPath().startsWith("/resources")) {
-                    httpResponse.getStaticResources();
-                } else {
-                    HandlerInfo handlerInfo = new HandlerFinder(httpRequest, httpResponse).findHandlerMethod();
-                    HandlerExecutor handlerExecutor = new HandlerExecutor(httpRequest, httpResponse, handlerInfo);
-                    handlerExecutor.execute();
-                }
-            } catch (HandlerNotFoundException e) {
-                httpResponse.fileNotFound();
-                throw new IOException(e);
-            }
+            HttpRequest httpRequest = Request.create(connect.getInputStream());
+            HttpResponse httpResponse = HttpResponse.create(connect.getOutputStream(), httpRequest.getPath());
+            findHandler(httpRequest, httpResponse);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void findHandler(HttpRequest httpRequest, HttpResponse httpResponse) throws IOException {
+        try {
+            if (httpRequest.getPath().startsWith("/resources")) {
+                httpResponse.getStaticResources();
+                return;
+            }
+            HandlerInfo handlerInfo = new HandlerFinder(httpRequest, httpResponse).findHandlerMethod();
+            new HandlerExecutor(httpRequest, httpResponse, handlerInfo).execute();
+        } catch (HandlerNotFoundException e) {
+            httpResponse.fileNotFound();
+            throw new IOException(e);
         }
     }
 }
