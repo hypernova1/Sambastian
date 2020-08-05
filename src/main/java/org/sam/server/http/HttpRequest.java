@@ -20,8 +20,9 @@ public class HttpRequest implements Request {
     private final String json;
     private final Set<Cookie> cookies;
 
-    protected HttpRequest(String path, HttpMethod method, Map<String, String> headers, Map<String, String> parameterMap,
-                          Map<String, Object> attributes, String json, Set<Cookie> cookies) {
+    protected HttpRequest(
+            String path, HttpMethod method, Map<String, String> headers, Map<String, String> parameterMap,
+            Map<String, Object> attributes, String json, Set<Cookie> cookies) {
         this.path = path;
         this.method = method;
         this.headers = headers;
