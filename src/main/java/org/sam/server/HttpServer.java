@@ -1,5 +1,6 @@
 package org.sam.server;
 
+import org.apache.log4j.Logger;
 import org.sam.server.common.ServerProperties;
 import org.sam.server.core.RequestReceiver;
 import org.sam.server.http.SessionManager;
@@ -20,7 +21,7 @@ import java.util.concurrent.TimeUnit;
  * Time: 1:34 PM
  */
 public class HttpServer implements Runnable {
-
+    private static Logger logger = Logger.getLogger(HttpServer.class);
     public static boolean verbose = true;
 
     public static SessionManager sessionManager;
@@ -60,8 +61,8 @@ public class HttpServer implements Runnable {
             );
 
             if (verbose) {
-                System.out.println("server started..");
-                System.out.println("server port: " + port);
+                logger.info("server started..");
+                logger.info("server port: " + port);
             }
 
             sessionManager = new SessionManager();
@@ -70,10 +71,10 @@ public class HttpServer implements Runnable {
             while (!Thread.currentThread().isInterrupted()) {
                 HttpServer httpServer = new HttpServer(serverSocket.accept());
                 if (verbose) {
-                    System.out.println("connected.." + LocalDateTime.now());
+                    logger.info("connected.." + LocalDateTime.now());
                 }
                 threadPool.execute(httpServer);
-                System.out.println("total thread count: " + threadPool.getPoolSize());
+                logger.info("total thread count: " + threadPool.getPoolSize());
             }
         } catch (IOException e) {
             e.printStackTrace();

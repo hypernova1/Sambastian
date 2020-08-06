@@ -1,5 +1,6 @@
 package org.sam.server.core;
 
+import org.apache.log4j.Logger;
 import org.sam.server.exception.HandlerNotFoundException;
 import org.sam.server.http.HttpRequest;
 import org.sam.server.http.HttpResponse;
@@ -14,6 +15,8 @@ import java.net.Socket;
  * Time: 1:34 PM
  */
 public class RequestReceiver {
+
+    private static Logger logger = Logger.getLogger(RequestReceiver.class);
 
     private final Socket connect;
 

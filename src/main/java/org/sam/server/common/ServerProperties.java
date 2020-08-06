@@ -1,5 +1,7 @@
 package org.sam.server.common;
 
+import org.apache.log4j.Logger;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -10,6 +12,8 @@ import java.util.Properties;
  * Time: 2:01 PM
  */
 public class ServerProperties {
+
+    private static Logger logger = Logger.getLogger(ServerProperties.class);
 
     private static Properties properties = new Properties();
     public static boolean IS_SSL = false;

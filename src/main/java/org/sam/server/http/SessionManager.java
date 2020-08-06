@@ -1,5 +1,7 @@
 package org.sam.server.http;
 
+import org.apache.log4j.Logger;
+
 import java.time.ZoneId;
 import java.util.*;
 
@@ -9,6 +11,8 @@ import java.util.*;
  * Time: 8:54 PM
  */
 public class SessionManager extends TimerTask {
+
+    private static Logger logger = Logger.getLogger(SessionManager.class);
 
     private Set<Session> sessionList = new HashSet<>();
 
@@ -41,7 +45,7 @@ public class SessionManager extends TimerTask {
             int timeout = session.getTimeout() * 1000;
             if (now - accessTime > timeout) {
                 iterator.remove();
-                System.out.println("remove Session:" + session.getId());
+                logger.info("remove Session:" + session.getId());
             }
         }
     }

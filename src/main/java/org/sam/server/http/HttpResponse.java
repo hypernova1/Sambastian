@@ -1,5 +1,6 @@
 package org.sam.server.http;
 
+import org.apache.log4j.Logger;
 import org.sam.server.HttpServer;
 import org.sam.server.common.ServerProperties;
 import org.sam.server.constant.ContentType;
@@ -17,6 +18,8 @@ import java.util.Set;
  * Time: 1:34 PM
  */
 public class HttpResponse extends Response {
+
+    Logger logger = Logger.getLogger(HttpResponse.class);
 
     private final Map<String, Object> headers = new HashMap<>();
     private Set<Cookie> cookies = CookieStore.getCookies();
@@ -125,20 +128,6 @@ public class HttpResponse extends Response {
         }
     }
 
-    public void fileNotFound() {
-        if (HttpServer.verbose) {
-            System.out.println("File " + requestPath + " not found");
-        }
-        execute(FILE_NOT_FOUND, HttpStatus.NOT_FOUND);
-    }
-
-    public void badRequest() {
-        if (HttpServer.verbose) {
-            System.out.println("Bad Request");
-        }
-        execute(BAD_REQUEST, HttpStatus.BAD_REQUEST);
-    }
-
     public void setContentMimeType(ContentType contentMimeType) {
         this.contentMimeType = contentMimeType.getValue();
     }
@@ -176,9 +165,23 @@ public class HttpResponse extends Response {
         execute(filePath, HttpStatus.OK);
     }
 
+    public void fileNotFound() {
+        if (HttpServer.verbose) {
+            logger.warn("File " + requestPath + " not found");
+        }
+        execute(FILE_NOT_FOUND, HttpStatus.NOT_FOUND);
+    }
+
+    public void badRequest() {
+        if (HttpServer.verbose) {
+            logger.warn("Bad Request");
+        }
+        execute(BAD_REQUEST, HttpStatus.BAD_REQUEST);
+    }
+
     public void methodNotImplemented() throws IOException {
         if (!HttpServer.verbose) {
-            System.out.println("501 not implemented :" + requestPath + "method");
+            logger.warn("501 not implemented :" + requestPath + "method");
         }
 
         execute(METHOD_NOT_SUPPORTED, HttpStatus.NOT_IMPLEMENTED);

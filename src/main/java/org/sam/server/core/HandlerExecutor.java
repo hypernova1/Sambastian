@@ -35,7 +35,7 @@ public class HandlerExecutor {
 
     public void execute() {
         try {
-            Map<String, ?> requestParams;
+            Map<String, String> requestParams;
             if (httpRequest.getMethod().equals(HttpMethod.POST) || httpRequest.getMethod().equals(HttpMethod.PUT)) {
                 requestParams = httpRequest.getAttributes();
             } else {

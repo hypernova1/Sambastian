@@ -1,5 +1,6 @@
 package org.sam.server.http;
 
+import org.apache.log4j.Logger;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
 
@@ -20,6 +21,8 @@ public interface Request {
         return new UrlParser(in).createRequest();
     }
 
+    String getProtocol();
+
     String getPath();
 
     HttpMethod getMethod();
@@ -34,19 +37,21 @@ public interface Request {
 
     String getHeader(String key);
 
-    Map<String, Object> getAttributes();
+    Map<String, String> getAttributes();
 
     String getJson();
 
     Set<Cookie> getCookies();
 
     class UrlParser {
+        private static Logger logger = Logger.getLogger(Request.class);
+
         protected String protocol;
         protected String path;
         protected HttpMethod method;
         protected Map<String, String> headers = new HashMap<>();
         protected Map<String, String> parameters = new HashMap<>();
-        protected Map<String, Object> attributes = new HashMap<>();
+        protected Map<String, String> attributes = new HashMap<>();
         protected String json;
         protected Set<Cookie> cookies = new HashSet<>();
         protected Map<String, Object> files = new HashMap<>();
@@ -92,7 +97,7 @@ public interface Request {
                     }
                 }
             } catch (IOException e) {
-                System.out.println("terminate thread..");
+                logger.error("terminate thread..");
                 e.printStackTrace();
             }
         }
@@ -109,7 +114,7 @@ public interface Request {
                 this.json = sb.toString();
                 return;
             }
-            this.attributes = parseRequestBody(sb.toString());
+            this.attributes = parseQuery(sb.toString());
         }
 
         private void parseHeaders(String[] headers) {
@@ -142,21 +147,6 @@ public interface Request {
         private Map<String, String> parseQuery(String parameters) {
             Map<String, String> map = new HashMap<>();
             String[] rawParameters = parameters.split("&");
-            Arrays.stream(rawParameters).forEach(parameter -> {
-                String[] parameterPair = parameter.split("=");
-                String name = parameterPair[0];
-                String value = null;
-                if (parameterPair.length == 2) {
-                    value = parameterPair[1];
-                }
-                map.put(name, value);
-            });
-            return map;
-        }
-
-        private Map<String, Object> parseRequestBody(String requestBody) {
-            Map<String, Object> map = new HashMap<>();
-            String[] rawParameters = requestBody.split("&");
             Arrays.stream(rawParameters).forEach(parameter -> {
                 String[] parameterPair = parameter.split("=");
                 String name = parameterPair[0];
@@ -292,14 +282,14 @@ public interface Request {
             HttpMethod method = this.method;
             String path = this.path;
             Map<String, String> parameters = this.parameters;
-            Map<String, Object> attributes = this.attributes;
+            Map<String, String> attributes = this.attributes;
             String json = this.json;
             Set<Cookie> cookies = this.cookies;
             String contentType = headers.get("content-type") != null ? headers.get("content-type") : "";
             if (contentType.startsWith(ContentType.MULTIPART_FORM_DATA.getValue())) {
-                return new HttpMultipartRequest(path, method, headers, parameters, attributes, json, cookies, files);
+                return new HttpMultipartRequest(protocol, path, method, headers, parameters, attributes, json, cookies, files);
             }
-            return new HttpRequest(path, method, headers, parameters, attributes, json, cookies);
+            return new HttpRequest(protocol, path, method, headers, parameters, attributes, json, cookies);
         }
     }
 }

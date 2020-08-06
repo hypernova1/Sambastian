@@ -1,6 +1,6 @@
 package org.sam.server.core;
 
-import org.sam.server.HttpServer;
+import org.apache.log4j.Logger;
 import org.sam.server.annotation.handle.Handler;
 import org.sam.server.common.ServerProperties;
 
@@ -19,6 +19,8 @@ import java.util.stream.Collectors;
  * Time: 1:59 PM
  */
 public class BeanLoader {
+
+    private static Logger logger = Logger.getLogger(BeanLoader.class);
 
     private static List<Class<?>> handlerClasses;
     private static String rootPackageName = ServerProperties.get("root-package");

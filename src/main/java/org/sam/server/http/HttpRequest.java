@@ -12,17 +12,19 @@ import java.util.Set;
  */
 public class HttpRequest implements Request {
 
+    private String protocol;
     private final String path;
     private final HttpMethod method;
     private final Map<String, String> headers;
     private final Map<String, String> parameterMap;
-    private final Map<String, Object> attributes;
+    private final Map<String, String> attributes;
     private final String json;
     private final Set<Cookie> cookies;
 
     protected HttpRequest(
-            String path, HttpMethod method, Map<String, String> headers, Map<String, String> parameterMap,
-            Map<String, Object> attributes, String json, Set<Cookie> cookies) {
+            String protocol, String path, HttpMethod method, Map<String, String> headers, Map<String, String> parameterMap,
+            Map<String, String> attributes, String json, Set<Cookie> cookies) {
+        this.protocol = protocol;
         this.path = path;
         this.method = method;
         this.headers = headers;
@@ -30,6 +32,11 @@ public class HttpRequest implements Request {
         this.attributes = attributes;
         this.json = json;
         this.cookies = cookies;
+    }
+
+    @Override
+    public String getProtocol() {
+        return this.protocol;
     }
 
     public String getPath() {
@@ -60,7 +67,7 @@ public class HttpRequest implements Request {
         return headers.get(key);
     }
 
-    public Map<String, Object> getAttributes() {
+    public Map<String, String> getAttributes() {
         return attributes;
     }
 
