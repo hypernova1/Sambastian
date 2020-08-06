@@ -34,54 +34,37 @@ public class BeanLoader {
     }
 
     private static void loadClasses() {
-        ClassLoader classLoader = HttpServer.class.getClassLoader();
-
-        assert classLoader != null;
+        ClassLoader classLoader = BeanLoader.class.getClassLoader();
         String path = rootPackageName.replace(".", "/");
-        Enumeration<URL> resources = null;
         try {
-            resources = classLoader.getResources(path);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        List<File> dir = new ArrayList<>();
-        if (resources != null) {
+            Enumeration<URL> resources = classLoader.getResources(path);
+            List<File> dir = new ArrayList<>();
             while (resources.hasMoreElements()) {
                 URL resource = resources.nextElement();
                 dir.add(new File(resource.getFile()));
             }
-        }
-
-        List<Class<?>> classes = new ArrayList<>();
-        for (File directory : dir) {
-            try {
+            List<Class<?>> classes = new ArrayList<>();
+            for (File directory : dir) {
                 classes.addAll(findClasses(directory, rootPackageName));
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
             }
+            loadHandler(classes);
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
-
-        loadHandler(classes);
     }
 
     private static Collection<? extends Class<?>> findClasses(File directory, String packageName) throws ClassNotFoundException {
         List<Class<?>> classes = new ArrayList<>();
-
         if (!directory.exists()) return classes;
-
         File[] files = directory.listFiles();
-
         assert files != null;
         for (File file : files) {
             if (file.isDirectory()) {
-                assert !file.getName().contains(".");
                 classes.addAll(findClasses(file, packageName + "." + file.getName()));
             } else if (file.getName().endsWith(".class")) {
                 classes.add(Class.forName(packageName + "." + file.getName().substring(0, file.getName().length() - 6)));
             }
         }
-
         return classes;
     }
 

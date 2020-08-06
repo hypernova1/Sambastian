@@ -17,7 +17,7 @@ import java.util.*;
 public interface Request {
 
     static HttpRequest create(InputStream in) {
-        return new Request.UrlParser(in).createRequest();
+        return new UrlParser(in).createRequest();
     }
 
     String getPath();
@@ -51,15 +51,15 @@ public interface Request {
         protected Set<Cookie> cookies = new HashSet<>();
         protected Map<String, Object> files = new HashMap<>();
 
-        public UrlParser(InputStream in) {
+        private UrlParser(InputStream in) {
             parse(in);
         }
 
         private void parse(InputStream in) {
             try {
-                String headersPart = "";
                 BufferedInputStream inputStream = new BufferedInputStream(in);
                 StringBuilder sb = new StringBuilder();
+                String headersPart = "";
                 int i;
                 while ((i = inputStream.read()) != -1) {
                     char c = (char) i;
@@ -69,37 +69,26 @@ public interface Request {
                         break;
                     }
                 }
-
                 String[] headers = headersPart.split("\r\n");
                 StringTokenizer parse = new StringTokenizer(headers[0]);
                 String method = parse.nextToken().toUpperCase();
                 String requestPath = parse.nextToken().toLowerCase();
                 this.protocol = parse.nextToken().toUpperCase();
-                String query = parsePathAndGetQuery(requestPath);
-
+                String query = parseRequestPath(requestPath);
                 parseHeaders(headers);
                 parseMethod(method);
 
-                if (!query.isEmpty()) {
-                    this.parameters = parseQuery(query);
-                }
+                if (!query.isEmpty()) this.parameters = parseQuery(query);
 
                 String contentType = this.headers.get("content-type") != null ? this.headers.get("content-type") : "";
                 if (HttpMethod.get(method).equals(HttpMethod.POST) ||
                         HttpMethod.get(method).equals(HttpMethod.PUT) ||
                         ContentType.APPLICATION_JSON.getValue().equals(contentType)) {
-
-                    String requestBody = "";
-                    String boundary;
                     if (contentType.startsWith(ContentType.MULTIPART_FORM_DATA.getValue())) {
-                        boundary = "--" + contentType.split("; ")[1].split("=")[1];
+                        String boundary = "--" + contentType.split("; ")[1].split("=")[1];
                         parseMultipartBody(inputStream, boundary);
                     } else {
-                        parseRequestBody(inputStream);
-                        return;
-                    }
-                    if (ContentType.APPLICATION_JSON.getValue().equals(contentType) && this.attributes == null) {
-                        this.json = requestBody;
+                        parseRequestBody(inputStream, contentType);
                     }
                 }
             } catch (IOException e) {
@@ -108,17 +97,19 @@ public interface Request {
             }
         }
 
-        private void parseRequestBody(InputStream inputStream) throws IOException {
-            StringBuilder sb;
+        private void parseRequestBody(InputStream inputStream, String contentType) throws IOException {
+            StringBuilder sb = new StringBuilder();
             int i;
-            String requestBody;
-            sb = new StringBuilder();
             while ((i = inputStream.read()) != -1) {
                 char c = (char) i;
                 sb.append(c);
             }
-            requestBody = sb.toString();
-            this.attributes = parseRequestBody(requestBody);
+            if (ContentType.APPLICATION_JSON.getValue().equals(contentType)
+                    && this.attributes == null) {
+                this.json = sb.toString();
+                return;
+            }
+            this.attributes = parseRequestBody(sb.toString());
         }
 
         private void parseHeaders(String[] headers) {
@@ -138,7 +129,7 @@ public interface Request {
             this.method = HttpMethod.get(method);
         }
 
-        private String parsePathAndGetQuery(String requestPath) {
+        private String parseRequestPath(String requestPath) {
             int index = requestPath.indexOf("?");
             if (index != -1) {
                 this.path = requestPath.substring(0, index);
@@ -164,7 +155,6 @@ public interface Request {
         }
 
         private Map<String, Object> parseRequestBody(String requestBody) {
-            if (requestBody.startsWith("{") && requestBody.endsWith("}")) return null;
             Map<String, Object> map = new HashMap<>();
             String[] rawParameters = requestBody.split("&");
             Arrays.stream(rawParameters).forEach(parameter -> {
@@ -180,8 +170,8 @@ public interface Request {
         }
 
         private void parseMultipartBody(InputStream inputStream, String boundary) throws IOException {
-            int i;
             StringBuilder sb = new StringBuilder();
+            int i;
             while ((i = inputStream.read()) != -1) {
                 sb.append((char) i);
                 if (sb.toString().contains(boundary + "\r\n")) {

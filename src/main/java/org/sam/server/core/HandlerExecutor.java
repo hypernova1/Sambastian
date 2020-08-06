@@ -41,7 +41,6 @@ public class HandlerExecutor {
             } else {
                 requestParams = httpRequest.getParameters();
             }
-
             Object[] parameters = createParameters(handlerInfo.getHandlerMethod().getParameters(), requestParams).toArray();
             Object returnValue = handlerInfo.getHandlerMethod().invoke(handlerInfo.getHandlerClass().newInstance(), parameters);
             HttpStatus httpStatus = HttpStatus.OK;
@@ -50,7 +49,6 @@ public class HandlerExecutor {
                 httpStatus = responseEntity.getHttpStatus();
                 returnValue = responseEntity.getValue();
             }
-
             String json = gson.toJson(returnValue);
             httpResponse.execute(json, httpStatus);
         } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
@@ -72,11 +70,11 @@ public class HandlerExecutor {
                 inputParameter.add(httpRequest);
                 continue;
             }
-            if (type.equals(HttpResponse.class)) {
+            if (HttpResponse.class.equals(type)) {
                 inputParameter.add(httpResponse);
                 continue;
             }
-            if (type.equals(Session.class)) {
+            if (Session.class.equals(type)) {
                 addSession(inputParameter);
                 continue;
             }
@@ -85,7 +83,6 @@ public class HandlerExecutor {
                 inputParameter.add(object);
                 continue;
             }
-
             if (value != null) {
                 if (type.isPrimitive()) {
                     Object autoBoxingValue = PrimitiveWrapper.wrapPrimitiveValue(type, value.toString());
@@ -104,20 +101,17 @@ public class HandlerExecutor {
     private void addSession(List<Object> params) {
         SessionManager sessionManager = HttpServer.sessionManager;
         Set<Cookie> cookies = httpRequest.getCookies();
-
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals("sessionId")) {
                 Session session = sessionManager.getSession(cookie.getValue());
-                if (session == null) {
-                    cookies.remove(cookie);
-                } else {
+                if (session == null) cookies.remove(cookie);
+                else {
                     session.renewAccessTime();
                     params.add(session);
                     return;
                 }
             }
         }
-
         Session session = sessionManager.createSession();
         params.add(session);
     }

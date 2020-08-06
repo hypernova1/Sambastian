@@ -42,11 +42,9 @@ public class HttpServer implements Runnable {
 
             if (keyStore != null) {
                 ServerProperties.IS_SSL = true;
-
                 System.setProperty("javax.net.ssl.keyStore", keyStore);
                 System.setProperty("javax.net.ssl.keyStorePassword", password);
                 System.setProperty("javax.net.debug", "ssl");
-
                 SSLServerSocketFactory sslserversocketfactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
                 serverSocket = sslserversocketfactory.createServerSocket(port);
             } else {
