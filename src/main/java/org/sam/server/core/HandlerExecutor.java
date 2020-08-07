@@ -41,7 +41,7 @@ public class HandlerExecutor {
             } else {
                 requestParams = httpRequest.getParameters();
             }
-            Object[] parameters = createParameters(handlerInfo.getHandlerMethod().getParameters(), requestParams).toArray();
+            Object[] parameters = createParameters(handlerInfo.getHandlerMethod().getParameters(), requestParams);
             Object returnValue = handlerInfo.getHandlerMethod().invoke(handlerInfo.getHandlerClass().newInstance(), parameters);
             HttpStatus httpStatus = HttpStatus.OK;
             if (returnValue.getClass().equals(ResponseEntity.class)) {
@@ -59,7 +59,7 @@ public class HandlerExecutor {
         }
     }
 
-    private List<Object> createParameters(Parameter[] handlerParameters, Map<String, ?> requestParams) {
+    private Object[] createParameters(Parameter[] handlerParameters, Map<String, ?> requestParams) {
         List<Object> inputParameter = new ArrayList<>();
         for (Parameter handlerParameter : handlerParameters) {
             String name = handlerParameter.getName();
@@ -95,7 +95,7 @@ public class HandlerExecutor {
                 inputParameter.add(object);
             }
         }
-        return inputParameter;
+        return inputParameter.toArray();
     }
 
     private void addSession(List<Object> params) {

@@ -40,7 +40,7 @@ public class RequestReceiver {
                 httpResponse.getStaticResources();
                 return;
             }
-            HandlerInfo handlerInfo = new HandlerFinder(httpRequest, httpResponse).findHandlerMethod();
+            HandlerInfo handlerInfo = new HandlerFinder(httpRequest, httpResponse).createHandlerInfo();
             new HandlerExecutor(httpRequest, httpResponse, handlerInfo).execute();
         } catch (HandlerNotFoundException e) {
             httpResponse.fileNotFound();
