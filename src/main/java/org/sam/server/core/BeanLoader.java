@@ -20,10 +20,10 @@ import java.util.stream.Collectors;
  */
 public class BeanLoader {
 
-    private static Logger logger = Logger.getLogger(BeanLoader.class);
+    private static final Logger logger = Logger.getLogger(BeanLoader.class);
 
     private static List<Class<?>> handlerClasses;
-    private static String rootPackageName = ServerProperties.get("root-package");
+    private final static String rootPackageName = ServerProperties.get("root-package");
 
     static {
         loadClasses();

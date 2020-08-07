@@ -44,7 +44,7 @@ public interface Request {
     Set<Cookie> getCookies();
 
     class UrlParser {
-        private static Logger logger = Logger.getLogger(Request.class);
+        private static final Logger logger = Logger.getLogger(Request.class);
 
         protected String protocol;
         protected String path;

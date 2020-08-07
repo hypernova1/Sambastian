@@ -21,10 +21,8 @@ import java.util.concurrent.TimeUnit;
  * Time: 1:34 PM
  */
 public class HttpServer implements Runnable {
-    private static Logger logger = Logger.getLogger(HttpServer.class);
-    public static boolean verbose = true;
-
-    public static SessionManager sessionManager;
+    private static final Logger logger = Logger.getLogger(HttpServer.class);
+    public static final SessionManager sessionManager = new SessionManager();
 
     private final Socket connect;
 
@@ -33,14 +31,12 @@ public class HttpServer implements Runnable {
     }
 
     public static void start() {
-        ServerProperties.loadClass();
         String keyStore = ServerProperties.get("keyStore");
         String password = ServerProperties.get("keyStorePassword");
         int port = Integer.parseInt(ServerProperties.get("server.port"));
 
         try {
             ServerSocket serverSocket;
-
             if (keyStore != null) {
                 ServerProperties.IS_SSL = true;
                 System.setProperty("javax.net.ssl.keyStore", keyStore);
@@ -52,6 +48,9 @@ public class HttpServer implements Runnable {
                 serverSocket = new ServerSocket(port);
             }
 
+            logger.info("server started..");
+            logger.info("server port: " + port);
+
             ThreadPoolExecutor threadPool = new ThreadPoolExecutor(
                     5,
                     200,
@@ -60,21 +59,12 @@ public class HttpServer implements Runnable {
                     new SynchronousQueue<>()
             );
 
-            if (verbose) {
-                logger.info("server started..");
-                logger.info("server port: " + port);
-            }
-
-            sessionManager = new SessionManager();
             new Timer().schedule(sessionManager, 0, 60 * 1000);
-
             while (!Thread.currentThread().isInterrupted()) {
                 HttpServer httpServer = new HttpServer(serverSocket.accept());
-                if (verbose) {
-                    logger.info("connected.." + LocalDateTime.now());
-                }
-                threadPool.execute(httpServer);
+                logger.info("connected.." + LocalDateTime.now());
                 logger.info("total thread count: " + threadPool.getPoolSize());
+                threadPool.execute(httpServer);
             }
         } catch (IOException e) {
             e.printStackTrace();

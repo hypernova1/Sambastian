@@ -16,7 +16,7 @@ import java.net.Socket;
  */
 public class RequestReceiver {
 
-    private static Logger logger = Logger.getLogger(RequestReceiver.class);
+    private static final Logger logger = Logger.getLogger(RequestReceiver.class);
 
     private final Socket connect;
 

@@ -12,7 +12,7 @@ import java.util.*;
  */
 public class SessionManager extends TimerTask {
 
-    private static Logger logger = Logger.getLogger(SessionManager.class);
+    private static final Logger logger = Logger.getLogger(SessionManager.class);
 
     private Set<Session> sessionList = new HashSet<>();
 

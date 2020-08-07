@@ -13,10 +13,14 @@ import java.util.Properties;
  */
 public class ServerProperties {
 
-    private static Logger logger = Logger.getLogger(ServerProperties.class);
+    private static final Logger logger = Logger.getLogger(ServerProperties.class);
 
     private static Properties properties = new Properties();
     public static boolean IS_SSL = false;
+
+    static {
+        loadClass();
+    }
 
     public static void loadClass() {
         InputStream resourceAsStream = ServerProperties.class.getClassLoader()
@@ -25,7 +29,7 @@ public class ServerProperties {
             try {
                 properties.load(resourceAsStream);
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("properties loading error", e);
             }
         }
     }
