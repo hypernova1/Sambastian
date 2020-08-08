@@ -7,10 +7,7 @@ import org.sam.server.common.ServerProperties;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -21,6 +18,8 @@ import java.util.stream.Collectors;
 public class BeanLoader {
 
     private static final Logger logger = Logger.getLogger(BeanLoader.class);
+
+    private static final List<Class<?>> beanClass = Arrays.asList(Handler.class);
 
     private static List<Class<?>> handlerClasses;
     private final static String rootPackageName = ServerProperties.get("root-package");

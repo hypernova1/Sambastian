@@ -11,7 +11,7 @@ import java.util.*;
  */
 public class HttpMultipartRequest extends HttpRequest {
 
-    private Map<String, Object> files;
+    private final Map<String, Object> files;
 
     protected HttpMultipartRequest(
             String protocol, String path, HttpMethod method, Map<String, String> headers,

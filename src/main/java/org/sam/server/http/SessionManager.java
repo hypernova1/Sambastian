@@ -14,7 +14,7 @@ public class SessionManager extends TimerTask {
 
     private static final Logger logger = Logger.getLogger(SessionManager.class);
 
-    private Set<Session> sessionList = new HashSet<>();
+    private final Set<Session> sessionList = new HashSet<>();
 
     public Session createSession() {
         Session session = new Session();
