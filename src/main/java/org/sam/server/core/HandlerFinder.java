@@ -32,7 +32,7 @@ public class HandlerFinder {
     }
 
     public HandlerInfo createHandlerInfo() throws HandlerNotFoundException {
-        List<Class<?>> handlerClasses = BeanLoader.getHandlerClasses();
+        List<Class<?>> handlerClasses = BeanContainer.getHandlerClasses();
         for (Class<?> handlerClass : handlerClasses) {
             Method handlerMethod = findHandlerMethod(handlerClass);
             return new HandlerInfo(handlerClass, handlerMethod);
