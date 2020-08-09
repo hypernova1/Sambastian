@@ -2,6 +2,7 @@ package org.sam.server;
 
 import org.apache.log4j.Logger;
 import org.sam.server.common.ServerProperties;
+import org.sam.server.core.BeanContainer;
 import org.sam.server.core.RequestReceiver;
 import org.sam.server.http.SessionManager;
 
@@ -50,6 +51,8 @@ public class HttpServer implements Runnable {
 
             logger.info("server started..");
             logger.info("server port: " + port);
+
+            BeanContainer.inject();
 
             ThreadPoolExecutor threadPool = new ThreadPoolExecutor(
                     5,

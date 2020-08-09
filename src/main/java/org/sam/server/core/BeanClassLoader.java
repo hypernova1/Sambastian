@@ -9,6 +9,7 @@ import org.sam.server.common.ServerProperties;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -25,38 +26,39 @@ public class BeanClassLoader {
     private static final Logger logger = Logger.getLogger(BeanClassLoader.class);
     private static final String rootPackageName = ServerProperties.get("root-package");
 
-    private static final List<Class<?>> handlerBeans = new ArrayList<>();
-    private static final Map<String, Class<?>> componentBeans = new HashMap<>();
+    private static final List<Class<?>> handlerClasses = new ArrayList<>();
+    private static final List<Class<?>> componentClasses = new ArrayList<>();
 
     static {
         loadClasses();
     }
 
-    public static void loadHandlerBeanClasses(List<Class<?>> classes) {
-        handlerBeans.addAll(classes.stream()
+    public static void loadHandlerClasses(List<Class<?>> classes) {
+        handlerClasses.addAll(classes.stream()
                 .filter(clazz -> clazz.getDeclaredAnnotation(Handler.class) != null)
                 .collect(Collectors.toList()));
     }
 
-    public static void loadComponentsBeans(List<Class<?>> classes) {
+    public static void loadComponentClasses(List<Class<?>> classes) {
         List<Class<?>> componentTypes = Arrays.asList(Service.class, Component.class);
         classes.forEach(clazz -> {
-            if (componentTypes.contains(clazz)) {
-                componentBeans.put(clazz.getSimpleName(), clazz);
-                componentBeans.putAll(loadMethodBeans(clazz));
-                logger.info("create bean, bean name: " + clazz.getSimpleName());
+            Annotation[] declaredAnnotations = clazz.getDeclaredAnnotations();
+            for (Annotation declaredAnnotation : declaredAnnotations) {
+                if (componentTypes.contains(declaredAnnotation.annotationType())) {
+                    componentClasses.add(clazz);
+                }
             }
         });
     }
 
-    public static Map<String, Class<?>> loadMethodBeans(Class<?> clazz) {
-        Map<String, Class<?>> result = new HashMap<>();
+    public static List<Class<?>> loadMethodBeans(Class<?> clazz) {
+        List<Class<?>> result = new ArrayList<>();
         Method[] declaredMethods = clazz.getDeclaredMethods();
         Arrays.stream(declaredMethods).forEach(method -> {
             if (method.getDeclaredAnnotation(Bean.class) != null) {
                 try {
                     Object invoke = method.invoke(clazz.newInstance());
-                    result.put(method.getName(), invoke.getClass());
+                    result.add(invoke.getClass());
                 } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
                     e.printStackTrace();
                 }
@@ -79,8 +81,8 @@ public class BeanClassLoader {
             for (File directory : dir) {
                 classes.addAll(findClasses(directory, rootPackageName));
             }
-            loadHandlerBeanClasses(classes);
-            loadComponentsBeans(classes);
+            loadHandlerClasses(classes);
+            loadComponentClasses(classes);
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -102,11 +104,11 @@ public class BeanClassLoader {
     }
 
     public static List<Class<?>> getHandlerClasses() {
-        return handlerBeans;
+        return handlerClasses;
     }
 
-    public static Map<String, Class<?>> getComponentBeans() {
-        return componentBeans;
+    public static List<Class<?>> getComponentClasses() {
+        return componentClasses;
     }
 
 }

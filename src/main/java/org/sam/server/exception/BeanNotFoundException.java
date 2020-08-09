@@ -5,5 +5,8 @@ package org.sam.server.exception;
  * Date: 2020/08/10
  * Time: 12:15 AM
  */
-public class BeanNotFoundException {
+public class BeanNotFoundException extends RuntimeException {
+    public BeanNotFoundException(String message) {
+        super(message);
+    }
 }
