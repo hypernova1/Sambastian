@@ -7,6 +7,6 @@ package org.sam.server.exception;
  */
 public class HandlerNotFoundException extends RuntimeException {
     public HandlerNotFoundException() {
-        super("not found handler");
+        super("handler not found");
     }
 }

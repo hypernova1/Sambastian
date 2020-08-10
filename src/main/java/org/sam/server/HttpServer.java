@@ -52,7 +52,7 @@ public class HttpServer implements Runnable {
             logger.info("server started..");
             logger.info("server port: " + port);
 
-            BeanContainer.inject();
+            BeanContainer.createBeans();
 
             ThreadPoolExecutor threadPool = new ThreadPoolExecutor(
                     5,

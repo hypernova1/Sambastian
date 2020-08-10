@@ -13,23 +13,21 @@ import java.util.Map;
  */
 public class Converter {
 
-    public static <T> T parameterToObject(Map<String, String> parameters, Class<T> type) {
-        T instance = null;
+    public static Object parameterToObject(Map<String, String> parameters, Class<?> type, Object handlerInstance) {
         try {
-            instance = type.newInstance();
             for (Method declaredMethod : type.getDeclaredMethods()) {
                 String methodName = declaredMethod.getName();
                 if (methodName.startsWith("set")) {
                     String propertyName = methodName.replace("set", "");
                     propertyName = propertyName.substring(0, 1).toLowerCase() + propertyName.substring(1);
                     String parameter = parameters.get(propertyName);
-                    declaredMethod.invoke(instance, parameter);
+                    declaredMethod.invoke(handlerInstance, parameter);
                 }
             }
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+        } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
-        return instance;
+        return handlerInstance;
     }
 
     public static <T> T jsonToObject(String json, Class<T> type) {

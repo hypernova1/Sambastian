@@ -7,9 +7,11 @@ import org.sam.server.common.Converter;
 import org.sam.server.common.PrimitiveWrapper;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.constant.HttpStatus;
+import org.sam.server.exception.HandlerNotFoundException;
 import org.sam.server.http.*;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,22 +38,22 @@ public class HandlerExecutor {
     public void execute() {
         try {
             Map<String, String> requestParams;
-            if (httpRequest.getMethod().equals(HttpMethod.POST) || httpRequest.getMethod().equals(HttpMethod.PUT)) {
+            if (httpRequest.getMethod().equals(HttpMethod.POST) || httpRequest.getMethod().equals(HttpMethod.PUT))
                 requestParams = httpRequest.getAttributes();
-            } else {
+            else
                 requestParams = httpRequest.getParameters();
-            }
-            Object[] parameters = createParameters(handlerInfo.getHandlerMethod().getParameters(), requestParams);
-            Object returnValue = handlerInfo.getHandlerMethod().invoke(handlerInfo.getHandlerClass().newInstance(), parameters);
-            HttpStatus httpStatus = HttpStatus.OK;
+            Object returnValue = executeHandler(requestParams);
+            HttpStatus httpStatus;
             if (returnValue.getClass().equals(ResponseEntity.class)) {
                 ResponseEntity<?> responseEntity = (ResponseEntity<?>) returnValue;
                 httpStatus = responseEntity.getHttpStatus();
                 returnValue = responseEntity.getValue();
+            } else {
+                httpStatus = HttpStatus.OK;
             }
             String json = gson.toJson(returnValue);
             httpResponse.execute(json, httpStatus);
-        } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
+        } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
@@ -59,7 +61,22 @@ public class HandlerExecutor {
         }
     }
 
-    private Object[] createParameters(Parameter[] handlerParameters, Map<String, ?> requestParams) {
+    private Object executeHandler(Map<String, String> requestParams) throws IllegalAccessException, InvocationTargetException {
+        Object handlerInstance = findHandlerInstance();
+        Method handlerMethod = handlerInfo.getHandlerMethod();
+        Object[] parameters = createParameters(handlerMethod.getParameters(), requestParams, handlerInstance);
+        return handlerMethod.invoke(handlerInstance, parameters);
+    }
+
+    private Object findHandlerInstance() {
+        List<Object> handlerBeans = BeanContainer.getHandlerBeans();
+        return handlerBeans.stream()
+                .filter(handlerBean -> handlerInfo.getHandlerClass() == handlerBean.getClass())
+                .findFirst()
+                .orElseThrow(HandlerNotFoundException::new);
+    }
+
+    private Object[] createParameters(Parameter[] handlerParameters, Map<String, String> requestParams, Object handlerInstance) {
         List<Object> inputParameter = new ArrayList<>();
         for (Parameter handlerParameter : handlerParameters) {
             String name = handlerParameter.getName();
@@ -91,7 +108,7 @@ public class HandlerExecutor {
                     inputParameter.add(value);
                 }
             } else {
-                Object object = Converter.parameterToObject(httpRequest.getParameters(), type);
+                Object object = Converter.parameterToObject(httpRequest.getParameters(), type, handlerInstance);
                 inputParameter.add(object);
             }
         }
