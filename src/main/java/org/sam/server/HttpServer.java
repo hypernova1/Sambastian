@@ -1,10 +1,11 @@
 package org.sam.server;
 
-import org.apache.log4j.Logger;
 import org.sam.server.common.ServerProperties;
 import org.sam.server.core.BeanContainer;
 import org.sam.server.core.RequestReceiver;
 import org.sam.server.http.SessionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
@@ -22,7 +23,7 @@ import java.util.concurrent.TimeUnit;
  * Time: 1:34 PM
  */
 public class HttpServer implements Runnable {
-    private static final Logger logger = Logger.getLogger(HttpServer.class);
+    private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
     public static final SessionManager sessionManager = new SessionManager();
 
     private final Socket connect;

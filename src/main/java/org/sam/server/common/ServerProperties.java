@@ -1,6 +1,7 @@
 package org.sam.server.common;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,7 +14,7 @@ import java.util.Properties;
  */
 public class ServerProperties {
 
-    private static final Logger logger = Logger.getLogger(ServerProperties.class);
+    private static final Logger logger = LoggerFactory.getLogger(ServerProperties.class);
 
     private static Properties properties = new Properties();
     public static boolean IS_SSL = false;

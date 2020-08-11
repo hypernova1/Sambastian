@@ -1,9 +1,10 @@
 package org.sam.server.http;
 
-import org.apache.log4j.Logger;
 import org.sam.server.common.ServerProperties;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.time.LocalDateTime;
@@ -18,7 +19,7 @@ import java.util.Set;
  */
 public class HttpResponse extends Response {
 
-    private static final Logger logger = Logger.getLogger(HttpResponse.class);
+    private static final Logger logger = LoggerFactory.getLogger(HttpResponse.class);
 
     private final Map<String, Object> headers = new HashMap<>();
     private Set<Cookie> cookies = CookieStore.getCookies();

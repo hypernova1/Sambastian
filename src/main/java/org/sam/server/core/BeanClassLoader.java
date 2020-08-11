@@ -1,11 +1,12 @@
 package org.sam.server.core;
 
-import org.apache.log4j.Logger;
 import org.sam.server.annotation.Bean;
 import org.sam.server.annotation.Component;
 import org.sam.server.annotation.Service;
 import org.sam.server.annotation.handle.Handler;
 import org.sam.server.common.ServerProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
  */
 public class BeanClassLoader {
 
-    private static final Logger logger = Logger.getLogger(BeanClassLoader.class);
+    private static final Logger logger = LoggerFactory.getLogger(BeanClassLoader.class);
     private static final String rootPackageName = ServerProperties.get("root-package");
 
     private static final List<Class<?>> handlerClasses = new ArrayList<>();

@@ -1,8 +1,9 @@
 package org.sam.server.http;
 
-import org.apache.log4j.Logger;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -44,7 +45,7 @@ public interface Request {
     Set<Cookie> getCookies();
 
     class UrlParser {
-        private static final Logger logger = Logger.getLogger(Request.class);
+        private static final Logger logger = LoggerFactory.getLogger(Request.class);
 
         protected String protocol;
         protected String path;
@@ -286,9 +287,8 @@ public interface Request {
             String json = this.json;
             Set<Cookie> cookies = this.cookies;
             String contentType = headers.get("content-type") != null ? headers.get("content-type") : "";
-            if (contentType.startsWith(ContentType.MULTIPART_FORM_DATA.getValue())) {
+            if (contentType.startsWith(ContentType.MULTIPART_FORM_DATA.getValue()))
                 return new HttpMultipartRequest(protocol, path, method, headers, parameters, attributes, json, cookies, files);
-            }
             return new HttpRequest(protocol, path, method, headers, parameters, attributes, json, cookies);
         }
     }
