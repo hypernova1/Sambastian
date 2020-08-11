@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Created by melchor
@@ -38,14 +37,14 @@ public class HandlerExecutor {
 
     public void execute() {
         try {
-            Map<String, String> requestParams;
+            Map<String, String> requestData;
             if (httpRequest.getMethod().equals(HttpMethod.POST) || httpRequest.getMethod().equals(HttpMethod.PUT))
-                requestParams = httpRequest.getAttributes();
+                requestData = httpRequest.getAttributes();
             else
-                requestParams = httpRequest.getParameters();
+                requestData = httpRequest.getParameters();
             List<Interceptor> interceptors = BeanContainer.getInterceptors();
             interceptors.forEach(interceptor -> interceptor.preHandler(httpRequest, httpResponse));
-            Object returnValue = executeHandler(requestParams);
+            Object returnValue = executeHandler(requestData);
             interceptors.forEach(interceptor -> interceptor.postHandler(httpRequest, httpResponse));
             HttpStatus httpStatus;
             if (returnValue.getClass().equals(ResponseEntity.class)) {
@@ -65,10 +64,10 @@ public class HandlerExecutor {
         }
     }
 
-    private Object executeHandler(Map<String, String> requestParams) throws IllegalAccessException, InvocationTargetException {
+    private Object executeHandler(Map<String, String> requestData) throws IllegalAccessException, InvocationTargetException {
         Object handlerInstance = findHandlerInstance();
         Method handlerMethod = handlerInfo.getHandlerMethod();
-        Object[] parameters = createParameters(handlerMethod.getParameters(), requestParams, handlerInstance);
+        Object[] parameters = createParameters(handlerMethod.getParameters(), requestData, handlerInstance);
         return handlerMethod.invoke(handlerInstance, parameters);
     }
 
@@ -80,11 +79,11 @@ public class HandlerExecutor {
                 .orElseThrow(HandlerNotFoundException::new);
     }
 
-    private Object[] createParameters(Parameter[] handlerParameters, Map<String, String> requestParams, Object handlerInstance) {
+    private Object[] createParameters(Parameter[] handlerParameters, Map<String, String> requestData, Object handlerInstance) {
         List<Object> inputParameter = new ArrayList<>();
         for (Parameter handlerParameter : handlerParameters) {
             String name = handlerParameter.getName();
-            Object value = requestParams.get(name);
+            Object value = requestData.get(name);
 
             Class<?> type = handlerParameter.getType();
             if (HttpRequest.class.isAssignableFrom(type)) {

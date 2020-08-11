@@ -1,5 +1,6 @@
 package org.sam.server.core;
 
+import org.sam.server.exception.BeanAccessModifierException;
 import org.sam.server.exception.BeanNotFoundException;
 import org.sam.server.http.Interceptor;
 import org.slf4j.Logger;
@@ -7,9 +8,9 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class BeanContainer {
 
@@ -30,20 +31,42 @@ public class BeanContainer {
         componentClasses.forEach(componentClass  -> {
             try {
                 Object beanInstance = createBeanInstance(componentClass);
-                String beanName = componentClass.getName();
-                Bean bean = new Bean(beanName, beanInstance);
-                logger.info("create bean: " + bean.getName());
-                if (beanMap.get(componentClass) != null)
-                    beanMap.get(componentClass).add(bean);
-                else {
-                    List<Bean> beanList = new ArrayList<>();
-                    beanList.add(bean);
-                    beanMap.put(componentClass, beanList);
-                }
+                Method[] declaredMethods = beanInstance.getClass().getDeclaredMethods();
+                createMethodBean(beanInstance, declaredMethods);
+                String beanName = componentClass.getSimpleName();
+                beanName = beanName.substring(0, 1).toLowerCase() + beanName.substring(1);
+                addBeanMap(componentClass, beanInstance, beanName);
             } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
                 e.printStackTrace();
             }
         });
+    }
+
+    private static void createMethodBean(Object beanInstance, Method[] declaredMethods) {
+        Arrays.stream(declaredMethods).forEach(declaredMethod -> {
+            if (declaredMethod.getDeclaredAnnotation(org.sam.server.annotation.Bean.class) != null) {
+                try {
+                    Class<?> beanType = declaredMethod.getReturnType();
+                    Object instance = declaredMethod.invoke(beanInstance);
+                    String beanName = declaredMethod.getName();
+                    addBeanMap(beanType, instance, beanName);
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    throw new BeanAccessModifierException();
+                }
+            }
+        });
+    }
+
+    private static void addBeanMap(Class<?> componentClass, Object beanInstance, String beanName) {
+        Bean bean = new Bean(beanName, beanInstance);
+        logger.info("create bean: " + beanName + " > " + componentClass.getName());
+        if (beanMap.get(componentClass) != null)
+            beanMap.get(componentClass).add(bean);
+        else {
+            List<Bean> beanList = new ArrayList<>();
+            beanList.add(bean);
+            beanMap.put(componentClass, beanList);
+        }
     }
 
     private static void createHandlerBeans() {
