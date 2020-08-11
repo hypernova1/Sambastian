@@ -1,6 +1,7 @@
 package org.sam.server.core;
 
 import org.sam.server.exception.BeanNotFoundException;
+import org.sam.server.http.Interceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,18 +9,21 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class BeanContainer {
 
     private static final Logger logger = LoggerFactory.getLogger(BeanContainer.class);
     private static final Map<Class<?>, List<Bean>> beanMap = new HashMap<>();
     private static final List<Object> handlerBeans = new ArrayList<>();
+    private static final List<Interceptor> interceptors = new ArrayList<>();
 
     private static List<Class<?>> componentClasses = BeanClassLoader.getComponentClasses();
 
     public static void createBeans() {
         createComponentBeans();
         createHandlerBeans();
+        createInterceptor();
     }
 
     private static void createComponentBeans() {
@@ -49,6 +53,17 @@ public class BeanContainer {
                 logger.info("create handler bean: " + handlerClass.getName());
                 handlerBeans.add(bean);
             } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private static void createInterceptor() {
+        BeanClassLoader.getInterceptorClasses().forEach(interceptorClass -> {
+            try {
+                Interceptor interceptor = (Interceptor) interceptorClass.getDeclaredConstructor().newInstance();
+                interceptors.add(interceptor);
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 e.printStackTrace();
             }
         });
@@ -113,5 +128,9 @@ public class BeanContainer {
 
     public static List<Object> getHandlerBeans() {
         return handlerBeans;
+    }
+
+    public static List<Interceptor> getInterceptors() {
+        return interceptors;
     }
 }

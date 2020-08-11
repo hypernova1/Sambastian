@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by melchor
@@ -42,7 +43,10 @@ public class HandlerExecutor {
                 requestParams = httpRequest.getAttributes();
             else
                 requestParams = httpRequest.getParameters();
+            List<Interceptor> interceptors = BeanContainer.getInterceptors();
+            interceptors.forEach(interceptor -> interceptor.preHandler(httpRequest, httpResponse));
             Object returnValue = executeHandler(requestParams);
+            interceptors.forEach(interceptor -> interceptor.postHandler(httpRequest, httpResponse));
             HttpStatus httpStatus;
             if (returnValue.getClass().equals(ResponseEntity.class)) {
                 ResponseEntity<?> responseEntity = (ResponseEntity<?>) returnValue;

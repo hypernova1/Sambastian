@@ -5,8 +5,7 @@ import org.sam.server.annotation.Component;
 import org.sam.server.annotation.Service;
 import org.sam.server.annotation.handle.Handler;
 import org.sam.server.common.ServerProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.sam.server.http.Interceptor;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,48 +23,14 @@ import java.util.stream.Collectors;
  */
 public class BeanClassLoader {
 
-    private static final Logger logger = LoggerFactory.getLogger(BeanClassLoader.class);
     private static final String rootPackageName = ServerProperties.get("root-package");
 
     private static final List<Class<?>> handlerClasses = new ArrayList<>();
     private static final List<Class<?>> componentClasses = new ArrayList<>();
+    private static final List<Class<?>> interceptorClasses = new ArrayList<>();
 
     static {
         loadClasses();
-    }
-
-    public static void loadHandlerClasses(List<Class<?>> classes) {
-        handlerClasses.addAll(classes.stream()
-                .filter(clazz -> clazz.getDeclaredAnnotation(Handler.class) != null)
-                .collect(Collectors.toList()));
-    }
-
-    public static void loadComponentClasses(List<Class<?>> classes) {
-        List<Class<?>> componentTypes = Arrays.asList(Service.class, Component.class);
-        classes.forEach(clazz -> {
-            Annotation[] declaredAnnotations = clazz.getDeclaredAnnotations();
-            for (Annotation declaredAnnotation : declaredAnnotations) {
-                if (componentTypes.contains(declaredAnnotation.annotationType())) {
-                    componentClasses.add(clazz);
-                }
-            }
-        });
-    }
-
-    public static List<Class<?>> loadMethodBeans(Class<?> clazz) {
-        List<Class<?>> result = new ArrayList<>();
-        Method[] declaredMethods = clazz.getDeclaredMethods();
-        Arrays.stream(declaredMethods).forEach(method -> {
-            if (method.getDeclaredAnnotation(Bean.class) != null) {
-                try {
-                    Object invoke = method.invoke(clazz.newInstance());
-                    result.add(invoke.getClass());
-                } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        return result;
     }
 
     private static void loadClasses() {
@@ -84,9 +49,52 @@ public class BeanClassLoader {
             }
             loadHandlerClasses(classes);
             loadComponentClasses(classes);
+            loadInterceptorClasses(classes);
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    private static void loadHandlerClasses(List<Class<?>> classes) {
+        handlerClasses.addAll(classes.stream()
+                .filter(clazz -> clazz.getDeclaredAnnotation(Handler.class) != null)
+                .collect(Collectors.toList()));
+    }
+
+    private static void loadComponentClasses(List<Class<?>> classes) {
+        List<Class<?>> componentTypes = Arrays.asList(Service.class, Component.class);
+        classes.forEach(clazz -> {
+            Annotation[] declaredAnnotations = clazz.getDeclaredAnnotations();
+            for (Annotation declaredAnnotation : declaredAnnotations) {
+                if (componentTypes.contains(declaredAnnotation.annotationType())) {
+                    componentClasses.add(clazz);
+                }
+            }
+        });
+    }
+
+    private static void loadInterceptorClasses(List<Class<?>> classes) {
+        classes.forEach(clazz -> {
+            Class<?>[] interfaces = clazz.getInterfaces();
+            long count = Arrays.stream(interfaces).filter(interfaze -> interfaze.equals(Interceptor.class)).count();
+            if (count > 0) interceptorClasses.add(clazz);
+        });
+    }
+
+    private static List<Class<?>> loadMethodBeans(Class<?> clazz) {
+        List<Class<?>> result = new ArrayList<>();
+        Method[] declaredMethods = clazz.getDeclaredMethods();
+        Arrays.stream(declaredMethods).forEach(method -> {
+            if (method.getDeclaredAnnotation(Bean.class) != null) {
+                try {
+                    Object invoke = method.invoke(clazz.newInstance());
+                    result.add(invoke.getClass());
+                } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        return result;
     }
 
     private static Collection<? extends Class<?>> findClasses(File directory, String packageName) throws ClassNotFoundException {
@@ -112,4 +120,7 @@ public class BeanClassLoader {
         return componentClasses;
     }
 
+    public static List<Class<?>> getInterceptorClasses() {
+        return interceptorClasses;
+    }
 }
