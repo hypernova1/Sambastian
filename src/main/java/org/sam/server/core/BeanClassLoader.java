@@ -1,6 +1,5 @@
 package org.sam.server.core;
 
-import org.sam.server.annotation.Bean;
 import org.sam.server.annotation.Component;
 import org.sam.server.annotation.Service;
 import org.sam.server.annotation.handle.Handler;
@@ -10,8 +9,6 @@ import org.sam.server.http.Interceptor;
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -79,22 +76,6 @@ public class BeanClassLoader {
             long count = Arrays.stream(interfaces).filter(interfaze -> interfaze.equals(Interceptor.class)).count();
             if (count > 0) interceptorClasses.add(clazz);
         });
-    }
-
-    private static List<Class<?>> loadMethodBeans(Class<?> clazz) {
-        List<Class<?>> result = new ArrayList<>();
-        Method[] declaredMethods = clazz.getDeclaredMethods();
-        Arrays.stream(declaredMethods).forEach(method -> {
-            if (method.getDeclaredAnnotation(Bean.class) != null) {
-                try {
-                    Object invoke = method.invoke(clazz.newInstance());
-                    result.add(invoke.getClass());
-                } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        return result;
     }
 
     private static Collection<? extends Class<?>> findClasses(File directory, String packageName) throws ClassNotFoundException {

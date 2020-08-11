@@ -45,12 +45,11 @@ public class HttpResponse extends Response {
         this.httpStatus = status;
 
         try {
-            if (getContentMimeType().equals(ContentType.APPLICATION_JSON.getValue())) {
+            if (getContentMimeType().equals(ContentType.APPLICATION_JSON.getValue()))
                 this.fileLength = readJson(filePath);
-            } else  this.fileLength = readStaticResource(filePath);
-
+            else
+                this.fileLength = readStaticResource(filePath);
             printHeader();
-
             outputStream.write(fileData, 0, this.fileLength);
             CookieStore.vacateList();
             writer.flush();
@@ -72,13 +71,12 @@ public class HttpResponse extends Response {
         }
 
         int fileLength;
-        if (staticFile.exists()) {
+        if (staticFile.exists())
             fileLength = readFileData(staticFile);
-        } else {
+        else {
             assert fis != null;
             fileLength = fis.read(fileData);
         }
-
         return fileLength;
     }
 
@@ -175,16 +173,15 @@ public class HttpResponse extends Response {
         execute(BAD_REQUEST, HttpStatus.BAD_REQUEST);
     }
 
-    public void methodNotImplemented() throws IOException {
+    public void methodNotImplemented() {
         logger.warn("501 not implemented :" + requestPath + "method");
         execute(METHOD_NOT_SUPPORTED, HttpStatus.NOT_IMPLEMENTED);
     }
 
-    public void returnIndexFile() throws IOException {
-        if (this.requestPath.endsWith("/")) {
+    public void returnIndexFile() {
+        if (this.requestPath.endsWith("/"))
             filePath = DEFAULT_FILE;
-        }
-
+        this.contentMimeType = ContentType.TEXT_HTML.getValue();
         execute(filePath, HttpStatus.OK);
     }
 }

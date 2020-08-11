@@ -35,8 +35,15 @@ public class HandlerFinder {
         List<Class<?>> handlerClasses = BeanClassLoader.getHandlerClasses();
         for (Class<?> handlerClass : handlerClasses) {
             Method handlerMethod = findHandlerMethod(handlerClass);
-            return new HandlerInfo(handlerClass, handlerMethod);
+            if (handlerMethod != null)
+                return new HandlerInfo(handlerClass, handlerMethod);
         }
+        if (this.httpRequest.getPath().equals("/")
+                && this.httpRequest.getMethod().equals(HttpMethod.GET)) {
+            httpResponse.returnIndexFile();
+            return null;
+        }
+
         throw new HandlerNotFoundException();
     }
 
@@ -47,28 +54,27 @@ public class HandlerFinder {
             Annotation[] handlerClassDeclaredMethodDeclaredAnnotations = handlerClassDeclaredMethod.getDeclaredAnnotations();
             for (Annotation handlerClassDeclaredMethodDeclaredAnnotation : handlerClassDeclaredMethodDeclaredAnnotations) {
                 for (Class<? extends Annotation> handlerAnnotationType : handlerAnnotationTypes) {
-                    boolean isSame = compareAnnotation(
-                            requestPath, handlerClassDeclaredMethod,
-                            handlerClassDeclaredMethodDeclaredAnnotation, handlerAnnotationType
-                    );
-                    if (isSame) return handlerClassDeclaredMethod;
+                    boolean isSame = compareAnnotation(requestPath, handlerClassDeclaredMethod, handlerClassDeclaredMethodDeclaredAnnotation, handlerAnnotationType);
+                    if (isSame)
+                        return handlerClassDeclaredMethod;
                 }
             }
         }
-        throw new HandlerNotFoundException();
+        return null;
     }
 
-    private boolean compareAnnotation(String requestPath,
-                                      Method handlerClassDeclaredMethod,
-                                      Annotation handlerClassDeclaredMethodDeclaredAnnotation,
-                                      Class<? extends Annotation> handlerAnnotationType) {
+    private boolean compareAnnotation(
+            String requestPath,
+            Method handlerClassDeclaredMethod,
+            Annotation handlerClassDeclaredMethodDeclaredAnnotation,
+            Class<? extends Annotation> handlerAnnotationType
+    ) {
         if (handlerAnnotationType.equals(handlerClassDeclaredMethodDeclaredAnnotation.annotationType())) {
             try {
                 Method methodPropertyInAnnotation = handlerAnnotationType.getDeclaredMethod("method");
                 Method pathPropertyInAnnotation = handlerAnnotationType.getDeclaredMethod("value");
                 String path = pathPropertyInAnnotation.invoke(handlerClassDeclaredMethodDeclaredAnnotation).toString();
                 String method = methodPropertyInAnnotation.invoke(handlerClassDeclaredMethodDeclaredAnnotation).toString();
-
                 boolean isSame = compareMethodAndPath(requestPath, handlerClassDeclaredMethod, path, method);
                 if (isSame) return true;
             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
@@ -80,9 +86,8 @@ public class HandlerFinder {
 
     private boolean compareMethodAndPath(String requestPath, Method declaredMethod, String path, String method) {
         if (requestPath.equals(path) && httpRequest.getMethod().equals(HttpMethod.get(method))) {
-            if (declaredMethod.getDeclaredAnnotation(RestApi.class) != null) {
+            if (declaredMethod.getDeclaredAnnotation(RestApi.class) != null)
                 this.httpResponse.setContentMimeType(ContentType.APPLICATION_JSON);
-            }
             return true;
         }
         return false;
@@ -91,10 +96,14 @@ public class HandlerFinder {
     private String replaceRequestPath(Class<?> handlerClass) {
         String requestPath = httpRequest.getPath();
         String pathValueInHandlerClass = handlerClass.getDeclaredAnnotation(Handler.class).value();
-        if (!pathValueInHandlerClass.startsWith("/")) pathValueInHandlerClass = "/" + pathValueInHandlerClass;
-        if (requestPath.startsWith(pathValueInHandlerClass)) {
+        if (!pathValueInHandlerClass.startsWith("/"))
+            pathValueInHandlerClass = "/" + pathValueInHandlerClass;
+        if (requestPath.startsWith(pathValueInHandlerClass))
             requestPath = replaceRequestPath(requestPath, pathValueInHandlerClass);
-        }
+        if (!pathValueInHandlerClass.equals("/") && requestPath.equals(httpRequest.getPath()))
+            requestPath = pathValueInHandlerClass + requestPath;
+        if (!requestPath.equals("/") && requestPath.endsWith("/"))
+            requestPath = requestPath.substring(0, requestPath.length() - 1);
         return requestPath;
     }
 

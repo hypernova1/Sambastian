@@ -25,7 +25,6 @@ public class HttpLauncher {
         }
     }
 
-
     private static void findHandler(HttpRequest httpRequest, HttpResponse httpResponse) throws IOException {
         try {
             if (httpRequest.getPath().startsWith("/resources")) {
@@ -33,7 +32,8 @@ public class HttpLauncher {
                 return;
             }
             HandlerInfo handlerInfo = new HandlerFinder(httpRequest, httpResponse).createHandlerInfo();
-            new HandlerExecutor(httpRequest, httpResponse, handlerInfo).execute();
+            if (handlerInfo != null)
+                new HandlerExecutor(httpRequest, httpResponse, handlerInfo).execute();
         } catch (HandlerNotFoundException e) {
             httpResponse.fileNotFound();
             throw new IOException(e);
