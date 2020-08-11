@@ -110,7 +110,7 @@ public class HandlerExecutor {
                     inputParameter.add(value);
                 }
             } else {
-                Object object = Converter.parameterToObject(httpRequest.getParameters(), type, handlerInstance);
+                Object object = Converter.parameterToObject(httpRequest.getParameters(), type);
                 inputParameter.add(object);
             }
         }

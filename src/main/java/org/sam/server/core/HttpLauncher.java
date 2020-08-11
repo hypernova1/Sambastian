@@ -4,8 +4,6 @@ import org.sam.server.exception.HandlerNotFoundException;
 import org.sam.server.http.HttpRequest;
 import org.sam.server.http.HttpResponse;
 import org.sam.server.http.Request;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -16,8 +14,6 @@ import java.net.Socket;
  * Time: 1:34 PM
  */
 public class HttpLauncher {
-
-    private static final Logger logger = LoggerFactory.getLogger(HttpLauncher.class);
 
     public static void execute(Socket connect) {
         try {

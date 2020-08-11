@@ -13,7 +13,13 @@ import java.util.Map;
  */
 public class Converter {
 
-    public static Object parameterToObject(Map<String, String> parameters, Class<?> type, Object handlerInstance) {
+    public static Object parameterToObject(Map<String, String> parameters, Class<?> type) {
+        Object instance = null;
+        try {
+            instance = type.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            e.printStackTrace();
+        }
         try {
             for (Method declaredMethod : type.getDeclaredMethods()) {
                 String methodName = declaredMethod.getName();
@@ -21,13 +27,13 @@ public class Converter {
                     String propertyName = methodName.replace("set", "");
                     propertyName = propertyName.substring(0, 1).toLowerCase() + propertyName.substring(1);
                     String parameter = parameters.get(propertyName);
-                    declaredMethod.invoke(handlerInstance, parameter);
+                    declaredMethod.invoke(instance, parameter);
                 }
             }
         } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
-        return handlerInstance;
+        return instance;
     }
 
     public static <T> T jsonToObject(String json, Class<T> type) {

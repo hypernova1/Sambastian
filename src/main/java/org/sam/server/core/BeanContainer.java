@@ -2,6 +2,7 @@ package org.sam.server.core;
 
 import org.sam.server.exception.BeanAccessModifierException;
 import org.sam.server.exception.BeanNotFoundException;
+import org.sam.server.exception.DuplicateBeanException;
 import org.sam.server.http.Interceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,16 +31,30 @@ public class BeanContainer {
     private static void createComponentBeans() {
         componentClasses.forEach(componentClass  -> {
             try {
-                Object beanInstance = createBeanInstance(componentClass);
-                Method[] declaredMethods = beanInstance.getClass().getDeclaredMethods();
-                createMethodBean(beanInstance, declaredMethods);
                 String beanName = componentClass.getSimpleName();
                 beanName = beanName.substring(0, 1).toLowerCase() + beanName.substring(1);
-                addBeanMap(componentClass, beanInstance, beanName);
+                if (!isDuplicated(beanName, componentClass)) {
+                    Object beanInstance = createBeanInstance(componentClass);
+                    Method[] declaredMethods = beanInstance.getClass().getDeclaredMethods();
+                    createMethodBean(beanInstance, declaredMethods);
+                    addBeanMap(componentClass, beanInstance, beanName);
+                }
             } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
                 e.printStackTrace();
             }
         });
+    }
+
+    private static boolean isDuplicated(String beanName, Class<?> clazz) {
+        List<Bean> beans = beanMap.get(clazz);
+        if (beans != null) {
+            for (Bean bean : beans) {
+                if (bean.getName().equals(beanName)) {
+                    throw new DuplicateBeanException(beanName);
+                }
+            }
+        }
+        return false;
     }
 
     private static void createMethodBean(Object beanInstance, Method[] declaredMethods) {
@@ -101,7 +116,6 @@ public class BeanContainer {
             constructor = constructors[0];
         Parameter[] parameters = constructor.getParameters();
         List<Object> parameterList = createParameters(parameters);
-
         return constructor.newInstance(parameterList.toArray());
     }
 
@@ -110,10 +124,19 @@ public class BeanContainer {
         for (Parameter parameter : parameters) {
             String parameterName = parameter.getName();
             try {
-                Object bean = findBean(parameter.getType(), parameterName);
-                if (bean == null)
-                    bean = createBeanInstance(parameter.getType());
-                parameterList.add(bean);
+                Bean bean = findBean(parameter.getType(), parameterName);
+                if (bean == null) {
+                    int index = componentClasses.indexOf(parameter.getType());
+                    if (index == -1)
+                        throw new BeanNotFoundException(parameter.getType().getName());
+                    Class<?> beanClass = componentClasses.get(index);
+                    String beanName = beanClass.getSimpleName();
+                    beanName = beanName.substring(0, 1).toLowerCase() + beanName.substring(1);
+                    Object beanInstance = createBeanInstance(beanClass);
+                    bean = new Bean(beanName, beanInstance);
+                    addBeanMap(parameter.getType(), beanInstance, parameterName);
+                }
+                parameterList.add(bean.getInstance());
             } catch (BeanNotFoundException e) {
                 e.printStackTrace();
             }
@@ -121,7 +144,7 @@ public class BeanContainer {
         return parameterList;
     }
 
-    private static Object findBean(Class<?> type, String parameterName) throws BeanNotFoundException {
+    private static Bean findBean(Class<?> type, String parameterName) throws BeanNotFoundException {
         if (!componentClasses.contains(type))
             type = findSuperClass(type);
         List<Bean> beans = beanMap.get(type);
@@ -142,7 +165,7 @@ public class BeanContainer {
                 return key;
             }
         }
-        throw new BeanNotFoundException(type.getName() + " bean is not found");
+        throw new BeanNotFoundException(type.getName());
     }
 
     public static Map<Class<?>, List<Bean>> getBeanMap() {
