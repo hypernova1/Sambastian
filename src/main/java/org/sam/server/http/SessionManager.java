@@ -18,15 +18,13 @@ public class SessionManager extends TimerTask {
 
     private static final Logger logger = LoggerFactory.getLogger(SessionManager.class);
 
-    private final Set<Session> sessionList = new HashSet<>();
+    private static final Set<Session> sessionList = new HashSet<>();
 
-    public Session createSession() {
-        Session session = new Session();
+    protected static void addSession(Session session) {
         sessionList.add(session);
-        return session;
     }
 
-    public Session getSession(String id) {
+    protected static Session getSession(String id) {
         for (Session session : sessionList) {
             if (session.getId().equals(id)) {
                 return session;
@@ -35,7 +33,7 @@ public class SessionManager extends TimerTask {
         return null;
     }
 
-    public void removeSession(String id) {
+    protected static void removeSession(String id) {
         sessionList.removeIf(session -> session.getId().equals(id));
     }
 

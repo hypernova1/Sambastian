@@ -1,7 +1,5 @@
 package org.sam.server.http;
 
-import org.sam.server.HttpServer;
-
 import java.time.LocalDateTime;
 import java.util.Hashtable;
 import java.util.Map;
@@ -27,13 +25,13 @@ public class Session {
         this.creationTime = LocalDateTime.now();
         this.accessTime = LocalDateTime.now();
         this.timeout = 30;
-
+        SessionManager.addSession(this);
         Cookie cookie = new Cookie("sessionId", this.id);
         CookieStore.getCookies().add(cookie);
     }
 
     public void invalidate() {
-        HttpServer.sessionManager.removeSession(this.id);
+        SessionManager.removeSession(this.id);
     }
 
     public Object getAttribute(String key) {
@@ -76,8 +74,8 @@ public class Session {
         return timeout;
     }
 
-    public void setAttribute(Map<String, Object> attribute) {
-        this.attribute = attribute;
+    public void setAttribute(String name, Object value) {
+        this.attribute.put(name, value);
     }
 
     public LocalDateTime getExpired() {

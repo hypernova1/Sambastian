@@ -39,44 +39,64 @@ public class HttpRequest implements Request {
         return this.protocol;
     }
 
+    @Override
     public String getPath() {
         return this.path;
     }
 
+    @Override
     public HttpMethod getMethod() {
         return this.method;
     }
 
+    @Override
     public String getParameter(String key) {
         return this.parameterMap.get(key);
     }
 
+    @Override
     public Map<String, String> getParameters() {
         return this.parameterMap;
     }
 
+    @Override
     public Set<String> getParameterNames() {
         return this.parameterMap.keySet();
     }
 
+    @Override
     public Set<String> getHeaderNames() {
         return headers.keySet();
     }
 
+    @Override
     public String getHeader(String key) {
         return headers.get(key);
     }
 
+    @Override
     public Map<String, String> getAttributes() {
         return attributes;
     }
 
+    @Override
     public String getJson() {
         return json;
     }
 
+    @Override
     public Set<Cookie> getCookies() {
         return this.cookies;
+    }
+
+    @Override
+    public Session getSession() {
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals("sessionId")) {
+                return SessionManager.getSession(cookie.getValue());
+            }
+        }
+        return new Session();
     }
 
 }

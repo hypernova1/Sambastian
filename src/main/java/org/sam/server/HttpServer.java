@@ -2,7 +2,7 @@ package org.sam.server;
 
 import org.sam.server.common.ServerProperties;
 import org.sam.server.core.BeanContainer;
-import org.sam.server.core.RequestReceiver;
+import org.sam.server.core.HttpLauncher;
 import org.sam.server.http.SessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class HttpServer implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
-    public static final SessionManager sessionManager = new SessionManager();
 
     private final Socket connect;
 
@@ -63,7 +62,7 @@ public class HttpServer implements Runnable {
                     new SynchronousQueue<>()
             );
 
-            new Timer().schedule(sessionManager, 0, 60 * 1000);
+            new Timer().schedule(new SessionManager(), 0, 60 * 1000);
             while (!Thread.currentThread().isInterrupted()) {
                 HttpServer httpServer = new HttpServer(serverSocket.accept());
                 logger.info("connected.." + LocalDateTime.now());
@@ -76,6 +75,6 @@ public class HttpServer implements Runnable {
     }
 
     public void run() {
-        new RequestReceiver(connect).analyzeRequest();
+        HttpLauncher.execute(connect);
     }
 }

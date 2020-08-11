@@ -15,17 +15,11 @@ import java.net.Socket;
  * Date: 2020/07/17
  * Time: 1:34 PM
  */
-public class RequestReceiver {
+public class HttpLauncher {
 
-    private static final Logger logger = LoggerFactory.getLogger(RequestReceiver.class);
+    private static final Logger logger = LoggerFactory.getLogger(HttpLauncher.class);
 
-    private final Socket connect;
-
-    public RequestReceiver(Socket connect) {
-        this.connect = connect;
-    }
-
-    public void analyzeRequest() {
+    public static void execute(Socket connect) {
         try {
             HttpRequest httpRequest = Request.create(connect.getInputStream());
             HttpResponse httpResponse = HttpResponse.create(connect.getOutputStream(), httpRequest.getPath());
@@ -35,7 +29,8 @@ public class RequestReceiver {
         }
     }
 
-    private void findHandler(HttpRequest httpRequest, HttpResponse httpResponse) throws IOException {
+
+    private static void findHandler(HttpRequest httpRequest, HttpResponse httpResponse) throws IOException {
         try {
             if (httpRequest.getPath().startsWith("/resources")) {
                 httpResponse.getStaticResources();

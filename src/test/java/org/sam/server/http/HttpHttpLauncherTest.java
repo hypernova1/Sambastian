@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Date: 2020/07/17
  * Time: 3:47 PM
  */
-class HttpRequestReceiverTest {
+class HttpHttpLauncherTest {
 
     @Test
     void test() {

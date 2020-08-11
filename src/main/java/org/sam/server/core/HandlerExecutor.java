@@ -1,7 +1,6 @@
 package org.sam.server.core;
 
 import com.google.gson.Gson;
-import org.sam.server.HttpServer;
 import org.sam.server.annotation.handle.JsonRequest;
 import org.sam.server.common.Converter;
 import org.sam.server.common.PrimitiveWrapper;
@@ -119,11 +118,10 @@ public class HandlerExecutor {
     }
 
     private void addSession(List<Object> params) {
-        SessionManager sessionManager = HttpServer.sessionManager;
         Set<Cookie> cookies = httpRequest.getCookies();
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals("sessionId")) {
-                Session session = sessionManager.getSession(cookie.getValue());
+                Session session = httpRequest.getSession();
                 if (session == null) cookies.remove(cookie);
                 else {
                     session.renewAccessTime();
@@ -132,7 +130,7 @@ public class HandlerExecutor {
                 }
             }
         }
-        Session session = sessionManager.createSession();
+        Session session = new Session();
         params.add(session);
     }
 }

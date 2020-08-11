@@ -44,6 +44,8 @@ public interface Request {
 
     Set<Cookie> getCookies();
 
+    Session getSession();
+
     class UrlParser {
         private static final Logger logger = LoggerFactory.getLogger(Request.class);
 
