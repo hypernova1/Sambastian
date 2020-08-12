@@ -9,6 +9,7 @@ import java.io.IOException;
  * Date: 2020/07/28
  * Time: 11:16 PM
  */
+@SuppressWarnings("unused")
 public class MultipartFile {
 
     private final String fileName;

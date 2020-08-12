@@ -40,13 +40,10 @@ public class BeanClassLoader {
         String path = rootPackageName.replace(".", "/");
         try {
             Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources(path);
-            List<File> dir = new ArrayList<>();
+            List<Class<?>> classes = new ArrayList<>();
             while (resources.hasMoreElements()) {
                 URL resource = resources.nextElement();
-                dir.add(new File(resource.getFile()));
-            }
-            List<Class<?>> classes = new ArrayList<>();
-            for (File directory : dir) {
+                File directory = new File(resource.getFile());
                 classes.addAll(findClasses(directory, rootPackageName));
             }
             loadHandlerClasses(classes);

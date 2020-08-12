@@ -7,6 +7,7 @@ import org.sam.server.constant.HttpStatus;
  * Date: 2020/07/20
  * Time: 9:44 PM
  */
+@SuppressWarnings("unused")
 public class ResponseEntity<T> {
     private HttpStatus httpStatus;
     private T value;

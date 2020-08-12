@@ -11,6 +11,7 @@ import java.util.UUID;
  * Date: 2020/07/24
  * Time: 8:40 PM
  */
+@SuppressWarnings("unused")
 public class Session {
 
     private String id;

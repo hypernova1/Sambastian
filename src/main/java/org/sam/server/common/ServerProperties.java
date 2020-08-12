@@ -17,7 +17,7 @@ public class ServerProperties {
     private static final Logger logger = LoggerFactory.getLogger(ServerProperties.class);
 
     private static Properties properties = new Properties();
-    public static boolean IS_SSL = false;
+    public static boolean isSSL;
 
     static {
         loadClass();
@@ -37,5 +37,13 @@ public class ServerProperties {
 
     public static String get(String propertyKey) {
         return properties.getProperty(propertyKey);
+    }
+
+    public static void setSSL() {
+        isSSL = true;
+    }
+
+    public static boolean isSSL() {
+        return isSSL;
     }
 }

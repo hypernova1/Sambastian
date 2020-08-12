@@ -12,6 +12,7 @@ import java.util.TimeZone;
  * Date: 2020/07/21
  * Time: 8:34 PM
  */
+@SuppressWarnings("unused")
 public class Cookie {
     
     private String name;

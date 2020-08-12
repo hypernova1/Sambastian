@@ -45,18 +45,6 @@ public class BeanContainer {
         });
     }
 
-    private static boolean isDuplicated(String beanName, Class<?> clazz) {
-        List<Bean> beans = beanMap.get(clazz);
-        if (beans != null) {
-            for (Bean bean : beans) {
-                if (bean.getName().equals(beanName)) {
-                    throw new DuplicateBeanException(beanName);
-                }
-            }
-        }
-        return false;
-    }
-
     private static void createMethodBean(Object beanInstance, Method[] declaredMethods) {
         Arrays.stream(declaredMethods).forEach(declaredMethod -> {
             if (declaredMethod.getDeclaredAnnotation(org.sam.server.annotation.Bean.class) != null) {
@@ -144,6 +132,18 @@ public class BeanContainer {
         return parameterList;
     }
 
+    private static boolean isDuplicated(String beanName, Class<?> clazz) {
+        List<Bean> beans = beanMap.get(clazz);
+        if (beans != null) {
+            for (Bean bean : beans) {
+                if (bean.getName().equals(beanName)) {
+                    throw new DuplicateBeanException(beanName);
+                }
+            }
+        }
+        return false;
+    }
+
     private static Bean findBean(Class<?> type, String parameterName) throws BeanNotFoundException {
         if (!componentClasses.contains(type))
             type = findSuperClass(type);
@@ -166,10 +166,6 @@ public class BeanContainer {
             }
         }
         throw new BeanNotFoundException(type.getName());
-    }
-
-    public static Map<Class<?>, List<Bean>> getBeanMap() {
-        return beanMap;
     }
 
     public static List<Object> getHandlerBeans() {

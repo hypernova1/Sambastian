@@ -17,6 +17,7 @@ import java.util.Set;
  * Date: 2020/07/17
  * Time: 1:34 PM
  */
+@SuppressWarnings("unused")
 public class HttpResponse extends Response {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpResponse.class);
@@ -114,7 +115,7 @@ public class HttpResponse extends Response {
                 line.append("; Expires=").append(cookie.getExpires());
                 line.append("; Max-Age=").append(cookie.getMaxAge());
             }
-            if (ServerProperties.IS_SSL) {
+            if (ServerProperties.isSSL()) {
                 line.append("; Secure");
             }
             if (cookie.isHttpOnly()) {

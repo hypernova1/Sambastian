@@ -16,6 +16,7 @@ import java.util.*;
  * Date: 2020/07/22
  * Time: 5:19 PM
  */
+@SuppressWarnings("unused")
 public interface Request {
 
     static HttpRequest create(InputStream in) {

@@ -22,7 +22,9 @@ import java.util.concurrent.TimeUnit;
  * Date: 2020/07/17
  * Time: 1:34 PM
  */
+@SuppressWarnings("unused")
 public class HttpServer implements Runnable {
+
     private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
 
     private final Socket connect;
@@ -34,12 +36,16 @@ public class HttpServer implements Runnable {
     public static void start() {
         String keyStore = ServerProperties.get("keyStore");
         String password = ServerProperties.get("keyStorePassword");
-        int port = Integer.parseInt(ServerProperties.get("server.port"));
+        String propertiesPort = ServerProperties.get("server.port");
+
+        int port = 8080;
+        if (propertiesPort != null)
+            port = Integer.parseInt(propertiesPort);
 
         try {
             ServerSocket serverSocket;
             if (keyStore != null) {
-                ServerProperties.IS_SSL = true;
+                ServerProperties.setSSL();
                 System.setProperty("javax.net.ssl.keyStore", keyStore);
                 System.setProperty("javax.net.ssl.keyStorePassword", password);
                 System.setProperty("javax.net.debug", "ssl");

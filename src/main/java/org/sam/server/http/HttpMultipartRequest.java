@@ -9,6 +9,7 @@ import java.util.*;
  * Date: 2020/07/22
  * Time: 4:45 PM
  */
+@SuppressWarnings("unused")
 public class HttpMultipartRequest extends HttpRequest {
 
     private final Map<String, Object> files;
