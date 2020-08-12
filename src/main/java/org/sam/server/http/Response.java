@@ -11,8 +11,6 @@ import java.io.PrintWriter;
  */
 public abstract class Response {
 
-    protected final ClassLoader classLoader = getClass().getClassLoader();
-
     protected static final String DEFAULT_FILE = "static/index.html";
     protected static final String BAD_REQUEST = "static/400.html";
     protected static final String FILE_NOT_FOUND = "static/404.html";

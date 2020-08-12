@@ -32,8 +32,8 @@ public class HttpLauncher {
                 return;
             }
             HandlerInfo handlerInfo = new HandlerFinder(httpRequest, httpResponse).createHandlerInfo();
-            if (handlerInfo != null)
-                new HandlerExecutor(httpRequest, httpResponse, handlerInfo).execute();
+            if (handlerInfo == null) return;
+            new HandlerExecutor(httpRequest, httpResponse, handlerInfo).execute();
         } catch (HandlerNotFoundException e) {
             httpResponse.fileNotFound();
             throw new IOException(e);

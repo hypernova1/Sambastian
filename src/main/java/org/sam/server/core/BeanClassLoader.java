@@ -1,9 +1,10 @@
 package org.sam.server.core;
 
 import org.sam.server.annotation.Component;
+import org.sam.server.annotation.ComponentScan;
 import org.sam.server.annotation.Service;
 import org.sam.server.annotation.handle.Handler;
-import org.sam.server.common.ServerProperties;
+import org.sam.server.exception.ComponentScanNotFoundException;
 import org.sam.server.http.Interceptor;
 
 import java.io.File;
@@ -20,21 +21,25 @@ import java.util.stream.Collectors;
  */
 public class BeanClassLoader {
 
-    private static final String rootPackageName = ServerProperties.get("root-package");
-
+    private static String rootPackageName;
     private static final List<Class<?>> handlerClasses = new ArrayList<>();
     private static final List<Class<?>> componentClasses = new ArrayList<>();
     private static final List<Class<?>> interceptorClasses = new ArrayList<>();
 
     static {
-        loadClasses();
+        try {
+            loadRootPackageName();
+            loadClasses();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void loadClasses() {
-        ClassLoader classLoader = BeanClassLoader.class.getClassLoader();
+        if (rootPackageName == null) throw new ComponentScanNotFoundException();
         String path = rootPackageName.replace(".", "/");
         try {
-            Enumeration<URL> resources = classLoader.getResources(path);
+            Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources(path);
             List<File> dir = new ArrayList<>();
             while (resources.hasMoreElements()) {
                 URL resource = resources.nextElement();
@@ -91,6 +96,36 @@ public class BeanClassLoader {
             }
         }
         return classes;
+    }
+
+    private static void loadRootPackageName() throws IOException, ClassNotFoundException {
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        Enumeration<URL> resources = classLoader.getResources("");
+        while (resources.hasMoreElements()) {
+            URL resource = resources.nextElement();
+            boolean existComponentScan = loadRootPackageName(new File(resource.getFile()), "");
+            if (existComponentScan) break;
+        }
+    }
+
+    private static boolean loadRootPackageName(File directory, String packageName) throws ClassNotFoundException {
+        if (!directory.exists()) return false;
+        File[] files = directory.listFiles();
+        for (File file : files) {
+            StringBuilder packageNameBuilder = new StringBuilder(packageName);
+            if (file.isDirectory()) {
+                if (!packageNameBuilder.toString().equals("")) packageNameBuilder.append(".");
+                loadRootPackageName(file, packageNameBuilder + file.getName());
+            } else if (file.getName().endsWith(".class")) {
+                String fileName = packageNameBuilder + "." + file.getName();
+                Class<?> clazz = Class.forName(fileName.substring(0, fileName.length() - 6));
+                if (clazz.getDeclaredAnnotation(ComponentScan.class) != null) {
+                    rootPackageName = packageName;
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public static List<Class<?>> getHandlerClasses() {

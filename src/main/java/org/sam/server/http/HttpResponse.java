@@ -62,7 +62,7 @@ public class HttpResponse extends Response {
     }
 
     private int readStaticResource(String filePath) throws IOException {
-        InputStream fis = classLoader.getResourceAsStream(filePath);
+        InputStream fis = Thread.currentThread().getContextClassLoader().getResourceAsStream(filePath);
         File staticFile = new File("src/main" + filePath);
 
         if (fis == null && !staticFile.exists()) {

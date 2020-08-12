@@ -24,7 +24,7 @@ public class ServerProperties {
     }
 
     public static void loadClass() {
-        InputStream resourceAsStream = ServerProperties.class.getClassLoader()
+        InputStream resourceAsStream = Thread.currentThread().getContextClassLoader()
                 .getResourceAsStream("config/application.properties");
         if (resourceAsStream != null) {
             try {

@@ -45,14 +45,14 @@ public class HttpServer implements Runnable {
                 System.setProperty("javax.net.debug", "ssl");
                 SSLServerSocketFactory sslserversocketfactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
                 serverSocket = sslserversocketfactory.createServerSocket(port);
-            } else {
+            } else
                 serverSocket = new ServerSocket(port);
-            }
 
             logger.info("server started..");
             logger.info("server port: " + port);
 
             BeanContainer.createBeans();
+            new Timer().schedule(new SessionManager(), 0, 60 * 1000);
 
             ThreadPoolExecutor threadPool = new ThreadPoolExecutor(
                     5,
@@ -61,8 +61,6 @@ public class HttpServer implements Runnable {
                     TimeUnit.SECONDS,
                     new SynchronousQueue<>()
             );
-
-            new Timer().schedule(new SessionManager(), 0, 60 * 1000);
             while (!Thread.currentThread().isInterrupted()) {
                 HttpServer httpServer = new HttpServer(serverSocket.accept());
                 logger.info("connected.." + LocalDateTime.now());
