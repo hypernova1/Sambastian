@@ -18,7 +18,6 @@ $ mvn install
 ~~~
 4. resources/static/resource/application.properties 에 설정 추가
 ~~~properties
-root-package=[루트 패키지 경로]
 server.port=[포트 번호]
 
 # SSL 활성화시
@@ -36,18 +35,8 @@ public class Application {
 
 6. 실행
 ~~~
-server started..
-server port: 8080
+22:26:34.015 [main] INFO  org.sam.server.HttpServer - server started..
+22:26:34.019 [main] INFO  org.sam.server.HttpServer - server port: 8081
 ~~~
 
-### 구현 클래스
-#### HttpServer
-요청을 받을 때 마다 스레드를 생성하여 RequestReceiver에 위임한다.
-#### BeanLoader
-핸들러 클래스를 찾아 클래스 정보를 저장한다.
-#### RequestReceiver
-HttpServer객체에게 받은 요청 정보를 분석하여 Request와 Response 객체를 만들고 핸들러를 찾아 실행한다.
-#### Request
-요청의 정보(경로, 헤더, 파라미터 등)를 가진다.
-#### Response
-정보를 받아 클라이언트에 응답한다. 
+#### [Sample Project](https://github.com/hypernova1/Java-Http-Server-Sample)
