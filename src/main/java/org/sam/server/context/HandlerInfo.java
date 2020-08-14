@@ -9,19 +9,19 @@ import java.lang.reflect.Method;
  */
 public class HandlerInfo {
 
-    private final Class<?> handlerClass;
+    private final Object instance;
     private final Method handlerMethod;
 
-    public HandlerInfo(Class<?> handlerClass, Method handlerMethod) {
-        this.handlerClass = handlerClass;
+    public HandlerInfo(Object instance, Method handlerMethod) {
+        this.instance = instance;
         this.handlerMethod = handlerMethod;
     }
 
-    public Class<?> getHandlerClass() {
-        return handlerClass;
+    public Object getInstance() {
+        return instance;
     }
 
-    public Method getHandlerMethod() {
+    public Method getMethod() {
         return handlerMethod;
     }
 }

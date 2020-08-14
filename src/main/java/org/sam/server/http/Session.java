@@ -21,7 +21,7 @@ public final class Session {
 
     private Map<String, Object> attribute = new Hashtable<>();
 
-    protected Session() {
+    Session() {
         this.id = UUID.randomUUID().toString();
         this.creationTime = LocalDateTime.now();
         this.accessTime = LocalDateTime.now();

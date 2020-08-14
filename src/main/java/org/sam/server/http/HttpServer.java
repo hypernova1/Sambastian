@@ -38,12 +38,8 @@ public class HttpServer implements Runnable {
         String propertiesPort = ServerProperties.get("server.port");
 
         int port = 8080;
-        if (propertiesPort != null)
-            port = Integer.parseInt(propertiesPort);
-        if (System.getenv("PORT") != null) {
-            port = Integer.parseInt(System.getenv("PORT"));
-            keyStore = System.getenv("keyStoreFileName");
-        }
+        if (propertiesPort != null) port = Integer.parseInt(propertiesPort);
+        if (System.getenv("PORT") != null) port = Integer.parseInt(System.getenv("PORT"));
         try {
             ServerSocket serverSocket;
             if (keyStore != null) {

@@ -10,16 +10,16 @@ public class Bean {
     private String name;
     private Object instance;
 
-    public Bean(String name, Object instance) {
+    Bean(String name, Object instance) {
         this.name = name;
         this.instance = instance;
     }
 
-    public String getName() {
+    String getName() {
         return name;
     }
 
-    public Object getInstance() {
+    Object getInstance() {
         return instance;
     }
 }

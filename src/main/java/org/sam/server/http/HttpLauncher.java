@@ -34,7 +34,7 @@ public class HttpLauncher {
                 httpResponse.getStaticResources();
                 return;
             }
-            HandlerInfo handlerInfo = new HandlerFinder(httpRequest, httpResponse).createHandlerInfo();
+            HandlerInfo handlerInfo = HandlerFinder.of(httpRequest, httpResponse).createHandlerInfo();
             if (handlerInfo == null) return;
             HandlerExecutor.of(httpRequest, httpResponse, handlerInfo).execute();
         } catch (HandlerNotFoundException e) {

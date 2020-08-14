@@ -2,13 +2,12 @@ package org.sam.server.http;
 
 import com.google.gson.Gson;
 import org.sam.server.annotation.handle.JsonRequest;
-import org.sam.server.util.Converter;
-import org.sam.server.util.PrimitiveWrapper;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.constant.HttpStatus;
 import org.sam.server.context.BeanContainer;
 import org.sam.server.context.HandlerInfo;
-import org.sam.server.exception.HandlerNotFoundException;
+import org.sam.server.util.Converter;
+import org.sam.server.util.PrimitiveWrapper;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -81,21 +80,12 @@ public class HandlerExecutor {
     }
 
     private Object executeHandler(Map<String, String> requestData) throws IllegalAccessException, InvocationTargetException {
-        Object handlerInstance = findHandlerInstance();
-        Method handlerMethod = handlerInfo.getHandlerMethod();
-        Object[] parameters = createParameters(handlerMethod.getParameters(), requestData, handlerInstance);
-        return handlerMethod.invoke(handlerInstance, parameters);
+        Method handlerMethod = handlerInfo.getMethod();
+        Object[] parameters = createParameters(handlerMethod.getParameters(), requestData);
+        return handlerMethod.invoke(handlerInfo.getInstance(), parameters);
     }
 
-    private Object findHandlerInstance() {
-        List<Object> handlerBeans = BeanContainer.getHandlerBeans();
-        return handlerBeans.stream()
-                .filter(handlerBean -> handlerInfo.getHandlerClass() == handlerBean.getClass())
-                .findFirst()
-                .orElseThrow(HandlerNotFoundException::new);
-    }
-
-    private Object[] createParameters(Parameter[] handlerParameters, Map<String, String> requestData, Object handlerInstance) {
+    private Object[] createParameters(Parameter[] handlerParameters, Map<String, String> requestData) {
         List<Object> inputParameter = new ArrayList<>();
         for (Parameter handlerParameter : handlerParameters) {
             String name = handlerParameter.getName();

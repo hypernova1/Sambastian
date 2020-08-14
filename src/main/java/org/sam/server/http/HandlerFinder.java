@@ -5,6 +5,7 @@ import org.sam.server.annotation.handle.*;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.context.BeanClassLoader;
+import org.sam.server.context.BeanContainer;
 import org.sam.server.context.HandlerInfo;
 import org.sam.server.exception.HandlerNotFoundException;
 
@@ -27,15 +28,19 @@ public class HandlerFinder {
     private List<Class<? extends Annotation>> handlerAnnotationTypes =
             Arrays.asList(GetHandle.class, PostHandle.class, PutHandle.class, DeleteHandle.class);
 
-    protected HandlerFinder(HttpRequest httpRequest, HttpResponse httpResponse) {
+    private HandlerFinder(HttpRequest httpRequest, HttpResponse httpResponse) {
         this.httpRequest = httpRequest;
         this.httpResponse = httpResponse;
     }
 
+    public static HandlerFinder of(HttpRequest httpRequest, HttpResponse httpResponse) {
+        return new HandlerFinder(httpRequest, httpResponse);
+    }
+
     public HandlerInfo createHandlerInfo() throws HandlerNotFoundException {
-        List<Class<?>> handlerClasses = BeanClassLoader.getHandlerClasses();
-        for (Class<?> handlerClass : handlerClasses) {
-            Method handlerMethod = findHandlerMethod(handlerClass);
+        List<Object> handlerClasses = BeanContainer.getHandlerBeans();
+        for (Object handlerClass : handlerClasses) {
+            Method handlerMethod = findHandlerMethod(handlerClass.getClass());
             if (handlerMethod != null)
                 return new HandlerInfo(handlerClass, handlerMethod);
         }

@@ -125,15 +125,15 @@ public class BeanClassLoader {
         return false;
     }
 
-    public static List<Class<?>> getHandlerClasses() {
+    static List<Class<?>> getHandlerClasses() {
         return handlerClasses;
     }
 
-    public static List<Class<?>> getComponentClasses() {
+    static List<Class<?>> getComponentClasses() {
         return componentClasses;
     }
 
-    public static List<Class<?>> getInterceptorClasses() {
+    static List<Class<?>> getInterceptorClasses() {
         return interceptorClasses;
     }
 }
