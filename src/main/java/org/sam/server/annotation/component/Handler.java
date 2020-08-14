@@ -1,4 +1,4 @@
-package org.sam.server.annotation.handle;
+package org.sam.server.annotation.component;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

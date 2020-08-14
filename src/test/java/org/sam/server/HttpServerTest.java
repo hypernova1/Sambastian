@@ -62,4 +62,9 @@ class HttpServerTest {
         return classes;
     }
 
+    @Test
+    void test2() {
+        System.out.println(System.getenv("PORT"));
+    }
+
 }

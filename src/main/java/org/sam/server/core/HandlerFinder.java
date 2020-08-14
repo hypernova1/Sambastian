@@ -1,5 +1,6 @@
 package org.sam.server.core;
 
+import org.sam.server.annotation.component.Handler;
 import org.sam.server.annotation.handle.*;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
@@ -43,7 +44,6 @@ public class HandlerFinder {
             httpResponse.returnIndexFile();
             return null;
         }
-
         throw new HandlerNotFoundException();
     }
 

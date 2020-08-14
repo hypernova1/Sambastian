@@ -1,9 +1,9 @@
 package org.sam.server.core;
 
-import org.sam.server.annotation.Component;
+import org.sam.server.annotation.component.Component;
 import org.sam.server.annotation.ComponentScan;
-import org.sam.server.annotation.Service;
-import org.sam.server.annotation.handle.Handler;
+import org.sam.server.annotation.component.Service;
+import org.sam.server.annotation.component.Handler;
 import org.sam.server.exception.ComponentScanNotFoundException;
 import org.sam.server.http.Interceptor;
 

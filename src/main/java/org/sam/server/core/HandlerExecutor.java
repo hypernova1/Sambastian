@@ -42,9 +42,11 @@ public class HandlerExecutor {
             else
                 requestData = httpRequest.getParameters();
             List<Interceptor> interceptors = BeanContainer.getInterceptors();
-            interceptors.forEach(interceptor -> interceptor.preHandler(httpRequest, httpResponse));
-            Object returnValue = executeHandler(requestData);
-            interceptors.forEach(interceptor -> interceptor.postHandler(httpRequest, httpResponse));
+            Object returnValue;
+            if (interceptors.isEmpty())
+                returnValue = executeHandler(requestData);
+            else
+                returnValue = executeInterceptors(interceptors, requestData);
             HttpStatus httpStatus;
             if (returnValue.getClass().equals(ResponseEntity.class)) {
                 ResponseEntity<?> responseEntity = (ResponseEntity<?>) returnValue;
@@ -61,6 +63,16 @@ public class HandlerExecutor {
             e.printStackTrace();
             httpResponse.badRequest();
         }
+    }
+
+    private Object executeInterceptors(List<Interceptor> interceptors, Map<String, String> requestData) throws IllegalAccessException, InvocationTargetException {
+        Object returnValue = null;
+        for (Interceptor interceptor : interceptors) {
+            interceptor.preHandler(httpRequest, httpResponse);
+            returnValue = executeHandler(requestData);
+            interceptor.postHandler(httpRequest, httpResponse);
+        }
+        return returnValue;
     }
 
     private Object executeHandler(Map<String, String> requestData) throws IllegalAccessException, InvocationTargetException {

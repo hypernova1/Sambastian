@@ -47,7 +47,7 @@ public class BeanContainer {
 
     private static void createMethodBean(Object beanInstance, Method[] declaredMethods) {
         Arrays.stream(declaredMethods).forEach(declaredMethod -> {
-            if (declaredMethod.getDeclaredAnnotation(org.sam.server.annotation.Bean.class) != null) {
+            if (declaredMethod.getDeclaredAnnotation(org.sam.server.annotation.component.Bean.class) != null) {
                 try {
                     Class<?> beanType = declaredMethod.getReturnType();
                     Object instance = declaredMethod.invoke(beanInstance);
