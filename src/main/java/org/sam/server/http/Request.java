@@ -2,6 +2,7 @@ package org.sam.server.http;
 
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
+import org.sam.server.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,7 +10,6 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -88,9 +88,7 @@ public interface Request {
                 String query = parseRequestPath(requestPath);
                 parseHeaders(headers);
                 parseMethod(method);
-
-                if (!query.isEmpty()) this.parameters = parseQuery(query);
-
+                if (StringUtils.isNotEmpty(query)) this.parameters = parseQuery(query);
                 String contentType = this.headers.get("content-type") != null ? this.headers.get("content-type") : "";
                 if (HttpMethod.get(method).equals(HttpMethod.POST) ||
                         HttpMethod.get(method).equals(HttpMethod.PUT) ||
@@ -153,10 +151,10 @@ public interface Request {
         private Map<String, String> parseQuery(String parameters) {
             Map<String, String> map = new HashMap<>();
             String[] rawParameters = parameters.split("&");
-            Arrays.stream(rawParameters).forEach(parameter -> {
-                String[] parameterPair = parameter.split("=");
+            Arrays.stream(rawParameters).forEach(rawParameter -> {
+                String[] parameterPair = rawParameter.split("=");
                 String name = parameterPair[0];
-                String value = null;
+                String value = "";
                 if (parameterPair.length == 2) {
                     value = parameterPair[1];
                 }

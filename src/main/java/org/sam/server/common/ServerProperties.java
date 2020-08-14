@@ -20,10 +20,10 @@ public class ServerProperties {
     public static boolean isSSL;
 
     static {
-        loadClass();
+        load();
     }
 
-    public static void loadClass() {
+    private static void load() {
         InputStream resourceAsStream = Thread.currentThread().getContextClassLoader()
                 .getResourceAsStream("config/application.properties");
         if (resourceAsStream != null) {

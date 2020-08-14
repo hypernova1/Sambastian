@@ -9,7 +9,6 @@ import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.SynchronousQueue;
@@ -33,30 +32,12 @@ public class HttpServer implements Runnable {
     }
 
     public static void start() {
-        String keyStore = ServerProperties.get("keyStore");
-        String password = ServerProperties.get("keyStorePassword");
-        String propertiesPort = ServerProperties.get("server.port");
-
-        int port = 8080;
-        if (propertiesPort != null) port = Integer.parseInt(propertiesPort);
-        if (System.getenv("PORT") != null) port = Integer.parseInt(System.getenv("PORT"));
         try {
-            ServerSocket serverSocket;
-            if (keyStore != null) {
-                ServerProperties.setSSL();
-                System.setProperty("javax.net.ssl.keyStore", keyStore);
-                System.setProperty("javax.net.ssl.keyStorePassword", password);
-                System.setProperty("javax.net.debug", "ssl");
-                SSLServerSocketFactory sslserversocketfactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
-                serverSocket = sslserversocketfactory.createServerSocket(port);
-            } else
-                serverSocket = new ServerSocket(port);
-
+            ServerSocket serverSocket = createServerSocket();
             logger.info("server started..");
-            logger.info("server port: " + port);
-
+            logger.info("server port: " + serverSocket.getLocalPort());
             BeanContainer.createBeans();
-            new Timer().schedule(new SessionManager(), 0, 60 * 1000);
+            SessionManager.enableSessionChecker();
 
             ThreadPoolExecutor threadPool = new ThreadPoolExecutor(
                     5,
@@ -67,8 +48,8 @@ public class HttpServer implements Runnable {
             );
             while (!Thread.currentThread().isInterrupted()) {
                 HttpServer httpServer = new HttpServer(serverSocket.accept());
-                logger.info("connected.." + LocalDateTime.now());
-                logger.info("total thread count: " + threadPool.getPoolSize());
+//                logger.info("connected.." + LocalDateTime.now());
+//                logger.info("total thread count: " + threadPool.getPoolSize());
                 threadPool.execute(httpServer);
             }
         } catch (IOException e) {
@@ -76,6 +57,27 @@ public class HttpServer implements Runnable {
         }
     }
 
+    private static ServerSocket createServerSocket() throws IOException {
+        String keyStore = ServerProperties.get("keyStore");
+        String keyStorePassword = ServerProperties.get("keyStorePassword");
+        String propertiesPort = ServerProperties.get("server.port");
+        int port = (propertiesPort != null) ? Integer.parseInt(propertiesPort) : 8080;
+        if (System.getenv("PORT") != null) port = Integer.parseInt(System.getenv("PORT"));
+        return keyStore != null ? createSSLServerSocket(keyStore, keyStorePassword, port) : new ServerSocket(port);
+    }
+
+    private static ServerSocket createSSLServerSocket(String keyStore, String password, int port) throws IOException {
+        ServerSocket serverSocket;
+        ServerProperties.setSSL();
+        System.setProperty("javax.net.ssl.keyStore", keyStore);
+        System.setProperty("javax.net.ssl.keyStorePassword", password);
+        System.setProperty("javax.net.debug", "ssl");
+        SSLServerSocketFactory sslserversocketfactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
+        serverSocket = sslserversocketfactory.createServerSocket(port);
+        return serverSocket;
+    }
+
+    @Override
     public void run() {
         HttpLauncher.execute(connect);
     }
@@ -102,6 +104,10 @@ public class HttpServer implements Runnable {
 
         static void removeSession(String id) {
             sessionList.removeIf(session -> session.getId().equals(id));
+        }
+
+        static void enableSessionChecker() {
+            new Timer().schedule(new SessionManager(), 0, 60 * 1000);
         }
 
         @Override

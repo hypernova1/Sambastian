@@ -44,8 +44,7 @@ public class HandlerFinder {
             if (handlerMethod != null)
                 return new HandlerInfo(handlerClass, handlerMethod);
         }
-        if (this.httpRequest.getPath().equals("/")
-                && this.httpRequest.getMethod().equals(HttpMethod.GET)) {
+        if (this.httpRequest.getPath().equals("/") && this.httpRequest.getMethod().equals(HttpMethod.GET)) {
             httpResponse.returnIndexFile();
             return null;
         }
