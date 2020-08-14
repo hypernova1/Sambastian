@@ -6,6 +6,9 @@
     <groupId>org.sam.server</groupId>
     <artifactId>sam-server</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <name>sam-server</name>
+    <url>https://github.com/hypernova1/Java-HTTP-Server</url>
     <properties>
         <java-version>1.8</java-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -65,19 +68,6 @@
                         <arg>-Xlint:all,-options,-path</arg>
                         <arg>-parameters</arg>
                     </compilerArgs>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>2.2</version>
-                <configuration>
-                    <failOnMissingWebXml>false</failOnMissingWebXml>
-                    <archive>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                        </manifest>
-                    </archive>
                 </configuration>
             </plugin>
             <plugin>
