@@ -28,6 +28,10 @@ public class HttpLauncher {
 
     private static void findHandler(HttpRequest httpRequest, HttpResponse httpResponse) throws IOException {
         try {
+            if (httpRequest.getPath().equals("/favicon.ico")) {
+                httpResponse.getFavicon();
+                return;
+            }
             if (httpRequest.getPath().startsWith("/resources")) {
                 httpResponse.getStaticResources();
                 return;

@@ -3,6 +3,7 @@ package org.sam.server.http;
 import org.sam.server.common.ServerProperties;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpStatus;
+import org.sam.server.exception.ResourcesNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +31,7 @@ public class HttpResponse extends Response {
     private HttpStatus httpStatus;
     private String contentMimeType;
 
-    private byte[] fileData = new byte[1024];
+    private byte[] fileData = new byte[1024 * 8];
     private int fileLength;
 
     public HttpResponse(OutputStream os, String path) {
@@ -62,21 +63,23 @@ public class HttpResponse extends Response {
         }
     }
 
-    private int readStaticResource(String filePath) throws IOException {
+    private int readStaticResource(String filePath) throws ResourcesNotFoundException {
         InputStream fis = Thread.currentThread().getContextClassLoader().getResourceAsStream(filePath);
         File staticFile = new File("src/main" + filePath);
-
         if (fis == null && !staticFile.exists()) {
             fileNotFound();
             return 0;
         }
-
         int fileLength;
-        if (staticFile.exists())
-            fileLength = readFileData(staticFile);
-        else {
-            assert fis != null;
-            fileLength = fis.read(fileData);
+        try {
+            if (staticFile.exists()) {
+                fileLength = readFileData(staticFile);
+            } else {
+                assert fis != null;
+                fileLength = fis.read(fileData);
+            }
+        } catch (IOException e) {
+            throw new ResourcesNotFoundException(filePath);
         }
         return fileLength;
     }
@@ -121,7 +124,6 @@ public class HttpResponse extends Response {
             if (cookie.isHttpOnly()) {
                 line.append("; HttpOnly");
             }
-
             line.append("; Path=").append(cookie.getPath());
             writer.println(line.toString());
         }
@@ -183,6 +185,12 @@ public class HttpResponse extends Response {
         if (this.requestPath.endsWith("/"))
             filePath = DEFAULT_FILE;
         this.contentMimeType = ContentType.TEXT_HTML.getValue();
+        execute(filePath, HttpStatus.OK);
+    }
+
+    public void getFavicon() throws ResourcesNotFoundException {
+        filePath = FAVICON;
+        this.contentMimeType = ContentType.X_ICON.getValue();
         execute(filePath, HttpStatus.OK);
     }
 }
