@@ -18,6 +18,7 @@ public class HttpLauncher {
     public static void execute(Socket connect) {
         try {
             HttpRequest httpRequest = Request.create(connect.getInputStream());
+            if (httpRequest == null) return;
             HttpResponse httpResponse = HttpResponse.create(connect.getOutputStream(), httpRequest.getPath());
             findHandler(httpRequest, httpResponse);
         } catch (IOException e) {

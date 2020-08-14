@@ -9,6 +9,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -78,6 +79,7 @@ public interface Request {
                         break;
                     }
                 }
+                if (headersPart.trim().isEmpty()) return;
                 String[] headers = headersPart.split("\r\n");
                 StringTokenizer parse = new StringTokenizer(headers[0]);
                 String method = parse.nextToken().toUpperCase();
@@ -282,6 +284,7 @@ public interface Request {
         }
 
         public HttpRequest createRequest() {
+            if (this.headers.isEmpty()) return null;
             Map<String, String> headers = this.headers;
             HttpMethod method = this.method;
             String path = this.path;
