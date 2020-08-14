@@ -99,14 +99,14 @@ public class HttpResponse extends Response {
     }
 
     private void printHeader() {
-        writer.println("HTTP/1.1 " + httpStatus.getCode() + " " + httpStatus.getMessage());
         headers.put("Server", "Java HTTP Server from sam : 1.0");
         headers.put("Date", LocalDateTime.now());
         headers.put("Content-Type", getContentMimeType());
         headers.put("Content-length", fileLength);
-        headers.keySet().forEach(key -> writer.println(key + ": " + headers.get(key)));
+        writer.print("HTTP/1.1 " + httpStatus.getCode() + " " + httpStatus.getMessage() + "\r\n");
+        headers.keySet().forEach(key -> writer.print(key + ": " + headers.get(key) + "\r\n"));
         printCookies();
-        writer.println();
+        writer.print("\r\n");
     }
 
     private void printCookies() {
@@ -125,7 +125,7 @@ public class HttpResponse extends Response {
                 line.append("; HttpOnly");
             }
             line.append("; Path=").append(cookie.getPath());
-            writer.println(line.toString());
+            writer.print(line.toString() + "\r\n");
         }
     }
 

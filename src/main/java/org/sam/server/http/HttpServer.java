@@ -80,6 +80,11 @@ public class HttpServer implements Runnable {
     @Override
     public void run() {
         HttpLauncher.execute(connect);
+        try {
+            connect.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     static class SessionManager extends TimerTask {

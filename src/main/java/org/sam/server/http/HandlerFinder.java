@@ -78,6 +78,7 @@ public class HandlerFinder {
                 Method methodPropertyInAnnotation = handlerAnnotationType.getDeclaredMethod("method");
                 Method pathPropertyInAnnotation = handlerAnnotationType.getDeclaredMethod("value");
                 String path = pathPropertyInAnnotation.invoke(handlerClassDeclaredMethodDeclaredAnnotation).toString();
+                if (!path.startsWith("/")) path = "/" + path;
                 String method = methodPropertyInAnnotation.invoke(handlerClassDeclaredMethodDeclaredAnnotation).toString();
                 boolean isSame = compareMethodAndPath(requestPath, handlerClassDeclaredMethod, path, method);
                 if (isSame) return true;
