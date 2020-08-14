@@ -12,7 +12,7 @@ import java.util.UUID;
  * Time: 8:40 PM
  */
 @SuppressWarnings("unused")
-public class Session {
+public final class Session {
 
     private String id;
     private LocalDateTime creationTime;
@@ -21,18 +21,18 @@ public class Session {
 
     private Map<String, Object> attribute = new Hashtable<>();
 
-    public Session() {
+    protected Session() {
         this.id = UUID.randomUUID().toString();
         this.creationTime = LocalDateTime.now();
         this.accessTime = LocalDateTime.now();
         this.timeout = 30;
-        SessionManager.addSession(this);
+        HttpServer.SessionManager.addSession(this);
         Cookie cookie = new Cookie("sessionId", this.id);
         CookieStore.getCookies().add(cookie);
     }
 
     public void invalidate() {
-        SessionManager.removeSession(this.id);
+        HttpServer.SessionManager.removeSession(this.id);
     }
 
     public Object getAttribute(String key) {
@@ -83,7 +83,7 @@ public class Session {
         return this.accessTime.plusMinutes(this.timeout);
     }
 
-    public void renewAccessTime() {
+    protected void renewAccessTime() {
         this.accessTime = LocalDateTime.now();
     }
 

@@ -1,4 +1,4 @@
-package org.sam.server.common;
+package org.sam.server.util;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;

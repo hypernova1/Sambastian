@@ -1,9 +1,7 @@
-package org.sam.server;
+package org.sam.server.http;
 
 import org.sam.server.common.ServerProperties;
-import org.sam.server.core.BeanContainer;
-import org.sam.server.core.HttpLauncher;
-import org.sam.server.http.SessionManager;
+import org.sam.server.context.BeanContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +10,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalDateTime;
-import java.util.Timer;
+import java.time.ZoneId;
+import java.util.*;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +28,7 @@ public class HttpServer implements Runnable {
 
     private final Socket connect;
 
-    public HttpServer(Socket connect) {
+    private HttpServer(Socket connect) {
         this.connect = connect;
     }
 
@@ -83,5 +82,45 @@ public class HttpServer implements Runnable {
 
     public void run() {
         HttpLauncher.execute(connect);
+    }
+
+    static class SessionManager extends TimerTask {
+
+        private static final Logger logger = LoggerFactory.getLogger(SessionManager.class);
+        private static final Set<Session> sessionList = new HashSet<>();
+
+        private SessionManager() {}
+
+        static void addSession(Session session) {
+            sessionList.add(session);
+        }
+
+        static Session getSession(String id) {
+            for (Session session : sessionList) {
+                if (session.getId().equals(id)) {
+                    return session;
+                }
+            }
+            return null;
+        }
+
+        static void removeSession(String id) {
+            sessionList.removeIf(session -> session.getId().equals(id));
+        }
+
+        @Override
+        public void run() {
+            Iterator<Session> iterator = sessionList.iterator();
+            while (iterator.hasNext()) {
+                Session session = iterator.next();
+                long accessTime = session.getAccessTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+                long now = System.currentTimeMillis();
+                int timeout = session.getTimeout() * 1000;
+                if (now - accessTime > timeout) {
+                    iterator.remove();
+                    logger.info("remove Session:" + session.getId());
+                }
+            }
+        }
     }
 }

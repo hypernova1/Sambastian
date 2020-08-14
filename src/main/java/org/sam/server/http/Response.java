@@ -20,7 +20,7 @@ public abstract class Response {
     protected final PrintWriter writer;
     protected final BufferedOutputStream outputStream;
 
-    public Response(OutputStream os) {
+    protected Response(OutputStream os) {
         this.writer = new PrintWriter(os);
         this.outputStream = new BufferedOutputStream(os);
     }

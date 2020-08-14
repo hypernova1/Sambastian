@@ -1,13 +1,14 @@
-package org.sam.server.core;
+package org.sam.server.http;
 
 import com.google.gson.Gson;
 import org.sam.server.annotation.handle.JsonRequest;
-import org.sam.server.common.Converter;
-import org.sam.server.common.PrimitiveWrapper;
+import org.sam.server.util.Converter;
+import org.sam.server.util.PrimitiveWrapper;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.constant.HttpStatus;
+import org.sam.server.context.BeanContainer;
+import org.sam.server.context.HandlerInfo;
 import org.sam.server.exception.HandlerNotFoundException;
-import org.sam.server.http.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -28,13 +29,17 @@ public class HandlerExecutor {
     private final HandlerInfo handlerInfo;
     private final Gson gson = new Gson();
 
-    public HandlerExecutor(HttpRequest httpRequest, HttpResponse httpResponse, HandlerInfo handlerInfo) {
+    private HandlerExecutor(HttpRequest httpRequest, HttpResponse httpResponse, HandlerInfo handlerInfo) {
         this.httpRequest = httpRequest;
         this.httpResponse = httpResponse;
         this.handlerInfo = handlerInfo;
     }
 
-    public void execute() {
+    static HandlerExecutor of(HttpRequest httpRequest, HttpResponse httpResponse, HandlerInfo handlerInfo) {
+        return new HandlerExecutor(httpRequest, httpResponse, handlerInfo);
+    }
+
+    void execute() {
         try {
             Map<String, String> requestData;
             if (httpRequest.getMethod().equals(HttpMethod.POST) || httpRequest.getMethod().equals(HttpMethod.PUT))

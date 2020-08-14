@@ -1,4 +1,4 @@
-package org.sam.server.common;
+package org.sam.server.util;
 
 import com.google.gson.Gson;
 

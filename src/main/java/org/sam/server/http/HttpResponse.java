@@ -34,16 +34,16 @@ public class HttpResponse extends Response {
     private byte[] fileData = new byte[1024 * 8];
     private int fileLength;
 
-    public HttpResponse(OutputStream os, String path) {
+    private HttpResponse(OutputStream os, String path) {
         super(os);
         this.requestPath = path;
     }
 
-    public static HttpResponse create(OutputStream os, String path) {
+    protected static HttpResponse create(OutputStream os, String path) {
         return new HttpResponse(os, path);
     }
 
-    public void execute(String filePath, HttpStatus status) {
+    protected void execute(String filePath, HttpStatus status) {
         this.httpStatus = status;
 
         try {
@@ -161,34 +161,34 @@ public class HttpResponse extends Response {
         return headers.keySet();
     }
 
-    public void getStaticResources() {
+    protected void getStaticResources() {
         String filePath = requestPath.replace("/resources", "/resources/static");
         execute(filePath, HttpStatus.OK);
     }
 
-    public void fileNotFound() {
+    protected void fileNotFound() {
         logger.warn("File " + requestPath + " not found");
         execute(FILE_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
-    public void badRequest() {
+    protected void badRequest() {
         logger.warn("Bad Request");
         execute(BAD_REQUEST, HttpStatus.BAD_REQUEST);
     }
 
-    public void methodNotImplemented() {
+    protected void methodNotImplemented() {
         logger.warn("501 not implemented :" + requestPath + "method");
         execute(METHOD_NOT_SUPPORTED, HttpStatus.NOT_IMPLEMENTED);
     }
 
-    public void returnIndexFile() {
+    protected void returnIndexFile() {
         if (this.requestPath.endsWith("/"))
             filePath = DEFAULT_FILE;
         this.contentMimeType = ContentType.TEXT_HTML.getValue();
         execute(filePath, HttpStatus.OK);
     }
 
-    public void getFavicon() throws ResourcesNotFoundException {
+    protected void getFavicon() throws ResourcesNotFoundException {
         filePath = FAVICON;
         this.contentMimeType = ContentType.X_ICON.getValue();
         execute(filePath, HttpStatus.OK);

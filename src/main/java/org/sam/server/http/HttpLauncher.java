@@ -1,9 +1,7 @@
-package org.sam.server.core;
+package org.sam.server.http;
 
+import org.sam.server.context.HandlerInfo;
 import org.sam.server.exception.HandlerNotFoundException;
-import org.sam.server.http.HttpRequest;
-import org.sam.server.http.HttpResponse;
-import org.sam.server.http.Request;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -15,7 +13,7 @@ import java.net.Socket;
  */
 public class HttpLauncher {
 
-    public static void execute(Socket connect) {
+    static void execute(Socket connect) {
         try {
             HttpRequest httpRequest = Request.create(connect.getInputStream());
             if (httpRequest == null) return;
@@ -38,7 +36,7 @@ public class HttpLauncher {
             }
             HandlerInfo handlerInfo = new HandlerFinder(httpRequest, httpResponse).createHandlerInfo();
             if (handlerInfo == null) return;
-            new HandlerExecutor(httpRequest, httpResponse, handlerInfo).execute();
+            HandlerExecutor.of(httpRequest, httpResponse, handlerInfo).execute();
         } catch (HandlerNotFoundException e) {
             httpResponse.fileNotFound();
             throw new IOException(e);

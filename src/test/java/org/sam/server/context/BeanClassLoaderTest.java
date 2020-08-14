@@ -1,4 +1,4 @@
-package org.sam.server.core;
+package org.sam.server.context;
 
 import org.junit.jupiter.api.Test;
 
@@ -6,8 +6,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Created by melchor

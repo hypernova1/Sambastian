@@ -93,7 +93,7 @@ public class HttpRequest implements Request {
     public Session getSession() {
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals("sessionId")) {
-                return SessionManager.getSession(cookie.getValue());
+                return HttpServer.SessionManager.getSession(cookie.getValue());
             }
         }
         return new Session();

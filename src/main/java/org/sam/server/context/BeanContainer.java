@@ -1,4 +1,4 @@
-package org.sam.server.core;
+package org.sam.server.context;
 
 import org.sam.server.exception.BeanAccessModifierException;
 import org.sam.server.exception.BeanNotFoundException;

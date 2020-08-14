@@ -1,4 +1,4 @@
-package org.sam.server.core;
+package org.sam.server.context;
 
 import org.sam.server.annotation.component.Component;
 import org.sam.server.annotation.ComponentScan;

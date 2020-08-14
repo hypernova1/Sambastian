@@ -12,11 +12,11 @@ public class CookieStore {
 
     private static Set<Cookie> cookies = new HashSet<>();
 
-    protected static Set<Cookie> getCookies() {
+    static Set<Cookie> getCookies() {
         return cookies;
     }
 
-    protected static Set<Cookie> parseCookie(String cookieStr) {
+    static Set<Cookie> parseCookie(String cookieStr) {
         String[] cookiePairs = cookieStr.split("; ");
         for (String cookiePairStr : cookiePairs) {
             String[] cookiePair = cookiePairStr.split("=");
@@ -28,7 +28,7 @@ public class CookieStore {
         return cookies;
     }
 
-    public static void vacateList() {
+    static void vacateList() {
         cookies = new HashSet<>();
     }
 

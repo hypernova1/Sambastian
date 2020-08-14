@@ -1,12 +1,12 @@
-package org.sam.server.core;
+package org.sam.server.http;
 
 import org.sam.server.annotation.component.Handler;
 import org.sam.server.annotation.handle.*;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
+import org.sam.server.context.BeanClassLoader;
+import org.sam.server.context.HandlerInfo;
 import org.sam.server.exception.HandlerNotFoundException;
-import org.sam.server.http.HttpRequest;
-import org.sam.server.http.HttpResponse;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -27,7 +27,7 @@ public class HandlerFinder {
     private List<Class<? extends Annotation>> handlerAnnotationTypes =
             Arrays.asList(GetHandle.class, PostHandle.class, PutHandle.class, DeleteHandle.class);
 
-    public HandlerFinder(HttpRequest httpRequest, HttpResponse httpResponse) {
+    protected HandlerFinder(HttpRequest httpRequest, HttpResponse httpResponse) {
         this.httpRequest = httpRequest;
         this.httpResponse = httpResponse;
     }
