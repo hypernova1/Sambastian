@@ -4,7 +4,6 @@ import org.sam.server.annotation.component.Handler;
 import org.sam.server.annotation.handle.*;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
-import org.sam.server.context.BeanClassLoader;
 import org.sam.server.context.BeanContainer;
 import org.sam.server.context.HandlerInfo;
 import org.sam.server.exception.HandlerNotFoundException;
@@ -12,8 +11,10 @@ import org.sam.server.exception.HandlerNotFoundException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
+import java.lang.reflect.Parameter;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by melchor
@@ -90,13 +91,57 @@ public class HandlerFinder {
     }
 
     private boolean compareMethodAndPath(String requestPath, Method declaredMethod, String path, String method) {
-        if (requestPath.equals(path) && httpRequest.getMethod().equals(HttpMethod.get(method))) {
+        boolean containPathValue = findPathValueAnnotation(declaredMethod);;
+        boolean isSamePath = requestPath.equals(path);
+        if (containPathValue) {
+            Pattern pattern = Pattern.compile("[{](.*?)[}]");
+            Matcher matcher = pattern.matcher(path);
+            Queue<String> paramNames = new ArrayDeque<>();
+            while (matcher.find()) {
+                paramNames.add(matcher.group(1));
+            }
+            if (!paramNames.isEmpty()) {
+                isSamePath = matchPath(requestPath, path, paramNames);
+            }
+        }
+
+        if (isSamePath && httpRequest.getMethod().equals(HttpMethod.get(method))) {
             if (declaredMethod.getDeclaredAnnotation(RestApi.class) != null)
                 this.httpResponse.setContentMimeType(ContentType.APPLICATION_JSON);
             return true;
         }
         return false;
     }
+
+    private boolean findPathValueAnnotation(Method declaredMethod) {
+        Parameter[] parameters = declaredMethod.getParameters();
+        for (Parameter parameter : parameters) {
+            if (parameter.getDeclaredAnnotation(PathValue.class) != null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean matchPath(String requestPath, String path, Queue<String> paramNames) {
+        if (!path.contains("{")) return false;
+        String[] requestPathArr = requestPath.split("/");
+        String[] pathArr = path.split("/");
+        Map<String, String> param = new HashMap<>();
+        if (requestPathArr.length != pathArr.length) return false;
+        for (int i = 0; i < pathArr.length; i++) {
+            if (pathArr[i].contains("{")) {
+                param.put(paramNames.poll(), requestPathArr[i]);
+                continue;
+            }
+            if (!pathArr[i].equals(requestPathArr[i])) {
+                return false;
+            }
+        }
+        httpRequest.getParameters().putAll(param);
+        return true;
+    }
+
 
     private String replaceRequestPath(Class<?> handlerClass) {
         String requestPath = httpRequest.getPath();

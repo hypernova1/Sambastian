@@ -2,6 +2,7 @@ package org.sam.server.context;
 
 import org.sam.server.annotation.component.Component;
 import org.sam.server.annotation.ComponentScan;
+import org.sam.server.annotation.component.Repository;
 import org.sam.server.annotation.component.Service;
 import org.sam.server.annotation.component.Handler;
 import org.sam.server.exception.ComponentScanNotFoundException;
@@ -61,7 +62,7 @@ public class BeanClassLoader {
     }
 
     private static void loadComponentClasses(List<Class<?>> classes) {
-        List<Class<?>> componentTypes = Arrays.asList(Service.class, Component.class);
+        List<Class<?>> componentTypes = Arrays.asList(Service.class, Component.class, Repository.class);
         classes.forEach(clazz -> {
             Annotation[] declaredAnnotations = clazz.getDeclaredAnnotations();
             for (Annotation declaredAnnotation : declaredAnnotations) {

@@ -85,7 +85,7 @@ public class HandlerExecutor {
         return handlerMethod.invoke(handlerInfo.getInstance(), parameters);
     }
 
-    private Object[] createParameters(Parameter[] handlerParameters, Map<String, String> requestData) {
+    private Object[] createParameters(Parameter[] handlerParameters, Map<String, String> requestData) throws IllegalAccessException, InvocationTargetException {
         List<Object> inputParameter = new ArrayList<>();
         for (Parameter handlerParameter : handlerParameters) {
             String name = handlerParameter.getName();
@@ -113,6 +113,13 @@ public class HandlerExecutor {
                 if (type.isPrimitive()) {
                     Object autoBoxingValue = PrimitiveWrapper.wrapPrimitiveValue(type, value.toString());
                     inputParameter.add(autoBoxingValue);
+                } else if (type.getSuperclass().equals(Number.class))  {
+                    try {
+                        Object wrapperValue = type.getMethod("valueOf", String.class).invoke(null, value);
+                        inputParameter.add(wrapperValue);
+                    } catch (NoSuchMethodException e) {
+                        e.printStackTrace();
+                    }
                 } else if (type.equals(String.class)) {
                     inputParameter.add(value);
                 }
