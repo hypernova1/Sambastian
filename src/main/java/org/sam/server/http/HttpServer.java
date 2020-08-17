@@ -122,7 +122,7 @@ public class HttpServer implements Runnable {
                 Session session = iterator.next();
                 long accessTime = session.getAccessTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
                 long now = System.currentTimeMillis();
-                int timeout = session.getTimeout() * 1000;
+                int timeout = session.getTimeout() * 1000 * 60;
                 if (now - accessTime > timeout) {
                     iterator.remove();
                     logger.info("remove Session:" + session.getId());

@@ -137,7 +137,7 @@ public class BeanContainer {
         if (beans != null) {
             for (Bean bean : beans) {
                 if (bean.getName().equals(beanName)) {
-                    throw new DuplicateBeanException(beanName);
+                    return true;
                 }
             }
         }

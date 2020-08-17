@@ -19,7 +19,7 @@ public final class Session {
     private LocalDateTime accessTime;
     private int timeout;
 
-    private Map<String, Object> attribute = new Hashtable<>();
+    private final Map<String, Object> attribute = new Hashtable<>();
 
     Session() {
         this.id = UUID.randomUUID().toString();

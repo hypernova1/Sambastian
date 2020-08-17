@@ -24,14 +24,14 @@ public class HttpResponse extends Response {
     private static final Logger logger = LoggerFactory.getLogger(HttpResponse.class);
 
     private final Map<String, Object> headers = new HashMap<>();
-    private Set<Cookie> cookies = CookieStore.getCookies();
+    private final Set<Cookie> cookies = CookieStore.getCookies();
     private final String requestPath;
 
     private String filePath;
     private HttpStatus httpStatus;
     private String contentMimeType;
 
-    private byte[] fileData = new byte[1024 * 8];
+    private final byte[] fileData = new byte[1024 * 8];
     private int fileLength;
 
     private HttpResponse(OutputStream os, String path) {
