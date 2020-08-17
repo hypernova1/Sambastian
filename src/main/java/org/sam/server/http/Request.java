@@ -112,9 +112,10 @@ public interface Request {
             while ((i = inputStream.read()) != -1) {
                 char c = (char) i;
                 sb.append(c);
+                if (inputStream.available() == 0) break;
             }
             if (ContentType.APPLICATION_JSON.getValue().equals(contentType)
-                    && this.attributes == null) {
+                    && this.attributes.isEmpty()) {
                 this.json = sb.toString();
                 return;
             }

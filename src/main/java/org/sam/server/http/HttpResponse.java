@@ -45,7 +45,6 @@ public class HttpResponse extends Response {
 
     protected void execute(String filePath, HttpStatus status) {
         this.httpStatus = status;
-
         try {
             if (getContentMimeType().equals(ContentType.APPLICATION_JSON.getValue()))
                 this.fileLength = readJson(filePath);

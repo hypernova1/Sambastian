@@ -2,6 +2,7 @@ package org.sam.server.http;
 
 import com.google.gson.Gson;
 import org.sam.server.annotation.handle.JsonRequest;
+import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.constant.HttpStatus;
 import org.sam.server.context.BeanContainer;
@@ -41,10 +42,12 @@ public class HandlerExecutor {
     void execute() {
         try {
             Map<String, String> requestData;
-            if (httpRequest.getMethod().equals(HttpMethod.POST) || httpRequest.getMethod().equals(HttpMethod.PUT))
+            if (httpRequest.getMethod().equals(HttpMethod.POST) || httpRequest.getMethod().equals(HttpMethod.PUT)) {
                 requestData = httpRequest.getAttributes();
-            else
+            }
+            else {
                 requestData = httpRequest.getParameters();
+            }
             List<Interceptor> interceptors = BeanContainer.getInterceptors();
             Object returnValue;
             if (interceptors.isEmpty())
@@ -60,6 +63,7 @@ public class HandlerExecutor {
                 httpStatus = HttpStatus.OK;
             }
             String json = gson.toJson(returnValue);
+            httpResponse.setContentMimeType(ContentType.APPLICATION_JSON);
             httpResponse.execute(json, httpStatus);
         } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
@@ -90,7 +94,6 @@ public class HandlerExecutor {
         for (Parameter handlerParameter : handlerParameters) {
             String name = handlerParameter.getName();
             Object value = requestData.get(name);
-
             Class<?> type = handlerParameter.getType();
             if (HttpRequest.class.isAssignableFrom(type)) {
                 inputParameter.add(httpRequest);
