@@ -22,7 +22,7 @@ public abstract class Response {
 
     protected Response(OutputStream os) {
         this.writer = new PrintWriter(os);
-        this.outputStream = new BufferedOutputStream(os);
+        this.outputStream = new BufferedOutputStream(os, 512_000);
     }
 
 }

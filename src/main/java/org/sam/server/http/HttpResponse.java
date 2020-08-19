@@ -31,8 +31,7 @@ public class HttpResponse extends Response {
     private HttpStatus httpStatus;
     private String contentMimeType;
 
-    private final byte[] fileData = new byte[1024 * 8];
-    private int fileLength;
+    private long fileLength;
 
     private HttpResponse(OutputStream os, String path) {
         super(os);
@@ -51,7 +50,6 @@ public class HttpResponse extends Response {
             else
                 this.fileLength = readStaticResource(filePath);
             printHeader();
-            outputStream.write(fileData, 0, this.fileLength);
             CookieStore.vacateList();
             writer.flush();
             outputStream.flush();
@@ -62,20 +60,24 @@ public class HttpResponse extends Response {
         }
     }
 
-    private int readStaticResource(String filePath) throws ResourcesNotFoundException {
+    private long readStaticResource(String filePath) throws ResourcesNotFoundException {
         InputStream fis = Thread.currentThread().getContextClassLoader().getResourceAsStream(filePath);
         File staticFile = new File("src/main" + filePath);
         if (fis == null && !staticFile.exists()) {
             fileNotFound();
             return 0;
         }
-        int fileLength;
+        long fileLength = 0;
         try {
             if (staticFile.exists()) {
                 fileLength = readFileData(staticFile);
             } else {
+                int i;
                 assert fis != null;
-                fileLength = fis.read(fileData);
+                while ((i = fis.read()) != -1) {
+                    outputStream.write(i);
+                    fileLength++;
+                }
             }
         } catch (IOException e) {
             throw new ResourcesNotFoundException(filePath);
@@ -83,9 +85,17 @@ public class HttpResponse extends Response {
         return fileLength;
     }
 
-    private int readFileData(File file) throws IOException {
-        FileInputStream fileIn = new FileInputStream(file);
-        return fileIn.read(this.fileData);
+    private long readFileData(File file) throws IOException {
+        FileInputStream fis = new FileInputStream(file);
+        int fileLength = 0;
+        int len;
+        byte[] buf = new byte[fis.available()];
+        while ((len = fis.read(buf)) > 0) {
+            outputStream.write(buf, 0, len);
+        }
+        fis.close();
+
+        return file.length();
     }
 
     private int readJson(String json) throws IOException {
@@ -101,7 +111,10 @@ public class HttpResponse extends Response {
         headers.put("Server", "Java HTTP Server from sam : 1.0");
         headers.put("Date", LocalDateTime.now());
         headers.put("Content-Type", getContentMimeType());
-        headers.put("Content-length", fileLength);
+        headers.put("Content-length", this.fileLength);
+        headers.put("Accept-Ranges", "bytes");
+        headers.put("Connection", "Keep-Alive");
+        headers.put("Keep-Alive", "timeout=60");
         writer.print("HTTP/1.1 " + httpStatus.getCode() + " " + httpStatus.getMessage() + "\r\n");
         headers.keySet().forEach(key -> writer.print(key + ": " + headers.get(key) + "\r\n"));
         printCookies();

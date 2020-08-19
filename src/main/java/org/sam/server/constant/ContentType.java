@@ -10,7 +10,7 @@ public enum ContentType {
     TEXT_HTML("text/html", EncodingType.UTF_8),
     APPLICATION_JSON("application/json", EncodingType.UTF_8),
     CSS("text/css", EncodingType.UTF_8),
-    JAVASCRIPT("text/javascript", EncodingType.UTF_8),
+    JAVASCRIPT("application/javascript", EncodingType.UTF_8),
     X_ICON("image/x-icon", EncodingType.UTF_8),
     PNG("image/png", EncodingType.UTF_8),
     JPG("image/jpg", EncodingType.UTF_8),
