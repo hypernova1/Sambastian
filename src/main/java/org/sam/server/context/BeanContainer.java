@@ -2,7 +2,6 @@ package org.sam.server.context;
 
 import org.sam.server.exception.BeanAccessModifierException;
 import org.sam.server.exception.BeanNotFoundException;
-import org.sam.server.exception.DuplicateBeanException;
 import org.sam.server.http.Interceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

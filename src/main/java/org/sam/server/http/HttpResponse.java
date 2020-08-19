@@ -38,6 +38,12 @@ public class HttpResponse extends Response {
         this.requestPath = path;
     }
 
+    {
+        headers.put("Accept-Ranges", "bytes");
+        headers.put("Connection", "Keep-Alive");
+        headers.put("Keep-Alive", "timeout=60");
+    }
+
     protected static HttpResponse create(OutputStream os, String path) {
         return new HttpResponse(os, path);
     }
@@ -112,9 +118,10 @@ public class HttpResponse extends Response {
         headers.put("Date", LocalDateTime.now());
         headers.put("Content-Type", getContentMimeType());
         headers.put("Content-length", this.fileLength);
-        headers.put("Accept-Ranges", "bytes");
-        headers.put("Connection", "Keep-Alive");
-        headers.put("Keep-Alive", "timeout=60");
+        if (requestPath.startsWith("/resources"))
+            headers.put("Cache-Control", "max-age=86400");
+        else
+            headers.put("Cache-Control", "no-cache, no-store, must-revalidate");
         writer.print("HTTP/1.1 " + httpStatus.getCode() + " " + httpStatus.getMessage() + "\r\n");
         headers.keySet().forEach(key -> writer.print(key + ": " + headers.get(key) + "\r\n"));
         printCookies();
