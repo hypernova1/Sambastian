@@ -240,7 +240,7 @@ public interface Request {
                         fileData = null;
                         loopCnt = 0;
                     }
-                    if (inputStreamLength == 0) return;
+                    if (inputStream.available() == 0) return;
                 }
                 i++;
             }
