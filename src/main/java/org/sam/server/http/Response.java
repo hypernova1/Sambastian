@@ -1,5 +1,7 @@
 package org.sam.server.http;
 
+import org.sam.server.common.ServerProperties;
+
 import java.io.BufferedOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -21,8 +23,10 @@ public abstract class Response {
     protected final BufferedOutputStream outputStream;
 
     protected Response(OutputStream os) {
+        String bufferSizeStr = ServerProperties.get("file-buffer-size");
+        int bufferSize = bufferSizeStr != null ? Integer.parseInt(bufferSizeStr) : 8192;
         this.writer = new PrintWriter(os);
-        this.outputStream = new BufferedOutputStream(os, 512_000);
+        this.outputStream = new BufferedOutputStream(os, bufferSize);
     }
 
 }
