@@ -7,8 +7,8 @@ package org.sam.server.context;
  */
 public class Bean {
 
-    private String name;
-    private Object instance;
+    private final String name;
+    private final Object instance;
 
     Bean(String name, Object instance) {
         this.name = name;

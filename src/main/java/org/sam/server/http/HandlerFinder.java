@@ -1,7 +1,9 @@
 package org.sam.server.http;
 
 import org.sam.server.annotation.component.Handler;
-import org.sam.server.annotation.handle.*;
+import org.sam.server.annotation.handle.Handle;
+import org.sam.server.annotation.handle.PathValue;
+import org.sam.server.annotation.handle.RestApi;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.context.BeanContainer;
@@ -26,9 +28,6 @@ public class HandlerFinder {
     private final HttpRequest httpRequest;
     private final HttpResponse httpResponse;
 
-    private List<Class<? extends Annotation>> handlerAnnotationTypes =
-            Arrays.asList(GetHandle.class, PostHandle.class, PutHandle.class, DeleteHandle.class);
-
     private HandlerFinder(HttpRequest httpRequest, HttpResponse httpResponse) {
         this.httpRequest = httpRequest;
         this.httpResponse = httpResponse;
@@ -45,6 +44,7 @@ public class HandlerFinder {
             if (handlerMethod != null)
                 return new HandlerInfo(handlerClass, handlerMethod);
         }
+
         if (this.httpRequest.getPath().equals("/") && this.httpRequest.getMethod().equals(HttpMethod.GET)) {
             httpResponse.returnIndexFile();
             return null;
@@ -56,16 +56,19 @@ public class HandlerFinder {
         String requestPath = replaceRequestPath(handlerClass);
         String pathValueInHandlerClass = handlerClass.getDeclaredAnnotation(Handler.class).value();
         Method[] handlerClassDeclaredMethods = handlerClass.getDeclaredMethods();
+//        Arrays.stream(handlerClassDeclaredMethods).filter(handlerMethod -> {
+//        });
         for (Method handlerClassDeclaredMethod : handlerClassDeclaredMethods) {
             Annotation[] handlerClassDeclaredMethodDeclaredAnnotations = handlerClassDeclaredMethod.getDeclaredAnnotations();
             for (Annotation handlerClassDeclaredMethodDeclaredAnnotation : handlerClassDeclaredMethodDeclaredAnnotations) {
-                for (Class<? extends Annotation> handlerAnnotationType : handlerAnnotationTypes) {
-                    boolean isSame = compareAnnotation(requestPath, pathValueInHandlerClass, handlerClassDeclaredMethod, handlerClassDeclaredMethodDeclaredAnnotation, handlerAnnotationType);
+                if (handlerClassDeclaredMethodDeclaredAnnotation.annotationType().getDeclaredAnnotation(Handle.class) != null) {
+                    boolean isSame = compareAnnotation(requestPath, pathValueInHandlerClass, handlerClassDeclaredMethod, handlerClassDeclaredMethodDeclaredAnnotation, handlerClassDeclaredMethodDeclaredAnnotation.annotationType());
                     if (isSame)
                         return handlerClassDeclaredMethod;
                 }
             }
         }
+
         return null;
     }
 
@@ -98,15 +101,7 @@ public class HandlerFinder {
         boolean containPathValue = findPathValueAnnotation(declaredMethod);;
         boolean isSamePath = requestPath.equals(path);
         if (containPathValue) {
-            Pattern pattern = Pattern.compile("[{](.*?)[}]");
-            Matcher matcher = pattern.matcher(path);
-            Queue<String> paramNames = new ArrayDeque<>();
-            while (matcher.find()) {
-                paramNames.add(matcher.group(1));
-            }
-            if (!paramNames.isEmpty()) {
-                isSamePath = matchPath(requestPath, path, paramNames);
-            }
+            isSamePath = findPathValueHandler(requestPath, path, isSamePath);
         }
         if (isSamePath && httpRequest.getMethod().equals(HttpMethod.get(method))) {
             if (declaredMethod.getDeclaredAnnotation(RestApi.class) != null)
@@ -114,6 +109,19 @@ public class HandlerFinder {
             return true;
         }
         return false;
+    }
+
+    private boolean findPathValueHandler(String requestPath, String path, boolean isSamePath) {
+        Pattern pattern = Pattern.compile("[{](.*?)[}]");
+        Matcher matcher = pattern.matcher(path);
+        Queue<String> paramNames = new ArrayDeque<>();
+        while (matcher.find()) {
+            paramNames.add(matcher.group(1));
+        }
+        if (!paramNames.isEmpty()) {
+            isSamePath = matchPath(requestPath, path, paramNames);
+        }
+        return isSamePath;
     }
 
     private boolean findPathValueAnnotation(Method declaredMethod) {

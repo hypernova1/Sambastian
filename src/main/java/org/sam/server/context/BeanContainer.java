@@ -19,7 +19,7 @@ public class BeanContainer {
     private static final List<Object> handlerBeans = new ArrayList<>();
     private static final List<Interceptor> interceptors = new ArrayList<>();
 
-    private static List<Class<?>> componentClasses = BeanClassLoader.getComponentClasses();
+    private static final List<Class<?>> componentClasses = BeanClassLoader.getComponentClasses();
 
     public static void createBeans() {
         createComponentBeans();

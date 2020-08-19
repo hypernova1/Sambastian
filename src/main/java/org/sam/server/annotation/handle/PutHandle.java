@@ -16,6 +16,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
+@Handle
 public @interface PutHandle {
     String value() default "/";
     ContentType contentType() default ContentType.APPLICATION_JSON;
