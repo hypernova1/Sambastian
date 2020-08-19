@@ -108,11 +108,21 @@ public interface Request {
 
         private void parseRequestBody(InputStream inputStream, String contentType) throws IOException {
             StringBuilder sb = new StringBuilder();
-            int i;
-            while ((i = inputStream.read()) != -1) {
-                char c = (char) i;
-                sb.append(c);
+            int binary;
+            int inputStreamLength = inputStream.available();
+            byte[] data = new byte[inputStreamLength];
+            int i = 0;
+            while ((binary = inputStream.read()) != -1) {
+                data[i] = (byte) binary;
+                if ((i != 0 && data[i - 1] == '\r' && data[i] == '\n') || inputStream.available() == 0) {
+                    data = Arrays.copyOfRange(data, 0, ++i);
+                    String line = new String(data, StandardCharsets.UTF_8);
+                    sb.append(line);
+                    data = new byte[inputStreamLength];
+                    i = 0;
+                }
                 if (inputStream.available() == 0) break;
+                i++;
             }
             if (ContentType.APPLICATION_JSON.getValue().equals(contentType)
                     && this.attributes.isEmpty()) {
@@ -230,7 +240,7 @@ public interface Request {
                         fileData = null;
                         loopCnt = 0;
                     }
-                    if (inputStream.available() == 0) return;
+                    if (inputStreamLength == 0) return;
                 }
                 i++;
             }

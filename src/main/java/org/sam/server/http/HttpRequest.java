@@ -12,7 +12,7 @@ import java.util.Set;
  */
 public class HttpRequest implements Request {
 
-    private String protocol;
+    private final String protocol;
     private final String path;
     private final HttpMethod method;
     private final Map<String, String> headers;
