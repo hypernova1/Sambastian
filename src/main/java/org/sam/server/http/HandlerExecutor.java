@@ -1,6 +1,7 @@
 package org.sam.server.http;
 
 import com.google.gson.Gson;
+import org.sam.server.annotation.CrossOrigin;
 import org.sam.server.annotation.handle.JsonRequest;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
@@ -13,10 +14,7 @@ import org.sam.server.util.PrimitiveWrapper;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by melchor
@@ -40,6 +38,11 @@ public class HandlerExecutor {
     }
 
     void execute() {
+        Class<?> handlerClass = this.handlerInfo.getInstance().getClass();
+        String origin = httpRequest.getHeader("origin");
+        if (origin != null) {
+            setAccessControlAllowOriginHeader(handlerClass, origin);
+        }
         try {
             Map<String, String> requestData;
             if (httpRequest.getMethod().equals(HttpMethod.POST) || httpRequest.getMethod().equals(HttpMethod.PUT)) {
@@ -70,6 +73,19 @@ public class HandlerExecutor {
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
             httpResponse.badRequest();
+        }
+    }
+
+    private void setAccessControlAllowOriginHeader(Class<?> handlerClass, String origin) {
+        CrossOrigin crossOrigin = handlerClass.getDeclaredAnnotation(CrossOrigin.class);
+        if (crossOrigin != null) {
+            String[] value = crossOrigin.value();
+            List<String> allowPaths = Arrays.asList(value);
+            if (allowPaths.contains("*")) {
+                httpResponse.setHeader("Access-Control-Allow-Origin", "*");
+            } else if (allowPaths.contains(origin)) {
+                httpResponse.setHeader("Access-Control-Allow-Origin", origin);
+            }
         }
     }
 
