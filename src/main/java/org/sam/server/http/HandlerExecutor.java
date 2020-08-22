@@ -38,19 +38,13 @@ public class HandlerExecutor {
     }
 
     void execute() {
-        Class<?> handlerClass = this.handlerInfo.getInstance().getClass();
-        String origin = httpRequest.getHeader("origin");
-        if (origin != null) {
-            setAccessControlAllowOriginHeader(handlerClass, origin);
-        }
+        setCrossOriginConfig();
         try {
             Map<String, String> requestData;
-            if (httpRequest.getMethod().equals(HttpMethod.POST) || httpRequest.getMethod().equals(HttpMethod.PUT)) {
+            if (httpRequest.getMethod().equals(HttpMethod.POST) || httpRequest.getMethod().equals(HttpMethod.PUT))
                 requestData = httpRequest.getAttributes();
-            }
-            else {
+            else
                 requestData = httpRequest.getParameters();
-            }
             List<Interceptor> interceptors = BeanContainer.getInterceptors();
             Object returnValue;
             if (interceptors.isEmpty())
@@ -76,16 +70,22 @@ public class HandlerExecutor {
         }
     }
 
+    private void setCrossOriginConfig() {
+        Class<?> handlerClass = this.handlerInfo.getInstance().getClass();
+        String origin = httpRequest.getHeader("origin");
+        if (origin != null)
+            setAccessControlAllowOriginHeader(handlerClass, origin);
+    }
+
     private void setAccessControlAllowOriginHeader(Class<?> handlerClass, String origin) {
         CrossOrigin crossOrigin = handlerClass.getDeclaredAnnotation(CrossOrigin.class);
         if (crossOrigin != null) {
             String[] value = crossOrigin.value();
             List<String> allowPaths = Arrays.asList(value);
-            if (allowPaths.contains("*")) {
+            if (allowPaths.contains("*"))
                 httpResponse.setHeader("Access-Control-Allow-Origin", "*");
-            } else if (allowPaths.contains(origin)) {
+            else if (allowPaths.contains(origin))
                 httpResponse.setHeader("Access-Control-Allow-Origin", origin);
-            }
         }
     }
 

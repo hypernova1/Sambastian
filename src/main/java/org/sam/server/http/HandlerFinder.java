@@ -55,10 +55,18 @@ public class HandlerFinder {
     private Method findHandlerMethod(Class<?> handlerClass) throws HandlerNotFoundException {
         String requestPath = replaceRequestPath(handlerClass);
         String pathValueInHandlerClass = handlerClass.getDeclaredAnnotation(Handler.class).value();
-        Method[] handlerClassDeclaredMethods = handlerClass.getDeclaredMethods();
-//        Arrays.stream(handlerClassDeclaredMethods).filter(handlerMethod -> {
-//        });
-        for (Method handlerClassDeclaredMethod : handlerClassDeclaredMethods) {
+        List<Method> pathValueHandlerMethods = new ArrayList<>();
+        List<Method> handlerMethods = new ArrayList<>();
+        classifyHandlers(handlerClass, pathValueHandlerMethods, handlerMethods);
+        Method handlerClassDeclaredMethod = findHandlerMethod(requestPath, pathValueInHandlerClass, handlerMethods);
+        if (handlerClassDeclaredMethod == null) {
+            handlerClassDeclaredMethod = findHandlerMethod(requestPath, pathValueInHandlerClass, pathValueHandlerMethods);
+        }
+        return handlerClassDeclaredMethod;
+    }
+
+    private Method findHandlerMethod(String requestPath, String pathValueInHandlerClass, List<Method> handlerMethods) {
+        for (Method handlerClassDeclaredMethod : handlerMethods) {
             Annotation[] handlerClassDeclaredMethodDeclaredAnnotations = handlerClassDeclaredMethod.getDeclaredAnnotations();
             for (Annotation handlerClassDeclaredMethodDeclaredAnnotation : handlerClassDeclaredMethodDeclaredAnnotations) {
                 if (handlerClassDeclaredMethodDeclaredAnnotation.annotationType().getDeclaredAnnotation(Handle.class) != null) {
@@ -68,8 +76,29 @@ public class HandlerFinder {
                 }
             }
         }
-
         return null;
+    }
+
+    private void classifyHandlers(Class<?> handlerClass, List<Method> pathValueHandlerMethods, List<Method> handlerMethods) {
+        Method[] handlerClassDeclaredMethods = handlerClass.getDeclaredMethods();
+        Arrays.stream(handlerClassDeclaredMethods).forEach(handlerClassDeclaredMethod -> {
+            for (Annotation annotation : handlerClassDeclaredMethod.getDeclaredAnnotations()) {
+                Handle handle = annotation.annotationType().getDeclaredAnnotation(Handle.class);
+                if (handle != null) {
+                    try {
+                        Method value = annotation.annotationType().getMethod("value");
+                        String path = String.valueOf(value.invoke(annotation));
+                        if (path.contains("{")) {
+                            pathValueHandlerMethods.add(handlerClassDeclaredMethod);
+                        } else {
+                            handlerMethods.add(handlerClassDeclaredMethod);
+                        }
+                    } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
     }
 
     private boolean compareAnnotation(
