@@ -185,10 +185,11 @@ public class HandlerFinder {
 
     private String replaceRequestPath(Class<?> handlerClass) {
         String requestPath = httpRequest.getPath();
+        String rootRequestPath = "/" + requestPath.split("/")[1];
         String pathValueInHandlerClass = handlerClass.getDeclaredAnnotation(Handler.class).value();
         if (!pathValueInHandlerClass.startsWith("/"))
             pathValueInHandlerClass = "/" + pathValueInHandlerClass;
-        if (requestPath.startsWith(pathValueInHandlerClass))
+        if (rootRequestPath.equals(pathValueInHandlerClass))
             requestPath = replaceRequestPath(requestPath, pathValueInHandlerClass);
         if (!requestPath.equals("/") && requestPath.endsWith("/"))
             requestPath = requestPath.substring(0, requestPath.length() - 1);
