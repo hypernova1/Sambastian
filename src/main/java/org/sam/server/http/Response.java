@@ -17,7 +17,7 @@ public abstract class Response {
     protected static final String BAD_REQUEST = "static/400.html";
     protected static final String FILE_NOT_FOUND = "static/404.html";
     protected static final String FAVICON = "favicon.ico";
-    protected static final String METHOD_NOT_SUPPORTED = "static/not_supported.html";
+    protected static final String METHOD_NOT_ALLOWED = "static/method_not_allowed.html";
 
     protected final PrintWriter writer;
     protected final BufferedOutputStream outputStream;

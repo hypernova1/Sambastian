@@ -27,6 +27,7 @@ public class HandlerFinder {
 
     private final HttpRequest httpRequest;
     private final HttpResponse httpResponse;
+    private boolean isExistPath;
 
     private HandlerFinder(HttpRequest httpRequest, HttpResponse httpResponse) {
         this.httpRequest = httpRequest;
@@ -44,11 +45,15 @@ public class HandlerFinder {
             if (handlerMethod != null)
                 return new HandlerInfo(handlerClass, handlerMethod);
         }
-
         if (this.httpRequest.getPath().equals("/") && this.httpRequest.getMethod().equals(HttpMethod.GET)) {
             httpResponse.returnIndexFile();
             return null;
         }
+
+        if (isExistPath) {
+            httpResponse.methodNotAllowed();
+        }
+
         throw new HandlerNotFoundException();
     }
 
@@ -127,8 +132,11 @@ public class HandlerFinder {
     }
 
     private boolean compareMethodAndPath(String requestPath, Method declaredMethod, String path, String method) {
-        boolean containPathValue = findPathValueAnnotation(declaredMethod);;
+        boolean containPathValue = findPathValueAnnotation(declaredMethod);
         boolean isSamePath = requestPath.equals(path);
+        if (isSamePath) {
+            this.isExistPath = true;
+        }
         if (containPathValue) {
             isSamePath = findPathValueHandler(requestPath, path, isSamePath);
         }
@@ -182,10 +190,12 @@ public class HandlerFinder {
         return true;
     }
 
-
     private String replaceRequestPath(Class<?> handlerClass) {
         String requestPath = httpRequest.getPath();
-        String rootRequestPath = "/" + requestPath.split("/")[1];
+        String rootRequestPath = "/";
+        if (!requestPath.equals("/")) {
+            rootRequestPath += requestPath.split("/")[1];
+        }
         String pathValueInHandlerClass = handlerClass.getDeclaredAnnotation(Handler.class).value();
         if (!pathValueInHandlerClass.startsWith("/"))
             pathValueInHandlerClass = "/" + pathValueInHandlerClass;

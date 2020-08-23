@@ -17,7 +17,7 @@ public class HttpLauncher {
         try {
             HttpRequest httpRequest = Request.create(connect.getInputStream());
             if (httpRequest == null) return;
-            HttpResponse httpResponse = HttpResponse.create(connect.getOutputStream(), httpRequest.getPath());
+            HttpResponse httpResponse = HttpResponse.create(connect.getOutputStream(), httpRequest.getPath(), httpRequest.getMethod());
             findHandler(httpRequest, httpResponse);
         } catch (IOException e) {
             e.printStackTrace();

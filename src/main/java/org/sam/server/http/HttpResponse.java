@@ -2,6 +2,7 @@ package org.sam.server.http;
 
 import org.sam.server.common.ServerProperties;
 import org.sam.server.constant.ContentType;
+import org.sam.server.constant.HttpMethod;
 import org.sam.server.constant.HttpStatus;
 import org.sam.server.exception.ResourcesNotFoundException;
 import org.slf4j.Logger;
@@ -26,6 +27,7 @@ public class HttpResponse extends Response {
     private final Map<String, Object> headers = new HashMap<>();
     private final Set<Cookie> cookies = CookieStore.getCookies();
     private final String requestPath;
+    private final HttpMethod requestMethod;
 
     private String filePath;
     private HttpStatus httpStatus;
@@ -33,9 +35,10 @@ public class HttpResponse extends Response {
 
     private long fileLength;
 
-    private HttpResponse(OutputStream os, String path) {
+    private HttpResponse(OutputStream os, String path, HttpMethod requestMethod) {
         super(os);
         this.requestPath = path;
+        this.requestMethod = requestMethod;
     }
 
     {
@@ -44,8 +47,8 @@ public class HttpResponse extends Response {
         headers.put("Keep-Alive", "timeout=60");
     }
 
-    protected static HttpResponse create(OutputStream os, String path) {
-        return new HttpResponse(os, path);
+    protected static HttpResponse create(OutputStream os, String path, HttpMethod requestMethod) {
+        return new HttpResponse(os, path, requestMethod);
     }
 
     protected void execute(String filePath, HttpStatus status) {
@@ -81,7 +84,8 @@ public class HttpResponse extends Response {
                 int i;
                 assert fis != null;
                 while ((i = fis.read()) != -1) {
-                    outputStream.write(i);
+                    if (!this.requestMethod.equals(HttpMethod.HEAD))
+                        outputStream.write(i);
                     fileLength++;
                 }
             }
@@ -95,11 +99,13 @@ public class HttpResponse extends Response {
         FileInputStream fis = new FileInputStream(file);
         int fileLength = 0;
         int len;
-        byte[] buf = new byte[fis.available()];
-        while ((len = fis.read(buf)) > 0) {
-            outputStream.write(buf, 0, len);
+        if (!this.requestMethod.equals(HttpMethod.HEAD)) {
+            byte[] buf = new byte[fis.available()];
+            while ((len = fis.read(buf)) > 0) {
+                outputStream.write(buf, 0, len);
+            }
+            fis.close();
         }
-        fis.close();
 
         return file.length();
     }
@@ -109,7 +115,9 @@ public class HttpResponse extends Response {
             return 0;
 
         byte[] bytes = json.getBytes();
-        outputStream.write(bytes);
+        if (!this.requestMethod.equals(HttpMethod.HEAD)) {
+            outputStream.write(bytes);
+        }
         return bytes.length;
     }
 
@@ -195,9 +203,9 @@ public class HttpResponse extends Response {
         execute(BAD_REQUEST, HttpStatus.BAD_REQUEST);
     }
 
-    protected void methodNotImplemented() {
-        logger.warn("501 not implemented :" + requestPath + "method");
-        execute(METHOD_NOT_SUPPORTED, HttpStatus.NOT_IMPLEMENTED);
+    protected void methodNotAllowed() {
+        logger.warn("Method Not Allowed");
+        execute(METHOD_NOT_ALLOWED, HttpStatus.METHOD_NOT_ALLOWED);
     }
 
     protected void returnIndexFile() {

@@ -5,10 +5,8 @@ package org.sam.server.constant;
  * Date: 2020/07/17
  * Time: 2:37 PM
  */
-public class Header {
+public class HttpHeader {
     public static String ACCEPT = "accept";
     public static String CONTENT_TYPE = "content-type";
     public static String USER_AGENT = "user-agent";
-
-
 }
