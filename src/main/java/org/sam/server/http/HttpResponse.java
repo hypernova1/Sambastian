@@ -10,9 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by melchor
@@ -28,6 +26,7 @@ public class HttpResponse extends Response {
     private final Set<Cookie> cookies = CookieStore.getCookies();
     private final String requestPath;
     private final HttpMethod requestMethod;
+    private final Set<HttpMethod> allowedMethods = new LinkedHashSet<>();
 
     private String filePath;
     private HttpStatus httpStatus;
@@ -35,16 +34,16 @@ public class HttpResponse extends Response {
 
     private long fileLength;
 
-    private HttpResponse(OutputStream os, String path, HttpMethod requestMethod) {
-        super(os);
-        this.requestPath = path;
-        this.requestMethod = requestMethod;
-    }
-
     {
         headers.put("Accept-Ranges", "bytes");
         headers.put("Connection", "Keep-Alive");
         headers.put("Keep-Alive", "timeout=60");
+    }
+
+    private HttpResponse(OutputStream os, String path, HttpMethod requestMethod) {
+        super(os);
+        this.requestPath = path;
+        this.requestMethod = requestMethod;
     }
 
     protected static HttpResponse create(OutputStream os, String path, HttpMethod requestMethod) {
@@ -54,10 +53,13 @@ public class HttpResponse extends Response {
     protected void execute(String filePath, HttpStatus status) {
         this.httpStatus = status;
         try {
-            if (getContentMimeType().equals(ContentType.APPLICATION_JSON.getValue()))
-                this.fileLength = readJson(filePath);
-            else
+            if (getContentMimeType().equals(ContentType.APPLICATION_JSON.getValue())) {
+                if (!requestMethod.equals(HttpMethod.OPTIONS)) {
+                    this.fileLength = readJson(filePath);
+                }
+            } else if (allowedMethods.isEmpty()) {
                 this.fileLength = readStaticResource(filePath);
+            }
             printHeader();
             CookieStore.vacateList();
             writer.flush();
@@ -73,25 +75,31 @@ public class HttpResponse extends Response {
         InputStream fis = Thread.currentThread().getContextClassLoader().getResourceAsStream(filePath);
         File staticFile = new File("src/main" + filePath);
         if (fis == null && !staticFile.exists()) {
-            fileNotFound();
+            notFound();
             return 0;
         }
         long fileLength = 0;
-        try {
-            if (staticFile.exists()) {
-                fileLength = readFileData(staticFile);
-            } else {
-                int i;
-                assert fis != null;
-                while ((i = fis.read()) != -1) {
-                    if (!this.requestMethod.equals(HttpMethod.HEAD))
-                        outputStream.write(i);
-                    fileLength++;
+        if (!filePath.equals(NOT_FOUND) && requestMethod.equals(HttpMethod.OPTIONS)) {
+            allowedMethods.add(HttpMethod.GET);
+            return 0;
+        } else {
+            try {
+                if (staticFile.exists()) {
+                    fileLength = readFileData(staticFile);
+                } else {
+                    int i;
+                    assert fis != null;
+                    while ((i = fis.read()) != -1) {
+                        if (!this.requestMethod.equals(HttpMethod.HEAD))
+                            outputStream.write(i);
+                        fileLength++;
+                    }
                 }
+            } catch (IOException e) {
+                throw new ResourcesNotFoundException(filePath);
             }
-        } catch (IOException e) {
-            throw new ResourcesNotFoundException(filePath);
         }
+
         return fileLength;
     }
 
@@ -130,6 +138,11 @@ public class HttpResponse extends Response {
             headers.put("Cache-Control", "max-age=86400");
         else
             headers.put("Cache-Control", "no-cache, no-store, must-revalidate");
+        if (requestMethod.equals(HttpMethod.OPTIONS) && allowedMethods.size() > 0) {
+            StringJoiner stringJoiner = new StringJoiner(", ");
+            allowedMethods.forEach(allowedMethod -> stringJoiner.add(allowedMethod.toString()));
+            headers.put("Allow", stringJoiner.toString());
+        }
         writer.print("HTTP/1.1 " + httpStatus.getCode() + " " + httpStatus.getMessage() + "\r\n");
         headers.keySet().forEach(key -> writer.print(key + ": " + headers.get(key) + "\r\n"));
         printCookies();
@@ -193,9 +206,9 @@ public class HttpResponse extends Response {
         execute(filePath, HttpStatus.OK);
     }
 
-    protected void fileNotFound() {
+    protected void notFound() {
         logger.warn("File " + requestPath + " not found");
-        execute(FILE_NOT_FOUND, HttpStatus.NOT_FOUND);
+        execute(NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
     protected void badRequest() {
@@ -219,5 +232,17 @@ public class HttpResponse extends Response {
         filePath = FAVICON;
         this.contentMimeType = ContentType.X_ICON.getValue();
         execute(filePath, HttpStatus.OK);
+    }
+
+    public void addAllowedMethod(HttpMethod httpMethod) {
+        this.allowedMethods.add(httpMethod);
+    }
+
+    public void returnOptionsResponse() {
+        if (allowedMethods.isEmpty()) {
+            this.notFound();
+            return;
+        }
+        this.execute(null, HttpStatus.OK);
     }
 }

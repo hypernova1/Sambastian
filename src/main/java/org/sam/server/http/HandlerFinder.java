@@ -49,6 +49,10 @@ public class HandlerFinder {
             httpResponse.returnIndexFile();
             return null;
         }
+        if (httpRequest.getMethod().equals(HttpMethod.OPTIONS)) {
+            httpResponse.returnOptionsResponse();
+            return null;
+        }
         if (isExistPath) {
             httpResponse.methodNotAllowed();
         }
@@ -138,8 +142,13 @@ public class HandlerFinder {
         if (containPathValue) {
             isSamePath = findPathValueHandler(requestPath, path, isSamePath);
         }
+        boolean isOptionsRequest = httpRequest.getMethod().equals(HttpMethod.OPTIONS);
+        if (isSamePath && isOptionsRequest) {
+            httpResponse.addAllowedMethod(HttpMethod.get(method));
+        }
         boolean isHeadRequest = httpRequest.getMethod().equals(HttpMethod.HEAD) && HttpMethod.GET.toString().equals(method);
-        if (isSamePath && ((httpRequest.getMethod().equals(HttpMethod.get(method))) || isHeadRequest)) {
+        if (!isOptionsRequest && isSamePath
+                && ((httpRequest.getMethod().equals(HttpMethod.get(method))) || isHeadRequest)) {
             if (declaredMethod.getDeclaredAnnotation(RestApi.class) != null)
                 this.httpResponse.setContentMimeType(ContentType.APPLICATION_JSON);
             return true;

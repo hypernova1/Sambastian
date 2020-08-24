@@ -12,7 +12,7 @@ public enum HttpStatus {
     BAD_REQUEST("400", "Bad Request"),
     UNAUTHORIZED("401", "Unauthorized"),
     FORBIDDEN("403", "Forbidden"),
-    NOT_FOUND("404", "File Not Found"),
+    NOT_FOUND("404", "Not Found"),
     METHOD_NOT_ALLOWED("405", "Method Not Allowed"),
     NOT_IMPLEMENTED("501", "Not Implemented");
 

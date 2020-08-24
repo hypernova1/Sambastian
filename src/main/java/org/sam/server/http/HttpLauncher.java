@@ -38,7 +38,7 @@ public class HttpLauncher {
             if (handlerInfo == null) return;
             HandlerExecutor.of(httpRequest, httpResponse, handlerInfo).execute();
         } catch (HandlerNotFoundException e) {
-            httpResponse.fileNotFound();
+            httpResponse.notFound();
             throw new IOException(e);
         }
     }
