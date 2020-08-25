@@ -31,7 +31,7 @@ public class HttpLauncher {
                 return;
             }
             if (httpRequest.getPath().startsWith("/resources")) {
-                httpResponse.getStaticResources();
+                httpResponse.responseStaticResources();
                 return;
             }
             HandlerInfo handlerInfo = HandlerFinder.of(httpRequest, httpResponse).createHandlerInfo();

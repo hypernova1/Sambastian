@@ -62,12 +62,17 @@ public class HttpResponse extends Response {
             }
             printHeader();
             CookieStore.vacateList();
-            writer.flush();
-            outputStream.flush();
-            outputStream.close();
-            writer.close();
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            writer.flush();
+            try {
+                outputStream.flush();
+                outputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            writer.close();
         }
     }
 
@@ -78,28 +83,37 @@ public class HttpResponse extends Response {
             notFound();
             return 0;
         }
-        long fileLength = 0;
         if (!filePath.equals(NOT_FOUND) && requestMethod.equals(HttpMethod.OPTIONS)) {
             allowedMethods.add(HttpMethod.GET);
             return 0;
-        } else {
-            try {
-                if (staticFile.exists()) {
-                    fileLength = readFileData(staticFile);
-                } else {
-                    int i;
-                    assert fis != null;
-                    while ((i = fis.read()) != -1) {
-                        if (!this.requestMethod.equals(HttpMethod.HEAD))
-                            outputStream.write(i);
-                        fileLength++;
-                    }
-                }
-            } catch (IOException e) {
-                throw new ResourcesNotFoundException(filePath);
-            }
         }
+        long fileLength = 0;
+        try {
+            if (staticFile.exists()) {
+                fileLength = readFileData(staticFile);
+            } else {
+                assert fis != null;
+                fileLength = writeStaticFile(fis);
+            }
+        } catch (IOException | ResourcesNotFoundException e) {
+            e.printStackTrace();
+        }
+        return fileLength;
+    }
 
+    private long writeStaticFile(InputStream fis) throws ResourcesNotFoundException {
+        long fileLength = 0;
+        try {
+            int i;
+            while ((i = fis.read()) != -1) {
+                if (!this.requestMethod.equals(HttpMethod.HEAD)) {
+                    outputStream.write(i);
+                }
+                fileLength++;
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         return fileLength;
     }
 
@@ -134,10 +148,11 @@ public class HttpResponse extends Response {
         headers.put("Date", LocalDateTime.now());
         headers.put("Content-Type", getContentMimeType());
         headers.put("Content-length", this.fileLength);
-        if (requestPath.startsWith("/resources"))
+        if (requestPath.startsWith("/resources")) {
             headers.put("Cache-Control", "max-age=86400");
-        else
+        } else {
             headers.put("Cache-Control", "no-cache, no-store, must-revalidate");
+        }
         if (requestMethod.equals(HttpMethod.OPTIONS) && allowedMethods.size() > 0) {
             StringJoiner stringJoiner = new StringJoiner(", ");
             allowedMethods.forEach(allowedMethod -> stringJoiner.add(allowedMethod.toString()));
@@ -201,7 +216,7 @@ public class HttpResponse extends Response {
         return headers.keySet();
     }
 
-    protected void getStaticResources() {
+    protected void responseStaticResources() {
         String filePath = requestPath.replace("/resources", "/resources/static");
         execute(filePath, HttpStatus.OK);
     }
@@ -221,7 +236,7 @@ public class HttpResponse extends Response {
         execute(METHOD_NOT_ALLOWED, HttpStatus.METHOD_NOT_ALLOWED);
     }
 
-    protected void returnIndexFile() {
+    protected void responseIndexFile() {
         if (this.requestPath.endsWith("/"))
             filePath = DEFAULT_FILE;
         this.contentMimeType = ContentType.TEXT_HTML.getValue();
@@ -238,7 +253,7 @@ public class HttpResponse extends Response {
         this.allowedMethods.add(httpMethod);
     }
 
-    public void returnOptionsResponse() {
+    public void executeOptionsResponse() {
         if (allowedMethods.isEmpty()) {
             this.notFound();
             return;
