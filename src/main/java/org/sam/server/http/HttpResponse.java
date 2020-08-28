@@ -17,7 +17,6 @@ import java.util.*;
  * Date: 2020/07/17
  * Time: 1:34 PM
  */
-@SuppressWarnings("unused")
 public class HttpResponse extends Response {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpResponse.class);

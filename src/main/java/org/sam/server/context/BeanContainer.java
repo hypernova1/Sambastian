@@ -103,6 +103,12 @@ public class BeanContainer {
             constructor = constructors[0];
         Parameter[] parameters = constructor.getParameters();
         List<Object> parameterList = createParameters(parameters);
+        if (parameters.length > parameterList.size()) {
+            int differenceCount = parameters.length - parameterList.size();
+            for (int i = 0; i < differenceCount; i++) {
+                parameterList.add(null);
+            }
+        }
         return constructor.newInstance(parameterList.toArray());
     }
 
@@ -115,7 +121,8 @@ public class BeanContainer {
                 if (bean == null) {
                     int index = componentClasses.indexOf(parameter.getType());
                     if (index == -1)
-                        throw new BeanNotFoundException(parameter.getType().getName());
+                        continue;
+//                        throw new BeanNotFoundException(parameter.getType().getName());
                     Class<?> beanClass = componentClasses.get(index);
                     String beanName = beanClass.getSimpleName();
                     beanName = beanName.substring(0, 1).toLowerCase() + beanName.substring(1);
@@ -164,7 +171,8 @@ public class BeanContainer {
                 return key;
             }
         }
-        throw new BeanNotFoundException(type.getName());
+//        throw new BeanNotFoundException(type.getName());
+        return null;
     }
 
     public static List<Object> getHandlerBeans() {
