@@ -182,4 +182,8 @@ public class BeanContainer {
     public static List<Interceptor> getInterceptors() {
         return interceptors;
     }
+
+    static Map<Class<?>, List<Bean>> getBeanMap() {
+        return beanMap;
+    }
 }
