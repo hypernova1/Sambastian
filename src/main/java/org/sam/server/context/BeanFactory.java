@@ -1,9 +1,6 @@
 package org.sam.server.context;
 
-import org.sam.server.util.CustomModelMapper;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -39,7 +36,7 @@ public class BeanFactory {
         return (T) savedBean;
     }
 
-    public List<Bean> getBeanList(Class<?> clazz) {
+    public List<Object> getBeanList(Class<?> clazz) {
         Set<Class<?>> classes = BeanContainer.getBeanMap().keySet();
         Class<?> beanType = classes.stream()
                 .filter(savedBeanType -> savedBeanType.isAssignableFrom(clazz)).findFirst().orElse(null);
@@ -54,7 +51,13 @@ public class BeanFactory {
                 }
             }
         }
-        return BeanContainer.getBeanMap().get(beanType);
+        List<Bean> beans = BeanContainer.getBeanMap().get(beanType);
+        List<Object> result = new ArrayList<>();
+        beans.forEach(bean -> {
+            result.add(bean.getInstance());
+        });
+
+        return result;
     }
 
     public <T> void registerBean(String name, T instance) {
