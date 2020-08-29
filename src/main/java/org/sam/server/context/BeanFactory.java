@@ -1,7 +1,11 @@
 package org.sam.server.context;
 
+import org.sam.server.util.CustomModelMapper;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by melchor
@@ -12,7 +16,7 @@ public class BeanFactory {
 
     private static BeanFactory beanFactory;
 
-    {
+    static {
         beanFactory = new BeanFactory();
         List<Bean> list = new ArrayList<>();
         Bean bean = new Bean("beanFactory", beanFactory);
@@ -29,13 +33,38 @@ public class BeanFactory {
     @SuppressWarnings("unchecked")
     public <T> T getBean(String name, Class<?> clazz) {
         List<Bean> beans = BeanContainer.getBeanMap().get(clazz);
-        Bean savedBean = beans.stream().filter(bean -> bean.getName().equals(name)).findFirst().orElseGet(() -> null);
+        Bean savedBean = beans.stream()
+                .filter(bean -> bean.getName().equals(name)).findFirst().orElseGet(() -> null);
         if (savedBean == null) return null;
         return (T) savedBean;
     }
 
-    public <T> void insertBean(String name, Class<?> clazz) {
+    public List<Bean> getBeanList(Class<?> clazz) {
+        Set<Class<?>> classes = BeanContainer.getBeanMap().keySet();
+        Class<?> beanType = classes.stream()
+                .filter(savedBeanType -> savedBeanType.isAssignableFrom(clazz)).findFirst().orElse(null);
+        if (beanType == null) {
+            for (Class<?> savedClass : classes) {
+                Class<?>[] interfaces = savedClass.getInterfaces();
+                for (Class<?> interfaze : interfaces) {
+                    if (interfaze.equals(clazz)) {
+                        beanType = savedClass;
+                        break;
+                    }
+                }
+            }
+        }
+        return BeanContainer.getBeanMap().get(beanType);
+    }
 
+    public <T> void registerBean(String name, T instance) {
+        List<Bean> list = BeanContainer.getBeanMap().get(instance.getClass());
+        if (list == null)
+            list = new ArrayList<>();
+        boolean isExist = list.stream().anyMatch(bean -> bean.getName().equals(name));
+        if (isExist) return;
+        Bean bean = new Bean(name, instance);
+        list.add(bean);
     }
 
 }

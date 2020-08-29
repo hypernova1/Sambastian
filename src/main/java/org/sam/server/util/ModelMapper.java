@@ -1,7 +1,11 @@
 package org.sam.server.util;
 
+import org.sam.server.context.Bean;
+import org.sam.server.context.BeanFactory;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
 
 /**
  * Created by melchor
@@ -9,8 +13,6 @@ import java.lang.reflect.Method;
  * Time: 10:43 PM
  */
 public class ModelMapper {
-
-    private CustomModelMapper customModelMapper;
 
     public <T, U> U convert(T instance, Class<U> clazz) {
         U target = null;
@@ -37,8 +39,12 @@ public class ModelMapper {
             }
         }
 
-        if (customModelMapper != null) {
+        BeanFactory beanFactory = BeanFactory.getInstance();
+        List<Bean> beanList = beanFactory.getBeanList(CustomModelMapper.class);
+        if (beanList != null) {
             try {
+                Bean bean = beanList.get(0);
+                CustomModelMapper customModelMapper = (CustomModelMapper) bean.getInstance();
                 Method map = customModelMapper.getClass().getMethod("map", instance.getClass(), target.getClass());
                 map.invoke(customModelMapper, instance, target);
             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {

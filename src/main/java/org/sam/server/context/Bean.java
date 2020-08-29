@@ -15,11 +15,11 @@ public class Bean {
         this.instance = instance;
     }
 
-    String getName() {
+    public String getName() {
         return name;
     }
 
-    Object getInstance() {
+    public Object getInstance() {
         return instance;
     }
 }
