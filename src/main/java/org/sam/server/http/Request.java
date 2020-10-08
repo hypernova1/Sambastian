@@ -40,8 +40,6 @@ public interface Request {
 
     String getHeader(String key);
 
-    Map<String, String> getAttributes();
-
     String getJson();
 
     Set<Cookie> getCookies();
@@ -56,7 +54,6 @@ public interface Request {
         protected HttpMethod method;
         protected Map<String, String> headers = new HashMap<>();
         protected Map<String, String> parameters = new HashMap<>();
-        protected Map<String, String> attributes = new HashMap<>();
         protected String json;
         protected Set<Cookie> cookies = new HashSet<>();
         protected Map<String, Object> files = new HashMap<>();
@@ -86,10 +83,15 @@ public interface Request {
                 String requestPath = parse.nextToken().toLowerCase();
                 this.protocol = parse.nextToken().toUpperCase();
                 String query = parseRequestPath(requestPath);
+
                 parseHeaders(headers);
                 parseMethod(method);
-                if (StringUtils.isNotEmpty(query)) this.parameters = parseQuery(query);
-                String contentType = this.headers.get("content-type") != null ? this.headers.get("content-type") : "";
+
+                if (StringUtils.isNotEmpty(query))
+                    this.parameters = parseQuery(query);
+
+                String contentType = this.headers.getOrDefault("content-type", "");
+
                 if (HttpMethod.get(method).equals(HttpMethod.POST) ||
                         HttpMethod.get(method).equals(HttpMethod.PUT) ||
                         ContentType.APPLICATION_JSON.getValue().equals(contentType)) {
@@ -125,11 +127,11 @@ public interface Request {
                 i++;
             }
             if (ContentType.APPLICATION_JSON.getValue().equals(contentType)
-                    && this.attributes.isEmpty()) {
+                    && this.parameters.isEmpty()) {
                 this.json = sb.toString();
                 return;
             }
-            this.attributes = parseQuery(sb.toString());
+            this.parameters = parseQuery(sb.toString());
         }
 
         private void parseHeaders(String[] headers) {
@@ -231,7 +233,7 @@ public interface Request {
 
                     if (line.contains(boundary)) {
                         if (!filename.equals("")) createMultipartFile(name, filename, contentType, fileData);
-                        else this.attributes.put(name, value);
+                        else this.parameters.put(name, value);
 
                         name = "";
                         value = "";
@@ -298,13 +300,12 @@ public interface Request {
             HttpMethod method = this.method;
             String path = this.path;
             Map<String, String> parameters = this.parameters;
-            Map<String, String> attributes = this.attributes;
             String json = this.json;
             Set<Cookie> cookies = this.cookies;
             String contentType = headers.get("content-type") != null ? headers.get("content-type") : "";
             if (contentType.startsWith(ContentType.MULTIPART_FORM_DATA.getValue()))
-                return new HttpMultipartRequest(protocol, path, method, headers, parameters, attributes, json, cookies, files);
-            return new HttpRequest(protocol, path, method, headers, parameters, attributes, json, cookies);
+                return new HttpMultipartRequest(protocol, path, method, headers, parameters, json, cookies, files);
+            return new HttpRequest(protocol, path, method, headers, parameters, json, cookies);
         }
     }
 }

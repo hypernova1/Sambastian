@@ -17,19 +17,17 @@ public class HttpRequest implements Request {
     private final HttpMethod method;
     private final Map<String, String> headers;
     private final Map<String, String> parameterMap;
-    private final Map<String, String> attributes;
     private final String json;
     private final Set<Cookie> cookies;
 
     protected HttpRequest(
             String protocol, String path, HttpMethod method, Map<String, String> headers, Map<String, String> parameterMap,
-            Map<String, String> attributes, String json, Set<Cookie> cookies) {
+            String json, Set<Cookie> cookies) {
         this.protocol = protocol;
         this.path = path;
         this.method = method;
         this.headers = headers;
         this.parameterMap = parameterMap;
-        this.attributes = attributes;
         this.json = json;
         this.cookies = cookies;
     }
@@ -72,11 +70,6 @@ public class HttpRequest implements Request {
     @Override
     public String getHeader(String key) {
         return headers.get(key);
-    }
-
-    @Override
-    public Map<String, String> getAttributes() {
-        return attributes;
     }
 
     @Override

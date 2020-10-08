@@ -16,9 +16,8 @@ public class HttpMultipartRequest extends HttpRequest {
 
     protected HttpMultipartRequest(
             String protocol, String path, HttpMethod method, Map<String, String> headers,
-            Map<String, String> parameterMap, Map<String, String> attributes,
-            String json, Set<Cookie> cookies, Map<String, Object> files) {
-        super(protocol, path, method, headers, parameterMap, attributes, json, cookies);
+            Map<String, String> parameterMap, String json, Set<Cookie> cookies, Map<String, Object> files) {
+        super(protocol, path, method, headers, parameterMap, json, cookies);
         this.files = files;
     }
 

@@ -17,7 +17,7 @@ src/
      +- resources/
          +- config/
          |   +- application.properties
-         +- static
+         +- static/
             +- <static files>
 ~~~
 ##### 3. add dependency
