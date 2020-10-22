@@ -34,8 +34,8 @@ filename: resources/static/resource/application.properties
 server.port=[port number]
 file-buffer-size=[file buffer size]
 # activate SSL
-keyStore=[keyStore name]
-keyStorePassword=[keyStore password]
+key-store=[keyStore name]
+key-store.password=[keyStore password]
 ~~~
 ##### 5. write main class
 ~~~java

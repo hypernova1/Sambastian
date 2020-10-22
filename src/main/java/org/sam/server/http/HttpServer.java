@@ -57,8 +57,8 @@ public class HttpServer implements Runnable {
     }
 
     private static ServerSocket createServerSocket() throws IOException {
-        String keyStore = ServerProperties.get("keyStore");
-        String keyStorePassword = ServerProperties.get("keyStorePassword");
+        String keyStore = ServerProperties.get("key-store");
+        String keyStorePassword = ServerProperties.get("key-store.password");
         String propertiesPort = ServerProperties.get("server.port");
         int port = (propertiesPort != null) ? Integer.parseInt(propertiesPort) : 8080;
         if (System.getenv("PORT") != null) port = Integer.parseInt(System.getenv("PORT"));
