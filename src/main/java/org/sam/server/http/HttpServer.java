@@ -20,7 +20,6 @@ import java.util.concurrent.TimeUnit;
  * Date: 2020/07/17
  * Time: 1:34 PM
  */
-@SuppressWarnings("unused")
 public class HttpServer implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);

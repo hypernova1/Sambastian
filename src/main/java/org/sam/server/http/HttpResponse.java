@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -118,15 +119,14 @@ public class HttpResponse extends Response {
 
     private long readFileData(File file) throws IOException {
         FileInputStream fis = new FileInputStream(file);
-        int fileLength = 0;
         int len;
         if (!this.requestMethod.equals(HttpMethod.HEAD)) {
             byte[] buf = new byte[fis.available()];
             while ((len = fis.read(buf)) > 0) {
                 outputStream.write(buf, 0, len);
             }
-            fis.close();
         }
+        fis.close();
 
         return file.length();
     }
@@ -135,7 +135,7 @@ public class HttpResponse extends Response {
         if (httpStatus.equals(HttpStatus.NOT_FOUND) || httpStatus.equals(HttpStatus.BAD_REQUEST))
             return 0;
 
-        byte[] bytes = json.getBytes();
+        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
         if (!this.requestMethod.equals(HttpMethod.HEAD)) {
             outputStream.write(bytes);
         }

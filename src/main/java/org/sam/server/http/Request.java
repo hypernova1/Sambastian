@@ -285,13 +285,13 @@ public interface Request {
                 if (fileLength != 0 && data[fileLength - 1] == '\r' && data[fileLength] == '\n') {
                     String content = new String(data, StandardCharsets.UTF_8);
                     if (content.trim().equals(boundary)) return null;
-                    boundary = new String(boundary.getBytes(), StandardCharsets.UTF_8);
+                    boundary = new String(boundary.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
                     int index = content.indexOf(boundary);
                     if (index != -1) break;
                 }
                 fileLength++;
             }
-            return Arrays.copyOfRange(data, 2, fileLength - boundary.getBytes().length);
+            return Arrays.copyOfRange(data, 2, fileLength - boundary.getBytes(StandardCharsets.UTF_8).length);
         }
 
         public HttpRequest createRequest() {

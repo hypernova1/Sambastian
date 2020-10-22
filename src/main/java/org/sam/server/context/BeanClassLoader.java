@@ -109,6 +109,7 @@ public class BeanClassLoader {
     private static boolean loadRootPackageName(File directory, String packageName) throws ClassNotFoundException {
         if (!directory.exists()) return false;
         File[] files = directory.listFiles();
+        if (files == null) return false;
         for (File file : files) {
             StringBuilder packageNameBuilder = new StringBuilder(packageName);
             if (file.isDirectory()) {
