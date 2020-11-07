@@ -1,14 +1,26 @@
 # HTTP Server
-자바 Socket을 이용하여 HTTP 서버 구현
+Implementing HTTP Server using java socket.
 
-### 사용 방법
-0. jdk 1.8 이상 설치
-1. 로컬 저장소에 jar 배포
+### How to use
+##### 0. install jdk 1.8++
+##### 1. deploy local repository
 ~~~
 $ mvn install
 ~~~
-2. maven project 생성
-3. pom.xml 의존성 추가
+##### 2. create maven project
+project structure
+~~~
+src/
+ +- main/
+     +- java/
+     |   +- <source code>
+     +- resources/
+         +- config/
+         |   +- application.properties
+         +- static/
+            +- <static files>
+~~~
+##### 3. add dependency
 ~~~xml
 <dependency>
     <groupId>org.sam.server</groupId>
@@ -16,16 +28,18 @@ $ mvn install
     <version>1.0-SNAPSHOT</version>
 </dependency>
 ~~~
-4. resources/static/resource/application.properties 에 설정 추가
+##### 4. initial setting
+filename: resources/static/resource/application.properties
 ~~~properties
-server.port=[포트 번호]
-
-# SSL 활성화시
-keyStore=[keyStore 파일명]
-keyStorePassword=[keyStore 비밀번호]
+server.port=[port number]
+file-buffer-size=[file buffer size]
+# activate SSL
+key-store=[keyStore name]
+key-store.password=[keyStore password]
 ~~~
-5. 루트 패키지에 메인 클래스 생성 후 함수 호출
+##### 5. write main class
 ~~~java
+@ComponentScan
 public class Application {
     public static void main(String[] args) {
         HttpServer.start();
@@ -33,10 +47,12 @@ public class Application {
 }
 ~~~
 
-6. 실행
+##### 6. execute program
 ~~~
 22:26:34.015 [main] INFO  org.sam.server.HttpServer - server started..
 22:26:34.019 [main] INFO  org.sam.server.HttpServer - server port: 8081
 ~~~
 
 #### [Sample Project](https://github.com/hypernova1/Java-Http-Server-Sample)
+
+

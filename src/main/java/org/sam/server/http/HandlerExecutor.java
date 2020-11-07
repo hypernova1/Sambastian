@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import org.sam.server.annotation.CrossOrigin;
 import org.sam.server.annotation.handle.JsonRequest;
 import org.sam.server.constant.ContentType;
-import org.sam.server.constant.HttpMethod;
 import org.sam.server.constant.HttpStatus;
 import org.sam.server.context.BeanContainer;
 import org.sam.server.context.HandlerInfo;
@@ -40,11 +39,7 @@ public class HandlerExecutor {
     void execute() {
         setCrossOriginConfig();
         try {
-            Map<String, String> requestData;
-            if (httpRequest.getMethod().equals(HttpMethod.POST) || httpRequest.getMethod().equals(HttpMethod.PUT))
-                requestData = httpRequest.getAttributes();
-            else
-                requestData = httpRequest.getParameters();
+            Map<String, String> requestData = httpRequest.getParameters();
             List<Interceptor> interceptors = BeanContainer.getInterceptors();
             Object returnValue;
             if (interceptors.isEmpty())

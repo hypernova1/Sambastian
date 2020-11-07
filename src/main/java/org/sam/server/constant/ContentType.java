@@ -6,34 +6,25 @@ package org.sam.server.constant;
  * Time: 1:38 PM
  */
 public enum ContentType {
-    TEXT_PLAIN("text/plain", EncodingType.UTF_8),
-    TEXT_HTML("text/html", EncodingType.UTF_8),
-    APPLICATION_JSON("application/json", EncodingType.UTF_8),
-    CSS("text/css", EncodingType.UTF_8),
-    JAVASCRIPT("application/javascript", EncodingType.UTF_8),
-    X_ICON("image/x-icon", EncodingType.UTF_8),
-    PNG("image/png", EncodingType.UTF_8),
-    JPG("image/jpg", EncodingType.UTF_8),
-    JPEG("image/jpeg", EncodingType.UTF_8),
-    MULTIPART_FORM_DATA("multipart/form-data", EncodingType.UTF_8);
+    TEXT_PLAIN("text/plain"),
+    TEXT_HTML("text/html"),
+    APPLICATION_JSON("application/json"),
+    CSS("text/css"),
+    JAVASCRIPT("application/javascript"),
+    X_ICON("image/x-icon"),
+    PNG("image/png"),
+    JPG("image/jpg"),
+    JPEG("image/jpeg"),
+    MULTIPART_FORM_DATA("multipart/form-data");
 
-    private String value;
-    private EncodingType encodingType;
+    private final String value;
 
-    ContentType(String value, EncodingType encodingType) {
+    ContentType(String value) {
         this.value = value;
-        this.encodingType = encodingType;
-    }
-
-    public void setEncodingType(EncodingType encodingType) {
-        this.encodingType = encodingType;
     }
 
     public String getValue() {
         return this.value;
     }
 
-    public EncodingType getEncodingType() {
-        return this.encodingType;
-    }
 }

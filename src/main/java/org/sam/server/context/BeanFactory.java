@@ -2,6 +2,7 @@ package org.sam.server.context;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -11,7 +12,7 @@ import java.util.Set;
  */
 public class BeanFactory {
 
-    private static BeanFactory beanFactory;
+    private static final BeanFactory beanFactory;
 
     static {
         beanFactory = new BeanFactory();
@@ -31,26 +32,28 @@ public class BeanFactory {
     public <T> T getBean(String name, Class<?> clazz) {
         List<Bean> beans = BeanContainer.getBeanMap().get(clazz);
         Bean savedBean = beans.stream()
-                .filter(bean -> bean.getName().equals(name)).findFirst().orElseGet(() -> null);
-        if (savedBean == null) return null;
+                .filter(bean -> bean.getName().equals(name))
+                .findFirst()
+                .orElse(null);
         return (T) savedBean;
     }
 
     public List<?> getBeanList(Class<?> clazz) {
         Set<Class<?>> classes = BeanContainer.getBeanMap().keySet();
         Class<?> beanType = classes.stream()
-                .filter(savedBeanType -> savedBeanType.isAssignableFrom(clazz)).findFirst().orElse(null);
-        if (beanType == null) {
-            for (Class<?> savedClass : classes) {
-                Class<?>[] interfaces = savedClass.getInterfaces();
-                for (Class<?> interfaze : interfaces) {
-                    if (interfaze.equals(clazz)) {
-                        beanType = savedClass;
-                        break;
+                .filter(savedBeanType -> savedBeanType.isAssignableFrom(clazz))
+                .findFirst()
+                .orElseGet(() -> {
+                    for (Class<?> savedClass : classes) {
+                        Class<?>[] interfaces = savedClass.getInterfaces();
+                        for (Class<?> interfaze : interfaces) {
+                            if (interfaze.equals(clazz)) {
+                                return savedClass;
+                            }
+                        }
                     }
-                }
-            }
-        }
+                    return null;
+                });
         List<Bean> beans = BeanContainer.getBeanMap().get(beanType);
         List<Object> result = new ArrayList<>();
         beans.forEach(bean -> result.add(bean.getInstance()));
@@ -59,9 +62,9 @@ public class BeanFactory {
     }
 
     public <T> void registerBean(String name, T instance) {
-        List<Bean> list = BeanContainer.getBeanMap().get(instance.getClass());
-        if (list == null)
-            list = new ArrayList<>();
+        List<Bean> list = Optional
+                .ofNullable(BeanContainer.getBeanMap().get(instance.getClass()))
+                .orElseGet(ArrayList::new);
         boolean isExist = list.stream().anyMatch(bean -> bean.getName().equals(name));
         if (isExist) return;
         Bean bean = new Bean(name, instance);
