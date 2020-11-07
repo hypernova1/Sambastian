@@ -122,7 +122,7 @@ public class BeanContainer {
                     int index = componentClasses.indexOf(parameter.getType());
                     if (index == -1)
                         continue;
-//                        throw new BeanNotFoundException(parameter.getType().getName());
+
                     Class<?> beanClass = componentClasses.get(index);
                     String beanName = beanClass.getSimpleName();
                     beanName = beanName.substring(0, 1).toLowerCase() + beanName.substring(1);

@@ -39,7 +39,7 @@ public class ModelMapper {
         }
 
         BeanFactory beanFactory = BeanFactory.getInstance();
-        List<Object> beanList = beanFactory.getBeanList(CustomModelMapper.class);
+        List<?> beanList = beanFactory.getBeanList(CustomModelMapper.class);
         if (beanList != null) {
             try {
                 CustomModelMapper customModelMapper = (CustomModelMapper) beanList.get(0);

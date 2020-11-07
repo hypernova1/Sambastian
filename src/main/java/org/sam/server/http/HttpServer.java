@@ -48,8 +48,6 @@ public class HttpServer implements Runnable {
             );
             while (!Thread.currentThread().isInterrupted()) {
                 HttpServer httpServer = new HttpServer(serverSocket.accept());
-//                logger.info("connected.." + LocalDateTime.now());
-//                logger.info("total thread count: " + threadPool.getPoolSize());
                 threadPool.execute(httpServer);
             }
         } catch (IOException e) {
@@ -67,14 +65,13 @@ public class HttpServer implements Runnable {
     }
 
     private static ServerSocket createSSLServerSocket(String keyStore, String password, int port) throws IOException {
-        ServerSocket serverSocket;
         ServerProperties.setSSL();
         System.setProperty("javax.net.ssl.keyStore", keyStore);
         System.setProperty("javax.net.ssl.keyStorePassword", password);
         System.setProperty("javax.net.debug", "ssl");
         SSLServerSocketFactory sslserversocketfactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
-        serverSocket = sslserversocketfactory.createServerSocket(port);
-        return serverSocket;
+
+        return sslserversocketfactory.createServerSocket(port);
     }
 
     @Override

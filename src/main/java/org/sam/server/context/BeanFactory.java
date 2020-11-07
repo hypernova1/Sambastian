@@ -36,7 +36,7 @@ public class BeanFactory {
         return (T) savedBean;
     }
 
-    public List<Object> getBeanList(Class<?> clazz) {
+    public List<?> getBeanList(Class<?> clazz) {
         Set<Class<?>> classes = BeanContainer.getBeanMap().keySet();
         Class<?> beanType = classes.stream()
                 .filter(savedBeanType -> savedBeanType.isAssignableFrom(clazz)).findFirst().orElse(null);
@@ -53,9 +53,7 @@ public class BeanFactory {
         }
         List<Bean> beans = BeanContainer.getBeanMap().get(beanType);
         List<Object> result = new ArrayList<>();
-        beans.forEach(bean -> {
-            result.add(bean.getInstance());
-        });
+        beans.forEach(bean -> result.add(bean.getInstance()));
 
         return result;
     }
