@@ -16,9 +16,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created by melchor
- * Date: 2020/07/17
- * Time: 1:34 PM
+ * HTTP 서버의 시작점으로서, 서버 소켓을 생성하고 쓰헤드 풀을 생성하여 요청을 HttpLauncher로 위임합니다.
+ * 서버가 준비 되기 전에 Bean을 관리하는 BeanContainer와 세션을 관리하는 SessionManager를 초기화 합니다.
+ *
+ * @author hypernova1
  */
 public class HttpServer implements Runnable {
 
@@ -30,6 +31,11 @@ public class HttpServer implements Runnable {
         this.connect = connect;
     }
 
+    /**
+     * 애플리케이션의 시작 메서드입니다. 서버가 종료될 때 까지 무한 루프를 돌며 요청을 HttpLauncher에 위임합니다.
+     *
+     * @author hypernova1
+     * */
     public static void start() {
         try {
             ServerSocket serverSocket = createServerSocket();
@@ -54,6 +60,12 @@ public class HttpServer implements Runnable {
         }
     }
 
+    /**
+     * 서버 소켓을 생성하는 메서드입니다. keyStore 유무에 따라 SSL 서버 소켓을 반환할 수 있습니다.
+     *을
+     * @author hypernova1
+     * @throws IOException SSL 소켓 생성시에 네트워크 오류가 발생시
+     * */
     private static ServerSocket createServerSocket() throws IOException {
         String keyStore = ServerProperties.get("key-store");
         String keyStorePassword = ServerProperties.get("key-store.password");
@@ -63,6 +75,14 @@ public class HttpServer implements Runnable {
         return keyStore != null ? createSSLServerSocket(keyStore, keyStorePassword, port) : new ServerSocket(port);
     }
 
+    /**
+     * SSL 서버 소켓을 생성하는 메서드입니다.
+     *
+     * @param keyStore keyStore 이름
+     * @param password keyStore 비밀번호
+     * @param port 포트 번호
+     * @throws IOException SSL 소켓 생성시에 네트워크 오류가 발생시
+     * */
     private static ServerSocket createSSLServerSocket(String keyStore, String password, int port) throws IOException {
         ServerProperties.setSSL();
         System.setProperty("javax.net.ssl.keyStore", keyStore);
@@ -83,6 +103,11 @@ public class HttpServer implements Runnable {
         }
     }
 
+    /**
+     * 세션을 관리하는 클래스입니다. 세션을 생성 및 삭제합니다. TimerTask를 상속 받아서 30분마다 유효한지 확인합니다.
+     *
+     * @author hypernova1
+     * */
     static class SessionManager extends TimerTask {
 
         private static final Logger logger = LoggerFactory.getLogger(SessionManager.class);
@@ -90,10 +115,22 @@ public class HttpServer implements Runnable {
 
         private SessionManager() {}
 
+        /**
+         * 세션을 추가하는 메서드입니다.
+         *
+         * @author hypernova1
+         * @param session 추가할 세션
+         * */
         static void addSession(Session session) {
             sessionList.add(session);
         }
 
+        /**
+         * 세션을 가져오는 메서드입니다.
+         *
+         * @author hypernova1
+         * @param session 가져올 세션
+         * */
         static Session getSession(String id) {
             for (Session session : sessionList) {
                 if (session.getId().equals(id)) {
@@ -103,10 +140,21 @@ public class HttpServer implements Runnable {
             return null;
         }
 
+        /**
+         * 세션을 식제 메서드입니다.
+         *
+         * @author hypernova1
+         * @param session 삭제할 세션
+         * */
         static void removeSession(String id) {
             sessionList.removeIf(session -> session.getId().equals(id));
         }
 
+        /**
+         * 세션의 유효성을 확인하는 메서드입니다. 30분마다 현재 시간과 만료 시간을 비교하여 판단합니다.
+         *
+         * @author hypernova1
+         * */
         static void enableSessionChecker() {
             new Timer().schedule(new SessionManager(), 0, 60 * 1000);
         }
