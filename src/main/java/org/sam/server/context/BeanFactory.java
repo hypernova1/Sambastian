@@ -16,9 +16,9 @@ public class BeanFactory {
 
     static {
         beanFactory = new BeanFactory();
-        List<Bean> list = new ArrayList<>();
-        Bean bean = new Bean("beanFactory", beanFactory);
-        list.add(bean);
+        List<BeanInfo> list = new ArrayList<>();
+        BeanInfo beanInfo = new BeanInfo("beanFactory", beanFactory);
+        list.add(beanInfo);
         BeanContainer.getBeanMap().put(BeanFactory.class, list);
     }
 
@@ -30,12 +30,12 @@ public class BeanFactory {
 
     @SuppressWarnings("unchecked")
     public <T> T getBean(String name, Class<?> clazz) {
-        List<Bean> beans = BeanContainer.getBeanMap().get(clazz);
-        Bean savedBean = beans.stream()
-                .filter(bean -> bean.getName().equals(name))
+        List<BeanInfo> beanInfos = BeanContainer.getBeanMap().get(clazz);
+        BeanInfo savedBeanInfo = beanInfos.stream()
+                .filter(beanInfo -> beanInfo.getName().equals(name))
                 .findFirst()
                 .orElse(null);
-        return (T) savedBean;
+        return (T) savedBeanInfo;
     }
 
     public List<?> getBeanList(Class<?> clazz) {
@@ -54,21 +54,21 @@ public class BeanFactory {
                     }
                     return null;
                 });
-        List<Bean> beans = BeanContainer.getBeanMap().get(beanType);
+        List<BeanInfo> beanInfos = BeanContainer.getBeanMap().get(beanType);
         List<Object> result = new ArrayList<>();
-        beans.forEach(bean -> result.add(bean.getInstance()));
+        beanInfos.forEach(beanInfo -> result.add(beanInfo.getInstance()));
 
         return result;
     }
 
     public <T> void registerBean(String name, T instance) {
-        List<Bean> list = Optional
+        List<BeanInfo> list = Optional
                 .ofNullable(BeanContainer.getBeanMap().get(instance.getClass()))
                 .orElseGet(ArrayList::new);
-        boolean isExist = list.stream().anyMatch(bean -> bean.getName().equals(name));
+        boolean isExist = list.stream().anyMatch(beanInfo -> beanInfo.getName().equals(name));
         if (isExist) return;
-        Bean bean = new Bean(name, instance);
-        list.add(bean);
+        BeanInfo beanInfo = new BeanInfo(name, instance);
+        list.add(beanInfo);
     }
 
 }

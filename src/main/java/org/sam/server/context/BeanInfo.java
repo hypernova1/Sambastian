@@ -5,12 +5,12 @@ package org.sam.server.context;
  * Date: 2020/08/10
  * Time: 12:04 AM
  */
-public class Bean {
+public class BeanInfo {
 
     private final String name;
     private final Object instance;
 
-    Bean(String name, Object instance) {
+    BeanInfo(String name, Object instance) {
         this.name = name;
         this.instance = instance;
     }

@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Date: 2020/08/29
  * Time: 8:27 PM
  */
-class BeanFactoryTest {
+class BeanInfoFactoryTest {
 
     interface A {}
 

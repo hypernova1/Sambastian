@@ -12,7 +12,7 @@ import java.lang.reflect.Parameter;
  * Date: 2020/08/09
  * Time: 10:20 PM
  */
-class BeanClassLoaderTest {
+class BeanInfoClassLoaderTest {
 
     static class TestBean {
 

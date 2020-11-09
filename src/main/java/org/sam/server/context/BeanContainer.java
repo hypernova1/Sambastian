@@ -1,5 +1,7 @@
 package org.sam.server.context;
 
+import org.sam.server.annotation.Qualifier;
+import org.sam.server.annotation.component.Bean;
 import org.sam.server.exception.BeanAccessModifierException;
 import org.sam.server.exception.BeanNotFoundException;
 import org.sam.server.http.Interceptor;
@@ -15,7 +17,7 @@ import java.util.*;
 public class BeanContainer {
 
     private static final Logger logger = LoggerFactory.getLogger(BeanContainer.class);
-    private static final Map<Class<?>, List<Bean>> beanMap = new HashMap<>();
+    private static final Map<Class<?>, List<BeanInfo>> beanMap = new HashMap<>();
     private static final List<Object> handlerBeans = new ArrayList<>();
     private static final List<Interceptor> interceptors = new ArrayList<>();
 
@@ -30,8 +32,7 @@ public class BeanContainer {
     private static void createComponentBeans() {
         componentClasses.forEach(componentClass  -> {
             try {
-                String beanName = componentClass.getSimpleName();
-                beanName = beanName.substring(0, 1).toLowerCase() + beanName.substring(1);
+                String beanName = getBeanName(componentClass);
                 if (!isDuplicated(beanName, componentClass)) {
                     Object beanInstance = createBeanInstance(componentClass);
                     Method[] declaredMethods = beanInstance.getClass().getDeclaredMethods();
@@ -46,7 +47,7 @@ public class BeanContainer {
 
     private static void createMethodBean(Object beanInstance, Method[] declaredMethods) {
         Arrays.stream(declaredMethods).forEach(declaredMethod -> {
-            if (declaredMethod.getDeclaredAnnotation(org.sam.server.annotation.component.Bean.class) != null) {
+            if (declaredMethod.getDeclaredAnnotation(Bean.class) != null) {
                 try {
                     Class<?> beanType = declaredMethod.getReturnType();
                     Object instance = declaredMethod.invoke(beanInstance);
@@ -60,14 +61,14 @@ public class BeanContainer {
     }
 
     private static void addBeanMap(Class<?> componentClass, Object beanInstance, String beanName) {
-        Bean bean = new Bean(beanName, beanInstance);
+        BeanInfo beanInfo = new BeanInfo(beanName, beanInstance);
         logger.info("create bean: " + beanName + " > " + componentClass.getName());
         if (beanMap.get(componentClass) != null)
-            beanMap.get(componentClass).add(bean);
+            beanMap.get(componentClass).add(beanInfo);
         else {
-            List<Bean> beanList = new ArrayList<>();
-            beanList.add(bean);
-            beanMap.put(componentClass, beanList);
+            List<BeanInfo> beanInfoList = new ArrayList<>();
+            beanInfoList.add(beanInfo);
+            beanMap.put(componentClass, beanInfoList);
         }
     }
 
@@ -117,18 +118,18 @@ public class BeanContainer {
         for (Parameter parameter : parameters) {
             String parameterName = parameter.getName();
             try {
-                Bean bean = findBean(parameter.getType(), parameterName);
-                if (bean == null) {
+                BeanInfo beanInfo = findBean(parameter.getType(), parameterName);
+                if (beanInfo == null) {
                     int index = componentClasses.indexOf(parameter.getType());
                     if (index == -1) continue;
                     Class<?> beanClass = componentClasses.get(index);
-                    String beanName = beanClass.getSimpleName();
-                    beanName = beanName.substring(0, 1).toLowerCase() + beanName.substring(1);
+                    String beanName;
+                    beanName = getBeanName(beanClass);
                     Object beanInstance = createBeanInstance(beanClass);
-                    bean = new Bean(beanName, beanInstance);
+                    beanInfo = new BeanInfo(beanName, beanInstance);
                     addBeanMap(parameter.getType(), beanInstance, parameterName);
                 }
-                parameterList.add(bean.getInstance());
+                parameterList.add(beanInfo.getInstance());
             } catch (BeanNotFoundException e) {
                 e.printStackTrace();
             }
@@ -136,11 +137,20 @@ public class BeanContainer {
         return parameterList;
     }
 
+    private static String getBeanName(Class<?> beanClass) {
+        Qualifier qualifier = beanClass.getDeclaredAnnotation(Qualifier.class);
+        if (qualifier != null) {
+            return qualifier.value();
+        }
+        String beanName = beanClass.getSimpleName();
+        return beanName.substring(0, 1).toLowerCase() + beanName.substring(1);
+    }
+
     private static boolean isDuplicated(String beanName, Class<?> clazz) {
-        List<Bean> beans = beanMap.get(clazz);
-        if (beans != null) {
-            for (Bean bean : beans) {
-                if (bean.getName().equals(beanName)) {
+        List<BeanInfo> beanInfos = beanMap.get(clazz);
+        if (beanInfos != null) {
+            for (BeanInfo beanInfo : beanInfos) {
+                if (beanInfo.getName().equals(beanName)) {
                     return true;
                 }
             }
@@ -148,16 +158,16 @@ public class BeanContainer {
         return false;
     }
 
-    private static Bean findBean(Class<?> type, String parameterName) throws BeanNotFoundException {
+    private static BeanInfo findBean(Class<?> type, String parameterName) throws BeanNotFoundException {
         if (!componentClasses.contains(type))
             type = findSuperClass(type);
-        List<Bean> beans = beanMap.get(type);
-        if (beans == null) return null;
-        if (beans.size() == 1)
-            return beans.get(0);
-        for (Bean bean : beans) {
-            if (bean.getName().equals(parameterName))
-                return bean;
+        List<BeanInfo> beanInfos = beanMap.get(type);
+        if (beanInfos == null) return null;
+        if (beanInfos.size() == 1)
+            return beanInfos.get(0);
+        for (BeanInfo beanInfo : beanInfos) {
+            if (beanInfo.getName().equals(parameterName))
+                return beanInfo;
         }
         return null;
     }
@@ -181,7 +191,7 @@ public class BeanContainer {
         return interceptors;
     }
 
-    static Map<Class<?>, List<Bean>> getBeanMap() {
+    static Map<Class<?>, List<BeanInfo>> getBeanMap() {
         return beanMap;
     }
 }
