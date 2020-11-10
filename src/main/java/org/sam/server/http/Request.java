@@ -13,10 +13,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
- * Created by melchor
- * Date: 2020/07/22
- * Time: 5:19 PM
+ * HTTP 요청에 대한 정보를 가지는 클래스입니다.
+ *
+ * @author hypernova1
+ * @see org.sam.server.http.HttpRequest
+ * @see org.sam.server.http.HttpMultipartRequest
  */
+
 @SuppressWarnings("unused")
 public interface Request {
 
@@ -24,44 +27,122 @@ public interface Request {
         return new UrlParser(in).createRequest();
     }
 
+    /**
+     * HTTP/HTTPS를 반환합니다.
+     * 
+     * @return HTTP 프로토콜
+     * */
     String getProtocol();
 
+    /**
+     * 요청 URL을 반환합니다.
+     *
+     * @return 요청 URL
+     * */
     String getPath();
 
+    /**
+     * HTTP Method를 반환합니다.
+     *
+     * @return Http Method
+     * */
     HttpMethod getMethod();
 
+    /**
+     * 이름에 해당하는 파라미터의 값을 반환합니다.
+     *
+     * @param key 파라미터 이름
+     * @return 파라미터 값
+     * */
     String getParameter(String key);
 
+    /**
+     * 모든 파라미터를 반환합니다.
+     * 
+     * @return 모든 파라미터 목록
+     * */
     Map<String, String> getParameters();
 
+    /**
+     * 모든 파라미터의 이름을 반환합니다.
+     * 
+     * @return 모든 파라미터의 이름
+     * */
     Set<String> getParameterNames();
 
+    /**
+     * 모든 헤더의 이름을 반환합니다.
+     * 
+     * @return 모든 헤더의 이름
+     * */
     Set<String> getHeaderNames();
 
+    /**
+     * 이름에 해당하는 헤더 값을 반환합니다.
+     * 
+     * @param key 헤더 이름
+     * @return 헤더 값
+     * */
     String getHeader(String key);
 
+    /**
+     * JSON을 반환합니다.
+     * 
+     * @return JSON
+     * */
     String getJson();
 
+    /**
+     * 쿠키 목록을 반환합니다.
+     * 
+     * @return 쿠키 목록
+     * */
     Set<Cookie> getCookies();
 
+    /**
+     * 모든 세션을 반환합니다.
+     * 
+     * @return 세션 목록
+     * */
     Session getSession();
 
+    /**
+     * 소켓으로 부터 받은 InputStream을 읽어 Request 인스턴스를 생성하는 클래스입니다.
+     *
+     * @author hypernova1
+     * @see org.sam.server.http.Request
+     * @see org.sam.server.http.HttpRequest
+     * @see org.sam.server.http.HttpMultipartRequest
+     * */
     class UrlParser {
+
         private static final Logger logger = LoggerFactory.getLogger(Request.class);
 
         protected String protocol;
+
         protected String path;
+
         protected HttpMethod method;
+
         protected Map<String, String> headers = new HashMap<>();
+
         protected Map<String, String> parameters = new HashMap<>();
+
         protected String json;
+
         protected Set<Cookie> cookies = new HashSet<>();
+
         protected Map<String, Object> files = new HashMap<>();
 
         private UrlParser(InputStream in) {
             parse(in);
         }
 
+        /**
+         * InputStream에서 HTTP 본문을 읽은 후 파싱한다.
+         *
+         * @param in 소켓의 InputStream
+         * */
         private void parse(InputStream in) {
             try {
                 BufferedInputStream inputStream = new BufferedInputStream(in);
@@ -108,6 +189,12 @@ public interface Request {
             }
         }
 
+        /**
+         * HTTP 바디를 파싱한다.
+         *
+         * @param inputStream 소켓의 InputSteam
+         * @param contentType 미디어 타입
+         * */
         private void parseRequestBody(InputStream inputStream, String contentType) throws IOException {
             StringBuilder sb = new StringBuilder();
             int binary;
@@ -134,6 +221,11 @@ public interface Request {
             this.parameters = parseQuery(sb.toString());
         }
 
+        /**
+         * HTTP 헤더를 파싱한다.
+         * 
+         * @param headers 헤더
+         * */
         private void parseHeaders(String[] headers) {
             for (int i = 1; i < headers.length; i++) {
                 int index = headers[i].indexOf(": ");
@@ -147,10 +239,21 @@ public interface Request {
             }
         }
 
+        /**
+         * HTTP Method를 파싱한다.
+         * 
+         * @param method HTTP Method 이름
+         * */
         private void parseMethod(String method) {
             this.method = HttpMethod.get(method);
         }
 
+        /**
+         * 요청 URL을 파싱하여 저장하고 쿼리 스트링을 반환한다.
+         *
+         * @param requestPath 요청 URL
+         * @return 쿼리 스트링
+         * */
         private String parseRequestPath(String requestPath) {
             int index = requestPath.indexOf("?");
             if (index != -1) {
@@ -161,6 +264,12 @@ public interface Request {
             return "";
         }
 
+        /**
+         * 쿼리 스트링을 파싱한다.
+         * 
+         * @param  parameters 쿼리 스트링
+         * @return 파라미터 목록
+         * */
         private Map<String, String> parseQuery(String parameters) {
             Map<String, String> map = new HashMap<>();
             String[] rawParameters = parameters.split("&");
@@ -176,6 +285,12 @@ public interface Request {
             return map;
         }
 
+        /**
+         * Multipart 요청을 파싱한다.
+         *
+         * @param inputStream 소켓의 InputStream
+         * @param boundary Multipart boundary
+         * */
         private void parseMultipartBody(InputStream inputStream, String boundary) throws IOException {
             StringBuilder sb = new StringBuilder();
             int i;
@@ -188,6 +303,13 @@ public interface Request {
             }
         }
 
+        /**
+         * Multipart 본문을 한 파트씩 파싱한다.
+         * 
+         * @param inputStream 소켓의 InputStream
+         * @param boundary 멀티파트의 boundary
+         * @throws IOException InputStream을 읽다가 오류 발생시 
+         * */
         private void parseMultipartLine(InputStream inputStream, String boundary) throws IOException {
             int i = 0;
             int loopCnt = 0;
@@ -248,6 +370,15 @@ public interface Request {
             }
         }
 
+        /**
+         * Multipart로 보낸 파일을 인스턴스로 만든다.
+         * 
+         * @param name 파일 이름
+         * @param filename 파일 전체 이름
+         * @param contentType 미디어 타입
+         * @param fileData 파일의 데이터
+         * @see org.sam.server.http.MultipartFile
+         * */
         private void createMultipartFile(String name, String filename, String contentType, byte[] fileData) {
             MultipartFile multipartFile = new MultipartFile(filename, contentType, fileData);
             if (this.files.get(name) == null) {
@@ -258,6 +389,13 @@ public interface Request {
             addMultipartFileToList(name, multipartFile, file);
         }
 
+        /**
+         * MultipartFile을 추가한다.
+         *
+         * @param name MultipartFile의 이름
+         * @param multipartFile MultipartFile 인스턴스
+         * @param file MultipartFile 목록 또는 MultipartFile
+         * */
         @SuppressWarnings("unchecked")
         private void addMultipartFileToList(String name, MultipartFile multipartFile, Object file) {
             if (file.getClass().equals(ArrayList.class)) {
@@ -271,6 +409,13 @@ public interface Request {
             this.files.put(name, files);
         }
 
+        /**
+         * Multipart boundary를 기준으로 파일을 읽어 들이고 바이트 배열을 반환한다.
+         *
+         * @param inputStream 소켓의 InputStream
+         * @param boundary Multipart boundary
+         * @return 파일의 바이트 배열
+         * */
         private byte[] parseFile(InputStream inputStream, String boundary) throws IOException {
             int i;
             int fileLength = 0;
@@ -294,6 +439,11 @@ public interface Request {
             return Arrays.copyOfRange(data, 2, fileLength - boundary.getBytes(StandardCharsets.UTF_8).length);
         }
 
+        /**
+         * HttpRequest 혹은 HttpMultipartRequest 인스턴스를 생성한다.
+         * 
+         * @return 요청 인스턴스
+         * */
         public HttpRequest createRequest() {
             if (this.headers.isEmpty()) return null;
             Map<String, String> headers = this.headers;

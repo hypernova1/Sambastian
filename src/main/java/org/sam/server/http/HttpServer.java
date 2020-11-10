@@ -35,7 +35,7 @@ public class HttpServer implements Runnable {
     }
 
     /**
-     * 애플리케이션을 시작합니다. 서버가 종료될 때 까지 무한 루프를 돌며 요청을 HttpLauncher에 위임합니다.
+     * 애플리케이션을 시작합니다. 서버가 종료될 때 까지 무한 루프를 돌며 쓰레드를 생성하고 요청을 HttpLauncher에 위임합니다.
      *
      * @author hypernova1
      * @see org.sam.server.http.HttpLauncher
@@ -134,7 +134,7 @@ public class HttpServer implements Runnable {
         }
 
         /**
-         * 세션을 가져옵니다.
+         * 세션을 반환합니다.
          *
          * @param id 가져올 세션의 아이디
          * @return 세션

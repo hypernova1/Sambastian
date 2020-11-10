@@ -288,7 +288,7 @@ public class HttpResponse extends Response {
     }
 
     /**
-     * 헤더 정보를 가져옵니다.
+     * 헤더 정보를 반환합니다.
      *
      * @param key 헤더명
      * @return 헤더
@@ -299,7 +299,7 @@ public class HttpResponse extends Response {
     }
 
     /**
-     * 모든 헤더의 이름을 가져옵니다.
+     * 모든 헤더의 이름을 반환합니다.
      *
      * @return 헤더 이름 리스트
      * @see org.sam.server.constant.HttpHeader
