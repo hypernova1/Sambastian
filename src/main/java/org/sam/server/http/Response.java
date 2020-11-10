@@ -7,10 +7,11 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 
 /**
- * Created by melchor
- * Date: 2020/07/30
- * Time: 9:20 AM
- */
+ *  요청을 해석하고 응답하는 클래스입니다.
+ *
+ * @author hypernova1
+ * @see HttpResponse
+ * */
 public abstract class Response {
 
     protected static final String DEFAULT_FILE = "static/index.html";

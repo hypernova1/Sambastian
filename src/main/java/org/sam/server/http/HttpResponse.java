@@ -14,22 +14,29 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 /**
- * Created by melchor
- * Date: 2020/07/17
- * Time: 1:34 PM
+ * 요청을 해석하고 응답하는 클래스입니다. 정적 자원을 반환합니다.
+ *
+ * @author hypernova1
+ * @see #execute(String, HttpStatus) 
  */
 public class HttpResponse extends Response {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpResponse.class);
 
     private final Map<String, Object> headers = new HashMap<>();
+
     private final Set<Cookie> cookies = CookieStore.getCookies();
+
     private final String requestPath;
+
     private final HttpMethod requestMethod;
+
     private final Set<HttpMethod> allowedMethods = new LinkedHashSet<>();
 
     private String filePath;
+
     private HttpStatus httpStatus;
+
     private String contentMimeType;
 
     private long fileLength;
@@ -46,19 +53,34 @@ public class HttpResponse extends Response {
         this.requestMethod = requestMethod;
     }
 
-    protected static HttpResponse create(OutputStream os, String path, HttpMethod requestMethod) {
-        return new HttpResponse(os, path, requestMethod);
+    /**
+     * 인스턴스를 생성합니다.
+     *
+     * @author hypernova1
+     * @param os 응답을 출력할 스트림
+     * @param requestPath 요청 URL
+     * @param requestMethod 요청 HTTP Method
+     * @return HttpResponse 인스턴스
+     * */
+    protected static HttpResponse create(OutputStream os, String requestPath, HttpMethod requestMethod) {
+        return new HttpResponse(os, requestPath, requestMethod);
     }
 
-    protected void execute(String filePath, HttpStatus status) {
+    /**
+     * 최종적으로 HTTP 메시지를 만듭니다.
+     *
+     * @param pathOrJson 파일 경로 or JSON
+     * @param status 응답 HttpStatus
+     * */
+    protected void execute(String pathOrJson, HttpStatus status) {
         this.httpStatus = status;
         try {
             if (getContentMimeType().equals(ContentType.APPLICATION_JSON.getValue())) {
                 if (!requestMethod.equals(HttpMethod.OPTIONS)) {
-                    this.fileLength = readJson(filePath);
+                    this.fileLength = readJson(pathOrJson);
                 }
             } else if (allowedMethods.isEmpty()) {
-                this.fileLength = readStaticResource(filePath);
+                this.fileLength = readStaticResource(pathOrJson);
             }
             printHeader();
             CookieStore.vacateList();
@@ -76,7 +98,16 @@ public class HttpResponse extends Response {
         }
     }
 
-    private long readStaticResource(String filePath) throws ResourcesNotFoundException {
+    /**
+     * 정적 자원의 경로를 받아 파일을 읽습니다. 파일이 존재하지 않으면 notFound 메서드를 호출합니다.
+     *
+     * @param filePath 파일 경로
+     * @return 파일의 길이
+     * @see #notFound()
+     * @see #readFileData(File)
+     * @see #writeStaticFile(InputStream)  
+     * */
+    private long readStaticResource(String filePath) {
         InputStream fis = Thread.currentThread().getContextClassLoader().getResourceAsStream(filePath);
         File staticFile = new File("src/main" + filePath);
         if (fis == null && !staticFile.exists()) {
@@ -95,28 +126,38 @@ public class HttpResponse extends Response {
                 assert fis != null;
                 fileLength = writeStaticFile(fis);
             }
-        } catch (IOException | ResourcesNotFoundException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return fileLength;
     }
 
-    private long writeStaticFile(InputStream fis) throws ResourcesNotFoundException {
+    /**
+     * 정적 파일을 읽은 후 OutputStream에 쓰고 파일의 길이를 반환합니다.
+     *
+     * @param fis 파일을 읽은 스트림
+     * @return 파일의 길이
+     * @throws IOException 파일을 읽다가 오류 발생시
+     * */
+    private long writeStaticFile(InputStream fis) throws IOException {
         long fileLength = 0;
-        try {
-            int i;
-            while ((i = fis.read()) != -1) {
-                if (!this.requestMethod.equals(HttpMethod.HEAD)) {
-                    outputStream.write(i);
-                }
-                fileLength++;
+        int i;
+        while ((i = fis.read()) != -1) {
+            if (!this.requestMethod.equals(HttpMethod.HEAD)) {
+                outputStream.write(i);
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            fileLength++;
         }
         return fileLength;
     }
 
+    /**
+     * 정적 파일을 읽은 후 OutputStream에 쓰고 파일의 길이를 반환합니.
+     *
+     * @param file 정적 파일
+     * @return 파일의 길이
+     * @throws IOException 파일을 읽다가 문제 발생시
+     * */
     private long readFileData(File file) throws IOException {
         FileInputStream fis = new FileInputStream(file);
         int len;
@@ -131,6 +172,13 @@ public class HttpResponse extends Response {
         return file.length();
     }
 
+    /**
+     * JSON 문자열을 OutputStream에 쓰고 바이트 길이를 반환합니다.
+     *
+     * @param json JSON 문자열
+     * @return JSON 문자열의 바이트 길이
+     * @throws IOException 문자열을 읽다가 오류 발생시
+     * */
     private int readJson(String json) throws IOException {
         if (httpStatus.equals(HttpStatus.NOT_FOUND) || httpStatus.equals(HttpStatus.BAD_REQUEST))
             return 0;
@@ -142,6 +190,9 @@ public class HttpResponse extends Response {
         return bytes.length;
     }
 
+    /**
+     * 응답 헤더를 OutputStream에 씁니다.
+     * */
     private void printHeader() {
         headers.put("Server", "Java HTTP Server from sam : 1.0");
         headers.put("Date", LocalDateTime.now());
@@ -163,6 +214,9 @@ public class HttpResponse extends Response {
         writer.print("\r\n");
     }
 
+    /**
+     * 쿠키에 대한 정보를 OutputStream에 씁니다.
+     * */
     private void printCookies() {
         for (Cookie cookie : cookies) {
             StringBuilder line = new StringBuilder();
@@ -183,10 +237,23 @@ public class HttpResponse extends Response {
         }
     }
 
+    /**
+     * 응답할 미디어 타입을 설정합니다.
+     *
+     * @param contentMimeType 미디어 타입
+     * @see org.sam.server.constant.ContentType
+     * */
     public void setContentMimeType(ContentType contentMimeType) {
         this.contentMimeType = contentMimeType.getValue();
     }
 
+    /**
+     * 조건에 따라 미디어타입을 반환합니다.
+     *
+     * @return 미디어 타입
+     * @see org.sam.server.constant.ContentType
+     * @see org.sam.server.constant.HttpStatus
+     * */
     public String getContentMimeType() {
         if (contentMimeType != null) return contentMimeType;
         if (httpStatus.equals(HttpStatus.NOT_FOUND) ||
@@ -199,42 +266,93 @@ public class HttpResponse extends Response {
         return ContentType.TEXT_PLAIN.getValue();
     }
 
+    /**
+     * 쿠키 정보를 추가합니다.
+     *
+     * @param cookie 추가할 쿠키
+     * @see org.sam.server.http.Cookie
+     * */
     public void addCookies(Cookie cookie) {
         this.cookies.add(cookie);
     }
 
+    /**
+     * 헤더 정보를 추가합니다.
+     *
+     * @param key 헤더명
+     * @param value 헤더값
+     * @see org.sam.server.constant.HttpHeader
+     * */
     public void setHeader(String key, String value) {
         this.headers.put(key, value);
     }
 
+    /**
+     * 헤더 정보를 가져옵니다.
+     *
+     * @param key 헤더명
+     * @return 헤더
+     * @see org.sam.server.constant.HttpHeader
+     * */
     public Object getHeader(String key) {
         return headers.get(key);
     }
 
+    /**
+     * 모든 헤더의 이름을 가져옵니다.
+     *
+     * @return 헤더 이름 리스트
+     * @see org.sam.server.constant.HttpHeader
+     * */
     public Set<String> getHeaderNames() {
         return headers.keySet();
     }
 
+    /**
+     * 정적 자원에 대한 처리를 합니다.
+     * 
+     * @see #execute(String, HttpStatus) 
+     * */
     protected void responseStaticResources() {
         String filePath = requestPath.replace("/resources", "/resources/static");
         execute(filePath, HttpStatus.OK);
     }
 
+    /**
+     * 찾는 정적 자원이 존재하지 않을시 처리합니다.
+     * 
+     * @see #execute(String, HttpStatus) 
+     * */
     protected void notFound() {
         logger.warn("File " + requestPath + " not found");
         execute(NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
+    /**
+     * 잘못된 요청에 대한 처리를 합니다.
+     * 
+     * @see #execute(String, HttpStatus) 
+     * */
     protected void badRequest() {
         logger.warn("Bad Request");
         execute(BAD_REQUEST, HttpStatus.BAD_REQUEST);
     }
 
+    /**
+     * 요청한 URL이 일치하는 핸들러는 있지만 HTTP Method가 일치하지 않을 때에 대한 처리를 합니다.
+     * 
+     * @see #execute(String, HttpStatus)
+     * */
     protected void methodNotAllowed() {
         logger.warn("Method Not Allowed");
         execute(METHOD_NOT_ALLOWED, HttpStatus.METHOD_NOT_ALLOWED);
     }
 
+    /**
+     * 루트 경로의 요청을 처리합니다.
+     *
+     * @see #execute(String, HttpStatus)
+     * */
     protected void responseIndexFile() {
         if (this.requestPath.endsWith("/"))
             filePath = DEFAULT_FILE;
@@ -242,16 +360,32 @@ public class HttpResponse extends Response {
         execute(filePath, HttpStatus.OK);
     }
 
+    /**
+     * 파비콘에 대한 요청을 처리 합니다.
+     *
+     * @see #execute(String, HttpStatus)
+     * */
     protected void getFavicon() throws ResourcesNotFoundException {
         filePath = FAVICON;
         this.contentMimeType = ContentType.X_ICON.getValue();
         execute(filePath, HttpStatus.OK);
     }
 
+    /**
+     * OPTION Method으로 요청이 왔을 시 해당 URL로 사용할 수 있는 HttpMethod를 추가합니다.
+     *
+     * @param httpMethod 추가할 HTTP Method
+     * @see org.sam.server.constant.HttpMethod
+     * */
     public void addAllowedMethod(HttpMethod httpMethod) {
         this.allowedMethods.add(httpMethod);
     }
 
+    /**
+     * OPTION Method에 대한 요청을 처리합니다.
+     * 
+     * @see #execute(String, HttpStatus)
+     * */
     public void executeOptionsResponse() {
         if (allowedMethods.isEmpty()) {
             this.notFound();
