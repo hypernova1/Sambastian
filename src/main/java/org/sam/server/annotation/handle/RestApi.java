@@ -6,9 +6,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Created by melchor
- * Date: 2020/07/17
- * Time: 5:45 PM
+ *
+ * 핸들러 메서드 위에 선언을 하여 API 요청을 처리할 수 있도록 합니다.
+ *
+ * @author hypernova1
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

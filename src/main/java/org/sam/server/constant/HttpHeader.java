@@ -1,9 +1,9 @@
 package org.sam.server.constant;
 
 /**
- * Created by melchor
- * Date: 2020/07/17
- * Time: 2:37 PM
+ * HTTP Header에 대한 상수입니다.
+ *
+ * @author hypernova1
  */
 public class HttpHeader {
     public static String ACCEPT = "accept";

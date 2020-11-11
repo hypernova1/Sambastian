@@ -1,9 +1,9 @@
 package org.sam.server.constant;
 
 /**
- * Created by melchor
- * Date: 2020/07/17
- * Time: 1:38 PM
+ * 미디어 타입에 대한 상수입니다.
+ *
+ * @author hypernova1
  */
 public enum ContentType {
     TEXT_PLAIN("text/plain"),
