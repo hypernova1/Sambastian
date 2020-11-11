@@ -13,7 +13,6 @@ import java.util.TimeZone;
  * @author hypernova1
  * @see org.sam.server.http.CookieStore
  */
-@SuppressWarnings("unused")
 public class Cookie {
     
     private String name;

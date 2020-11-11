@@ -7,13 +7,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by melchor
- * Date: 2020/07/17
- * Time: 20:24 PM
+ * 원시 타입을 박스 타입으로 변환해주는 클래스입니다.
  */
 public class PrimitiveWrapper {
 
-    private static final Map<String, Class<?>> map = new HashMap<String, Class<?>>(9);
+    private static final Map<String, Class<?>> map = new HashMap<>(9);
 
     static {
         map.put(Boolean.TYPE.getName(), Boolean.class);
@@ -27,6 +25,26 @@ public class PrimitiveWrapper {
         map.put(Void.TYPE.getName(), Void.class);
     }
 
+    /**
+     * 원시 타입의 값을 박스 타입 인스턴스로 변환합니다.
+     *
+     * @param type 원시 타입
+     * @param value 원시 타입 값
+     * @return 박스 타입 인스턴스
+     * */
+    public static Object wrapPrimitiveValue(Class<?> type, String value) {
+        String parameterType = type.getSimpleName();
+        Class<?> boxType = PrimitiveWrapper.getType(parameterType);
+        return PrimitiveWrapper.autoBoxing(boxType, value);
+    }
+
+    /**
+     * 원시 타입을 박스 타입으로 변환합니다.
+     *
+     * @param type 박스 타입
+     * @param value 원시 타입 값
+     * @return 박스 타입 인스턴스
+     * */
     private static Object autoBoxing(Class<?> type, String value) {
         Constructor<?>[] constructors = type.getConstructors();
         for (Constructor<?> constructor : constructors) {
@@ -44,13 +62,11 @@ public class PrimitiveWrapper {
         return null;
     }
 
+    /**
+     * 원시 타입에 해당하는 박스 타입을 반환합니다.
+     * */
     public static Class<?> getType(String type) {
         return map.get(type);
     }
 
-    public static Object wrapPrimitiveValue(Class<?> parameter, String value) {
-        String parameterType = parameter.getSimpleName();
-        Class<?> type = PrimitiveWrapper.getType(parameterType);
-        return PrimitiveWrapper.autoBoxing(type, value);
-    }
 }

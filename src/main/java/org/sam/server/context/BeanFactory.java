@@ -6,10 +6,12 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Created by melchor
- * Date: 2020/08/29
- * Time: 7:41 PM
- */
+ * 빈을 관리하는 클래스입니다. BeanContainer는 이미 선언 된 클래스를 기반으로 빈을 생성하지만
+ * BeanFactory는 런타임시 동적으로 빈을 관리합니다.
+ *
+ * @author hypernova1
+ * @see org.sam.server.context.BeanContainer
+ * */
 public class BeanFactory {
 
     private static final BeanFactory beanFactory;
@@ -24,13 +26,25 @@ public class BeanFactory {
 
     private BeanFactory() {}
 
+    /**
+     * 인스턴스를 반환합니다.
+     *
+     * @return 인스턴스
+     * */
     public static BeanFactory getInstance() {
         return beanFactory;
     }
 
+    /**
+     * 인자로 받은 이름과, 타입에 해당하는 빈을 반환합니다.
+     *
+     * @param name 빈 이름
+     * @param type 빈 타입
+     * @return 빈
+     * */
     @SuppressWarnings("unchecked")
-    public <T> T getBean(String name, Class<?> clazz) {
-        List<BeanInfo> beanInfos = BeanContainer.getBeanMap().get(clazz);
+    public <T> T getBean(String name, Class<?> type) {
+        List<BeanInfo> beanInfos = BeanContainer.getBeanMap().get(type);
         BeanInfo savedBeanInfo = beanInfos.stream()
                 .filter(beanInfo -> beanInfo.getName().equals(name))
                 .findFirst()
@@ -38,16 +52,22 @@ public class BeanFactory {
         return (T) savedBeanInfo;
     }
 
-    public List<?> getBeanList(Class<?> clazz) {
+    /**
+     * 인자로 받은 타입에 해당하는 빈 목록을 반환합니다.
+     *
+     * @param type 빈 타입
+     * @return 빈 목록
+     * */
+    public List<?> getBeanList(Class<?> type) {
         Set<Class<?>> classes = BeanContainer.getBeanMap().keySet();
         Class<?> beanType = classes.stream()
-                .filter(savedBeanType -> savedBeanType.isAssignableFrom(clazz))
+                .filter(savedBeanType -> savedBeanType.isAssignableFrom(type))
                 .findFirst()
                 .orElseGet(() -> {
                     for (Class<?> savedClass : classes) {
                         Class<?>[] interfaces = savedClass.getInterfaces();
-                        for (Class<?> interfaze : interfaces) {
-                            if (interfaze.equals(clazz)) {
+                        for (Class<?> interfaceClass : interfaces) {
+                            if (interfaceClass.equals(type)) {
                                 return savedClass;
                             }
                         }
@@ -61,6 +81,12 @@ public class BeanFactory {
         return result;
     }
 
+    /**
+     * 인자로 받은 인스턴스를 빈으로 만들어 저장합니다.
+     *
+     * @param name 빈 이름
+     * @param instance 인스턴스
+     * */
     public <T> void registerBean(String name, T instance) {
         List<BeanInfo> list = Optional
                 .ofNullable(BeanContainer.getBeanMap().get(instance.getClass()))

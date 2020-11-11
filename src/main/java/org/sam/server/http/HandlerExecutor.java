@@ -74,8 +74,6 @@ public class HandlerExecutor {
             String json = gson.toJson(returnValue);
             httpResponse.setContentMimeType(ContentType.APPLICATION_JSON);
             httpResponse.execute(json, httpStatus);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
             httpResponse.badRequest();
@@ -116,10 +114,8 @@ public class HandlerExecutor {
      * @param interceptors 인터셉터 목록
      * @param requestData 요청 데이터
      * @return 핸들러의 반환 값
-     * @throws IllegalAccessException
-     * @throws InvocationTargetException
      * */
-    private Object executeInterceptors(List<Interceptor> interceptors, Map<String, String> requestData) throws IllegalAccessException, InvocationTargetException {
+    private Object executeInterceptors(List<Interceptor> interceptors, Map<String, String> requestData) {
         Object returnValue = null;
         for (Interceptor interceptor : interceptors) {
             interceptor.preHandler(httpRequest, httpResponse);
@@ -132,15 +128,19 @@ public class HandlerExecutor {
     /**
      * 핸들러를 실행하고 반환 값을 반환합니다.
      *
-     * @param 요청 파라미터 목록
+     * @param requestData 요청 파라미터 목록
      * @return 핸들러의 반환 값
-     * @throws IllegalAccessException
-     * @throws InvocationTargetException
      * */
-    private Object executeHandler(Map<String, String> requestData) throws IllegalAccessException, InvocationTargetException {
+    private Object executeHandler(Map<String, String> requestData) {
         Method handlerMethod = handlerInfo.getMethod();
         Object[] parameters = createParameters(handlerMethod.getParameters(), requestData);
-        return handlerMethod.invoke(handlerInfo.getInstance(), parameters);
+        Object returnValue = null;
+        try {
+            returnValue = handlerMethod.invoke(handlerInfo.getInstance(), parameters);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return returnValue;
     }
 
     /**
@@ -149,52 +149,70 @@ public class HandlerExecutor {
      * @param handlerParameters 핸들러 클래스의 파라미터 정보
      * @param requestData 요청 파라미터 목록
      * @return 핸들러의 파라미터 목록
-     * @throws IllegalAccessException
-     * @throws InvocationTargetException
      * */
-    private Object[] createParameters(Parameter[] handlerParameters, Map<String, String> requestData) throws IllegalAccessException, InvocationTargetException {
+    private Object[] createParameters(Parameter[] handlerParameters, Map<String, String> requestData) {
         List<Object> inputParameter = new ArrayList<>();
         for (Parameter handlerParameter : handlerParameters) {
-            String name = handlerParameter.getName();
-            Object value = requestData.get(name);
-            Class<?> type = handlerParameter.getType();
-            if (HttpRequest.class.isAssignableFrom(type)) {
-                inputParameter.add(httpRequest);
-                continue;
-            }
-            if (HttpResponse.class.equals(type)) {
-                inputParameter.add(httpResponse);
-                continue;
-            }
-            if (Session.class.equals(type)) {
-                addSession(inputParameter);
-                continue;
-            }
-            if (handlerParameter.getDeclaredAnnotation(JsonRequest.class) != null) {
-                Object object = Converter.jsonToObject(httpRequest.getJson(), type);
-                inputParameter.add(object);
-                continue;
-            }
-            if (value != null) {
-                if (type.isPrimitive()) {
-                    Object autoBoxingValue = PrimitiveWrapper.wrapPrimitiveValue(type, value.toString());
-                    inputParameter.add(autoBoxingValue);
-                } else if (type.getSuperclass().equals(Number.class))  {
-                    try {
-                        Object wrapperValue = type.getMethod("valueOf", String.class).invoke(null, value);
-                        inputParameter.add(wrapperValue);
-                    } catch (NoSuchMethodException e) {
-                        e.printStackTrace();
-                    }
-                } else if (type.equals(String.class)) {
-                    inputParameter.add(value);
-                }
-            } else {
-                Object object = Converter.parameterToObject(httpRequest.getParameters(), type);
-                inputParameter.add(object);
-            }
+            setParameter(requestData, inputParameter, handlerParameter);
         }
         return inputParameter.toArray();
+    }
+
+    /**
+     * 핸들러 파라미터를 생성하고 파라미터 리스트에 추가합니다.
+     *
+     * @param requestData 요청 파라미터
+     * @param inputParameter 핸들러 파라미터의 인스턴스를 담을 리스트
+     * @param handlerParameter 핸들러 파라미터 정보
+     * */
+    private void setParameter(Map<String, String> requestData, List<Object> inputParameter, Parameter handlerParameter) {
+        String name = handlerParameter.getName();
+        Object value = requestData.get(name);
+        Class<?> type = handlerParameter.getType();
+        if (HttpRequest.class.isAssignableFrom(type)) {
+            inputParameter.add(httpRequest);
+            return;
+        }
+        if (HttpResponse.class.equals(type)) {
+            inputParameter.add(httpResponse);
+            return;
+        }
+        if (Session.class.equals(type)) {
+            addSession(inputParameter);
+            return;
+        }
+        if (handlerParameter.getDeclaredAnnotation(JsonRequest.class) != null) {
+            Object object = Converter.jsonToObject(httpRequest.getJson(), type);
+            inputParameter.add(object);
+            return;
+        }
+        Object object;
+        if (value != null) {
+            object = setParameter(value, type);
+        } else {
+            object = Converter.parameterToObject(httpRequest.getParameters(), type);
+        }
+        inputParameter.add(object);
+    }
+
+    /**
+     * 핸들러 실행시 필요한 파라미터를 생성합니다.
+     *
+     * @param value 값
+     * @param type 타입
+     * @return 핸들러 파라미터
+     * */
+    private Object setParameter(Object value, Class<?> type) {
+        if (type.isPrimitive()) {
+            return PrimitiveWrapper.wrapPrimitiveValue(type, value.toString());
+        } else if (type.getSuperclass().equals(Number.class))  {
+            try {
+                return type.getMethod("valueOf", String.class).invoke(null, value);
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        }
+        return value;
     }
 
     /**

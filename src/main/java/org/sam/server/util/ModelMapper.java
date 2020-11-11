@@ -7,12 +7,18 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 /**
- * Created by melchor
- * Date: 2020/08/28
- * Time: 10:43 PM
+ * 인스턴스를 다른 인스턴스로 변환할 수 있게 하는 클래스입니다.
+ *
+ * @author hypernova1
  */
 public class ModelMapper {
 
+    /**
+     * 인스턴스를 다른 클래스 타입으로 변환합니다.
+     *
+     * @param instance 기존 인스턴스
+     * @param clazz 변경할 클래스 타입
+     * */
     public <T, U> U convert(T instance, Class<U> clazz) {
         U target = null;
         try {
@@ -24,6 +30,12 @@ public class ModelMapper {
         return target;
     }
 
+    /**
+     * 기존 인스턴스의 프로퍼티를 변경할 인스턴스에 설정합니다.
+     *
+     * @param instance 기존 인스턴스
+     * @param target 변경할 인스턴스
+     * */
     private <T, U> void setValue(T instance, U target) {
         Method[] declaredMethods = instance.getClass().getDeclaredMethods();
         for (Method declaredMethod : declaredMethods) {
