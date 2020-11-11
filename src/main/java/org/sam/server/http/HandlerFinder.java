@@ -57,9 +57,9 @@ public class HandlerFinder {
     public HandlerInfo createHandlerInfo() throws HandlerNotFoundException {
         List<Object> handlerInstances = BeanContainer.getHandlerBeans();
         for (Object handlerInstance : handlerInstances) {
-            Class<?> handlerClass = handlerInstance.getClass();
-            classifyHandlers(handlerClass);
-            Method handlerMethod = findHandlerMethod(handlerClass);
+            Class<?> handlerType = handlerInstance.getClass();
+            classifyHandlers(handlerType);
+            Method handlerMethod = findHandlerMethod(handlerType);
             if (handlerMethod != null)
                 return new HandlerInfo(handlerInstance, handlerMethod);
         }
@@ -238,7 +238,7 @@ public class HandlerFinder {
      * 핸들러 메서드에 @PathValue 어노테이션이 선언되어 있는지 확인합니다.
      *
      * @param handlerMethod 핸들러 메서드
-     * @return @PathValue 선언 여부
+     * @return PathValue 선언 여부
      * */
     private boolean findPathValueAnnotation(Method handlerMethod) {
         Parameter[] parameters = handlerMethod.getParameters();
@@ -280,16 +280,16 @@ public class HandlerFinder {
     /**
      * 요청 URL과 핸들러 클래스의 URL을 비교하고 처음 부분이 일치한다면 그 부분만큼 요청 URL을 잘라내고 반환합니다.
      *
-     * @param 핸들러 클래스 정보
+     * @param handlerType 핸들러 타입
      * @return 수정된 요청 URL
      * */
-    private String replaceRequestPath(Class<?> handlerClass) {
+    private String replaceRequestPath(Class<?> handlerType) {
         String requestPath = httpRequest.getPath();
         String rootRequestPath = "/";
         if (!requestPath.equals("/")) {
             rootRequestPath += requestPath.split("/")[1];
         }
-        String handlerClassPath = handlerClass.getDeclaredAnnotation(Handler.class).value();
+        String handlerClassPath = handlerType.getDeclaredAnnotation(Handler.class).value();
         if (!handlerClassPath.startsWith("/"))
             handlerClassPath = "/" + handlerClassPath;
         if (rootRequestPath.equals(handlerClassPath))

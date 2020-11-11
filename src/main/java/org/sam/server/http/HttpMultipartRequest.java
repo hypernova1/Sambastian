@@ -39,7 +39,7 @@ public class HttpMultipartRequest extends HttpRequest {
     /**
      * 해당 이름에 대한 MultipartFile 목록을 반환합니다.
      * 
-     * @param MultipartFile 목록의 이름
+     * @param name MultipartFile 목록의 이름
      * @return MultipartFile 목록
      * */
     @SuppressWarnings("unchecked")

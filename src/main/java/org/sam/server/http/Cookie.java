@@ -70,7 +70,7 @@ public class Cookie {
     /**
      * 쿠키의 이름을 설정합니다.
      * 
-     * @param 쿠키 이름
+     * @param name 쿠키 이름
     * */
     public void setName(String name) {
         this.name = name;
@@ -88,7 +88,7 @@ public class Cookie {
     /**
      * 쿠키의 값을 설정합니다.
      * 
-     * @param 쿠키 값
+     * @param value 쿠키 값
      * */
     public void setValue(String value) {
         this.value = value;
