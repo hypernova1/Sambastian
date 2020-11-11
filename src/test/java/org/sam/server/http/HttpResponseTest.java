@@ -6,11 +6,6 @@ import java.io.File;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Created by melchor
- * Date: 2020/07/20
- * Time: 1:30 AM
- */
 class HttpResponseTest {
 
     @Test

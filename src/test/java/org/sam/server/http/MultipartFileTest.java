@@ -6,11 +6,6 @@ import java.io.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Created by melchor
- * Date: 2020/08/03
- * Time: 9:48 AM
- */
 class MultipartFileTest {
 
     @Test

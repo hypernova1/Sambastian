@@ -14,11 +14,6 @@ import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Created by melchor
- * Date: 2020/07/21
- * Time: 10:49 PM
- */
 class CookieTest {
 
     @Test

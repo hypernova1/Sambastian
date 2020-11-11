@@ -7,11 +7,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 
-/**
- * Created by melchor
- * Date: 2020/08/09
- * Time: 10:20 PM
- */
 class BeanInfoClassLoaderTest {
 
     static class TestBean {

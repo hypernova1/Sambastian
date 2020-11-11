@@ -15,11 +15,6 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Created by melchor
- * Date: 2020/07/17
- * Time: 3:47 PM
- */
 class HttpHttpLauncherTest {
 
     @Test
