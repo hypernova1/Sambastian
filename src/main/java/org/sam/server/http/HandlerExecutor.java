@@ -16,26 +16,43 @@ import java.lang.reflect.Parameter;
 import java.util.*;
 
 /**
- * Created by melchor
- * Date: 2020/07/22
- * Time: 10:35 AM
- */
+ * 핸들러를 실행 시키는 클래스입니다.
+ *
+ * @author hypernova1
+ * @see org.sam.server.http.HandlerExecutor
+ * */
 public class HandlerExecutor {
-    private final HttpResponse httpResponse;
-    private final HttpRequest httpRequest;
-    private final HandlerInfo handlerInfo;
-    private final Gson gson = new Gson();
 
+    private final HttpResponse httpResponse;
+
+    private final HttpRequest httpRequest;
+
+    private final HandlerInfo handlerInfo;
+
+    private final Gson gson;
+    
     private HandlerExecutor(HttpRequest httpRequest, HttpResponse httpResponse, HandlerInfo handlerInfo) {
         this.httpRequest = httpRequest;
         this.httpResponse = httpResponse;
         this.handlerInfo = handlerInfo;
+        this.gson = new Gson();
     }
 
+    /**
+     * 인스턴스를 생성합니다.
+     * 
+     * @param httpRequest 요청 인스턴스
+     * @param httpResponse 응답 인스턴스
+     * @param handlerInfo 핸들러 정보
+     * @return 인스턴스
+     * */
     static HandlerExecutor of(HttpRequest httpRequest, HttpResponse httpResponse, HandlerInfo handlerInfo) {
         return new HandlerExecutor(httpRequest, httpResponse, handlerInfo);
     }
 
+    /**
+     * 핸들러를 실행합니다.
+     * */
     void execute() {
         setCrossOriginConfig();
         try {
@@ -65,6 +82,9 @@ public class HandlerExecutor {
         }
     }
 
+    /**
+     * CORS를 설정합니다.
+     * */
     private void setCrossOriginConfig() {
         Class<?> handlerClass = this.handlerInfo.getInstance().getClass();
         String origin = httpRequest.getHeader("origin");
@@ -72,6 +92,12 @@ public class HandlerExecutor {
             setAccessControlAllowOriginHeader(handlerClass, origin);
     }
 
+    /**
+     * 핸들러 클래스의 CrossOrigin 어노테이션을 확인하고 CORS를 설정 합니다.
+     *
+     * @param handlerClass 핸들러 클래스의 정보
+     * @param origin 허용 URL
+     * */
     private void setAccessControlAllowOriginHeader(Class<?> handlerClass, String origin) {
         CrossOrigin crossOrigin = handlerClass.getDeclaredAnnotation(CrossOrigin.class);
         if (crossOrigin != null) {
@@ -84,6 +110,15 @@ public class HandlerExecutor {
         }
     }
 
+    /**
+     * 인터셉터를 실행하고 핸들러를 실행하여 핸들러의 반환 값을 반환합니다.
+     *
+     * @param interceptors 인터셉터 목록
+     * @param requestData 요청 데이터
+     * @return 핸들러의 반환 값
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     * */
     private Object executeInterceptors(List<Interceptor> interceptors, Map<String, String> requestData) throws IllegalAccessException, InvocationTargetException {
         Object returnValue = null;
         for (Interceptor interceptor : interceptors) {
@@ -94,12 +129,29 @@ public class HandlerExecutor {
         return returnValue;
     }
 
+    /**
+     * 핸들러를 실행하고 반환 값을 반환합니다.
+     *
+     * @param 요청 파라미터 목록
+     * @return 핸들러의 반환 값
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     * */
     private Object executeHandler(Map<String, String> requestData) throws IllegalAccessException, InvocationTargetException {
         Method handlerMethod = handlerInfo.getMethod();
         Object[] parameters = createParameters(handlerMethod.getParameters(), requestData);
         return handlerMethod.invoke(handlerInfo.getInstance(), parameters);
     }
 
+    /**
+     * 핸들러 실행시 필요한 파라미터 목록을 생성합니다.
+     * 
+     * @param handlerParameters 핸들러 클래스의 파라미터 정보
+     * @param requestData 요청 파라미터 목록
+     * @return 핸들러의 파라미터 목록
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     * */
     private Object[] createParameters(Parameter[] handlerParameters, Map<String, String> requestData) throws IllegalAccessException, InvocationTargetException {
         List<Object> inputParameter = new ArrayList<>();
         for (Parameter handlerParameter : handlerParameters) {
@@ -145,6 +197,11 @@ public class HandlerExecutor {
         return inputParameter.toArray();
     }
 
+    /**
+     * 핸들러 실행시 필요한 세션을 파라미터에 추가합니다.
+     *
+     * @param params 핸들러의 파라미터 목록
+     * */
     private void addSession(List<Object> params) {
         Set<Cookie> cookies = httpRequest.getCookies();
         for (Cookie cookie : cookies) {
