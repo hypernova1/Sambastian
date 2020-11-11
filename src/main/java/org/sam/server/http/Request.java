@@ -19,8 +19,6 @@ import java.util.*;
  * @see org.sam.server.http.HttpRequest
  * @see org.sam.server.http.HttpMultipartRequest
  */
-
-@SuppressWarnings("unused")
 public interface Request {
 
     static HttpRequest create(InputStream in) {
@@ -139,7 +137,7 @@ public interface Request {
         }
 
         /**
-         * InputStream에서 HTTP 본문을 읽은 후 파싱한다.
+         * InputStream에서 HTTP 본문을 읽은 후 파싱합니다.
          *
          * @param in 소켓의 InputStream
          * */
@@ -190,7 +188,7 @@ public interface Request {
         }
 
         /**
-         * HTTP 바디를 파싱한다.
+         * HTTP 바디를 파싱합니.
          *
          * @param inputStream 소켓의 InputSteam
          * @param contentType 미디어 타입
@@ -222,7 +220,7 @@ public interface Request {
         }
 
         /**
-         * HTTP 헤더를 파싱한다.
+         * HTTP 헤더를 파싱합니다.
          * 
          * @param headers 헤더
          * */
@@ -240,7 +238,7 @@ public interface Request {
         }
 
         /**
-         * HTTP Method를 파싱한다.
+         * HTTP Method를 파싱합니다.
          * 
          * @param method HTTP Method 이름
          * */
@@ -249,7 +247,7 @@ public interface Request {
         }
 
         /**
-         * 요청 URL을 파싱하여 저장하고 쿼리 스트링을 반환한다.
+         * 요청 URL을 파싱하여 저장하고 쿼리 스트링을 반환합니다.
          *
          * @param requestPath 요청 URL
          * @return 쿼리 스트링
@@ -265,7 +263,7 @@ public interface Request {
         }
 
         /**
-         * 쿼리 스트링을 파싱한다.
+         * 쿼리 스트링을 파싱합니다.
          * 
          * @param  parameters 쿼리 스트링
          * @return 파라미터 목록
@@ -286,7 +284,7 @@ public interface Request {
         }
 
         /**
-         * Multipart 요청을 파싱한다.
+         * Multipart 요청을 파싱합니다.
          *
          * @param inputStream 소켓의 InputStream
          * @param boundary Multipart boundary
@@ -304,7 +302,7 @@ public interface Request {
         }
 
         /**
-         * Multipart 본문을 한 파트씩 파싱한다.
+         * Multipart 본문을 한 파트씩 파싱합니다.
          * 
          * @param inputStream 소켓의 InputStream
          * @param boundary 멀티파트의 boundary
@@ -371,7 +369,7 @@ public interface Request {
         }
 
         /**
-         * Multipart로 보낸 파일을 인스턴스로 만든다.
+         * multipart/form-data로 받은 파일을 인스턴스로 만듭니다.
          * 
          * @param name 파일 이름
          * @param filename 파일 전체 이름
@@ -390,7 +388,7 @@ public interface Request {
         }
 
         /**
-         * MultipartFile을 추가한다.
+         * MultipartFile을 추가합니다.
          *
          * @param name MultipartFile의 이름
          * @param multipartFile MultipartFile 인스턴스
@@ -410,7 +408,7 @@ public interface Request {
         }
 
         /**
-         * Multipart boundary를 기준으로 파일을 읽어 들이고 바이트 배열을 반환한다.
+         * Multipart boundary를 기준으로 파일을 읽어 들이고 바이트 배열을 반환합니다.
          *
          * @param inputStream 소켓의 InputStream
          * @param boundary Multipart boundary
@@ -440,7 +438,7 @@ public interface Request {
         }
 
         /**
-         * HttpRequest 혹은 HttpMultipartRequest 인스턴스를 생성한다.
+         * HttpRequest 혹은 HttpMultipartRequest 인스턴스를 생성합니다.
          * 
          * @return 요청 인스턴스
          * */

@@ -10,7 +10,6 @@ import java.util.*;
  * @author hypernova1
  * @see org.sam.server.http.HttpRequest
  */
-@SuppressWarnings("unused")
 public class HttpMultipartRequest extends HttpRequest {
 
     private final Map<String, Object> files;

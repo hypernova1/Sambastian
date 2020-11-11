@@ -3,13 +3,14 @@ package org.sam.server.http;
 import org.sam.server.constant.HttpStatus;
 
 /**
- * Created by melchor
- * Date: 2020/07/20
- * Time: 9:44 PM
+ * 응답 상태 및 데이터를 포장하는 클래스입니다. 핸들러에서 반환 값으로 사용할 수 있습니다.
+ *
+ * @author hypernova1
  */
-@SuppressWarnings("unused")
 public class ResponseEntity<T> {
-    private HttpStatus httpStatus;
+
+    private final HttpStatus httpStatus;
+
     private T value;
 
     public ResponseEntity(HttpStatus httpStatus, T value) {

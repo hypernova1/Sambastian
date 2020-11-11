@@ -6,18 +6,25 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Created by melchor
- * Date: 2020/07/17
- * Time: 1:34 PM
+ * Request 인터페이스의 구현체입니다. 일반적인 HTTP 요청에 대한 정보를 저장합니다.
+ *
+ * @author hypernova1
+ * @see org.sam.server.http.Request
  */
 public class HttpRequest implements Request {
 
     private final String protocol;
+
     private final String path;
+
     private final HttpMethod method;
+
     private final Map<String, String> headers;
+
     private final Map<String, String> parameterMap;
+
     private final String json;
+
     private final Set<Cookie> cookies;
 
     protected HttpRequest(

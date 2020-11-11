@@ -7,16 +7,18 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Created by melchor
- * Date: 2020/07/24
- * Time: 8:40 PM
+ * 세션 정보를 담는 클래스입니다.
+ *
+ * @author hypernova1
  */
-@SuppressWarnings("unused")
 public final class Session {
 
     private String id;
+
     private LocalDateTime creationTime;
+
     private LocalDateTime accessTime;
+
     private int timeout;
 
     private final Map<String, Object> attribute = new Hashtable<>();
@@ -31,58 +33,118 @@ public final class Session {
         CookieStore.getCookies().add(cookie);
     }
 
+    /**
+     * 세션을 무효화합니다.
+     * */
     public void invalidate() {
         HttpServer.SessionManager.removeSession(this.id);
     }
 
+    /**
+     * 세션에 담긴 요소를 반환합니다.
+     *
+     * @param key 요소 이름
+     * @return 요소 값
+     * */
     public Object getAttribute(String key) {
         return this.attribute.get(key);
     }
 
+    /**
+     * 세션에 요소를 추가합니다.
+     *
+     * @param key 요소 이름
+     * @param value 요소 값
+     * */
     public void addAttribute(String key, String value) {
         this.attribute.put(key, value);
     }
 
-    public void setTimeout(int timeout) {
-        this.timeout = timeout;
-    }
-
+    /**
+     * 세션의 아이디를 반환합니다.
+     *
+     * @return 세션 아이디
+     * */
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
+    /**
+     * 세션의 생성 시간을 반환합니다.
+     *
+     * @return 세션 생성 시간
+     * */
     public LocalDateTime getCreationTime() {
         return creationTime;
     }
 
+    /**
+     * 세션의 생성 시간을 설정합니다.
+     *
+     * @param creationTime 세션 생성 시간
+     * */
     public void setCreationTime(LocalDateTime creationTime) {
         this.creationTime = creationTime;
     }
 
+    /**
+     * 마지막으로 세션에 접근한 시간을 반환합니다.
+     *
+     * @return 최종 세션 접근 시간
+     * */
     public LocalDateTime getAccessTime() {
         return accessTime;
     }
 
+    /**
+     * 마지막으로 세션에 접근한 시간을 설정합니다.
+     *
+     * @param accessTime 최종 세션 접근 시간
+     * */
     public void setAccessTime(LocalDateTime accessTime) {
         this.accessTime = accessTime;
     }
 
+    /**
+     * 세션의 유효 시간을 가져옵니다.
+     *
+     * @return 세션 유효 시간
+     * */
     public int getTimeout() {
         return timeout;
     }
 
+    /**
+     * 세션의 유효 시간을 설정합니다.
+     *
+     * @param timeout 세션 유효 시간
+     * */
+    public void setTimeout(int timeout) {
+        this.timeout = timeout;
+    }
+
+    /**
+     * 세션에 요소를 추가합니다.
+     *
+     * @param name 요소 이름
+     * @param value 요소 값
+     * */
     public void setAttribute(String name, Object value) {
         this.attribute.put(name, value);
     }
 
+    /**
+     * 세션 만료 시간을 반환합니다.
+     *
+     * @return 세션 만료 시간
+     * */
     public LocalDateTime getExpired() {
         return this.accessTime.plusMinutes(this.timeout);
     }
 
+    /**
+     * 최종 접근 시간을 현재 시간으로 변경합니다.
+     * */
     protected void renewAccessTime() {
         this.accessTime = LocalDateTime.now();
     }

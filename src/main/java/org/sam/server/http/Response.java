@@ -1,33 +1,21 @@
 package org.sam.server.http;
 
-import org.sam.server.common.ServerProperties;
-
-import java.io.BufferedOutputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import org.sam.server.constant.HttpStatus;
 
 /**
- *  요청을 해석하고 응답하는 클래스입니다.
+ *  응답에 대한 가능을 정의 해놓은 인터페이스입니다.
  *
  * @author hypernova1
  * @see HttpResponse
  * */
-public abstract class Response {
+public interface Response {
 
-    protected static final String DEFAULT_FILE = "static/index.html";
-    protected static final String BAD_REQUEST = "static/400.html";
-    protected static final String NOT_FOUND = "static/404.html";
-    protected static final String FAVICON = "favicon.ico";
-    protected static final String METHOD_NOT_ALLOWED = "static/method_not_allowed.html";
-
-    protected final PrintWriter writer;
-    protected final BufferedOutputStream outputStream;
-
-    protected Response(OutputStream os) {
-        String bufferSizeStr = ServerProperties.get("file-buffer-size");
-        int bufferSize = bufferSizeStr != null ? Integer.parseInt(bufferSizeStr) : 8192;
-        this.writer = new PrintWriter(os);
-        this.outputStream = new BufferedOutputStream(os, bufferSize);
-    }
+    /**
+     * HTTP 응답 메시지를 만듭니다.
+     *
+     * @param pathOrJson 파일 경로 or JSON
+     * @param status 응답 HttpStatus
+     * */
+    void execute(String pathOrJson, HttpStatus status);
 
 }

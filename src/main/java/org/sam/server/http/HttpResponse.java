@@ -19,9 +19,19 @@ import java.util.*;
  * @author hypernova1
  * @see #execute(String, HttpStatus) 
  */
-public class HttpResponse extends Response {
+public class HttpResponse implements Response {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpResponse.class);
+
+    private static final String DEFAULT_FILE = "static/index.html";
+    private static final String BAD_REQUEST = "static/400.html";
+    private static final String NOT_FOUND = "static/404.html";
+    private static final String FAVICON = "favicon.ico";
+    private static final String METHOD_NOT_ALLOWED = "static/method_not_allowed.html";
+
+    private final PrintWriter writer;
+
+    private  final BufferedOutputStream outputStream;
 
     private final Map<String, Object> headers = new HashMap<>();
 
@@ -48,7 +58,10 @@ public class HttpResponse extends Response {
     }
 
     private HttpResponse(OutputStream os, String path, HttpMethod requestMethod) {
-        super(os);
+        String bufferSizeStr = ServerProperties.get("file-buffer-size");
+        int bufferSize = bufferSizeStr != null ? Integer.parseInt(bufferSizeStr) : 8192;
+        this.writer = new PrintWriter(os);
+        this.outputStream = new BufferedOutputStream(os, bufferSize);
         this.requestPath = path;
         this.requestMethod = requestMethod;
     }
@@ -62,17 +75,12 @@ public class HttpResponse extends Response {
      * @param requestMethod 요청 HTTP Method
      * @return HttpResponse 인스턴스
      * */
-    protected static HttpResponse create(OutputStream os, String requestPath, HttpMethod requestMethod) {
+    static HttpResponse create(OutputStream os, String requestPath, HttpMethod requestMethod) {
         return new HttpResponse(os, requestPath, requestMethod);
     }
 
-    /**
-     * 최종적으로 HTTP 메시지를 만듭니다.
-     *
-     * @param pathOrJson 파일 경로 or JSON
-     * @param status 응답 HttpStatus
-     * */
-    protected void execute(String pathOrJson, HttpStatus status) {
+    @Override
+    public void execute(String pathOrJson, HttpStatus status) {
         this.httpStatus = status;
         try {
             if (getContentMimeType().equals(ContentType.APPLICATION_JSON.getValue())) {
@@ -216,6 +224,8 @@ public class HttpResponse extends Response {
 
     /**
      * 쿠키에 대한 정보를 OutputStream에 씁니다.
+     *
+     * @see org.sam.server.http.Cookie
      * */
     private void printCookies() {
         for (Cookie cookie : cookies) {
