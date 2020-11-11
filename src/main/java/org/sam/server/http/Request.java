@@ -284,7 +284,7 @@ public interface Request {
         }
 
         /**
-         * Multipart 요청을 파싱합니다.
+         * multipart/form-data 요청을 파싱합니다.
          *
          * @param inputStream 소켓의 InputStream
          * @param boundary Multipart boundary
@@ -302,7 +302,7 @@ public interface Request {
         }
 
         /**
-         * Multipart 본문을 한 파트씩 파싱합니다.
+         * multipart/form-data 본문을 한 파트씩 파싱합니다.
          * 
          * @param inputStream 소켓의 InputStream
          * @param boundary 멀티파트의 boundary

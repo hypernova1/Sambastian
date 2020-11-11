@@ -1,6 +1,9 @@
 # HTTP Server
 Implementing HTTP Server using java socket.
 
+### document
+https://hypernova1.github.io/java-http-server-doc
+
 ### How to use
 ##### 0. install jdk 1.8++
 ##### 1. deploy local repository
