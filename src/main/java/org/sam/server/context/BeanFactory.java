@@ -63,17 +63,7 @@ public class BeanFactory {
         Class<?> beanType = classes.stream()
                 .filter(savedBeanType -> savedBeanType.isAssignableFrom(type))
                 .findFirst()
-                .orElseGet(() -> {
-                    for (Class<?> savedClass : classes) {
-                        Class<?>[] interfaces = savedClass.getInterfaces();
-                        for (Class<?> interfaceClass : interfaces) {
-                            if (interfaceClass.equals(type)) {
-                                return savedClass;
-                            }
-                        }
-                    }
-                    return null;
-                });
+                .orElseGet(() -> getMatchType(classes, type));
         List<BeanInfo> beanInfos = BeanContainer.getBeanMap().get(beanType);
         List<Object> result = new ArrayList<>();
         beanInfos.forEach(beanInfo -> result.add(beanInfo.getInstance()));
@@ -95,6 +85,25 @@ public class BeanFactory {
         if (isExist) return;
         BeanInfo beanInfo = new BeanInfo(name, instance);
         list.add(beanInfo);
+    }
+
+    /**
+     * 해당 클래스 타입과 일치하는 빈의 클래스 타입을 반환합니다.
+     *
+     * @param classes 빈 클래스 타입 목록
+     * @param type 확인할 클래스 타입
+     * @return 일치하는 클래스 타입
+     * */
+    private Class<?> getMatchType(Set<Class<?>> classes, Class<?> type) {
+        for (Class<?> savedClass : classes) {
+            Class<?>[] interfaces = savedClass.getInterfaces();
+            for (Class<?> interfaceClass : interfaces) {
+                if (interfaceClass.equals(type)) {
+                    return savedClass;
+                }
+            }
+        }
+        return null;
     }
 
 }

@@ -124,21 +124,16 @@ public class BeanContainer {
     /**
      * 컴포넌트의 인스턴스를 생성 후 반환합니다.
      *
-     * @param componentType 컴포넌트 타입
+     * @param clazz 클래스 타입
      * @return 컴포넌트 인스턴스
      * */
-    private static Object createComponentInstance(Class<?> componentType) {
-        Constructor<?>[] constructors = componentType.getConstructors();
-        Constructor<?> constructor;
+    private static Object createComponentInstance(Class<?> clazz) {
+        Constructor<?>[] constructors = clazz.getConstructors();
         try {
-            if (constructors.length == 0) {
-                constructor = componentType.getDeclaredConstructor();
-            } else {
-                constructor = constructors[0];
-            }
+            Constructor<?> constructor = getDefaultConstructor(clazz, constructors);
             Parameter[] parameters = constructor.getParameters();
             List<Object> parameterList = createParameters(parameters);
-            if (parameters.length > parameterList.size()) {
+            if (isEqualsParameterSize(parameters.length, parameterList.size())) {
                 int differenceCount = parameters.length - parameterList.size();
                 for (int i = 0; i < differenceCount; i++) {
                     parameterList.add(null);
@@ -277,5 +272,30 @@ public class BeanContainer {
      * */
     static Map<Class<?>, List<BeanInfo>> getBeanMap() {
         return beanMap;
+    }
+
+    /**
+     * 기본 생성자를 반환합니다
+     *
+     * @param clazz 클래스 타입
+     * @param constructors 생성자 목록
+     * @return 기본 생성자
+     * */
+    private static Constructor<?> getDefaultConstructor(Class<?> clazz, Constructor<?>[] constructors) throws NoSuchMethodException {
+        if (constructors.length == 0) {
+            return clazz.getDeclaredConstructor();
+        }
+        return constructors[0];
+    }
+
+    /**
+     * 생성된 파라미터 리스트와 해당 메서드의 파라미터의 개수가 일치하는 지 확인합니다.
+     *
+     * @param constructorParamSize 생성자의 파라미터 개수
+     * @param createParamSize 생성된 파라미터 개수
+     * @return 일치 여부
+     * */
+    private static boolean isEqualsParameterSize(int constructorParamSize, int createParamSize) {
+        return constructorParamSize > createParamSize;
     }
 }

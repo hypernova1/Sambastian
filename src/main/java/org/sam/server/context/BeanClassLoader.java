@@ -65,7 +65,7 @@ public class BeanClassLoader {
      * */
     private static void loadHandlerClasses(List<Class<?>> classes) {
         handlerClasses.addAll(classes.stream()
-                .filter(clazz -> clazz.getDeclaredAnnotation(Handler.class) != null)
+                .filter(BeanClassLoader::isHandlerClass)
                 .collect(Collectors.toList()));
     }
 
@@ -133,9 +133,9 @@ public class BeanClassLoader {
      * */
     private static List<Class<?>> createClasses(String packageName, File file) {
         List<Class<?>> classes = new ArrayList<>();
-        if (file.getName().endsWith(".class")) {
+        if (isClassFile(file)) {
             try {
-                Class<?> clazz = Class.forName(packageName + "." + file.getName().substring(0, file.getName().length() - 6));
+                Class<?> clazz = Class.forName(getClassName(packageName, file));
                 classes.add(clazz);
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
@@ -177,11 +177,11 @@ public class BeanClassLoader {
             if (file.isDirectory()) {
                 if (!packageNameBuilder.toString().equals("")) packageNameBuilder.append(".");
                 loadRootPackageName(file, packageNameBuilder + file.getName());
-            } else if (file.getName().endsWith(".class")) {
+            } else if (isClassFile(file)) {
                 String fileName = packageNameBuilder + "." + file.getName();
                 try {
-                    Class<?> clazz = Class.forName(fileName.substring(0, fileName.length() - 6));
-                    if (clazz.getDeclaredAnnotation(ComponentScan.class) != null) {
+                    Class<?> clazz = Class.forName(getClassName(fileName));
+                    if (isComponentScanClass(clazz)) {
                         rootPackageName = packageName;
                         return true;
                     }
@@ -218,5 +218,57 @@ public class BeanClassLoader {
      * */
     static List<Class<?>> getInterceptorClasses() {
         return interceptorClasses;
+    }
+
+    /**
+     * 해당 클래스가 핸들러 클래스인지 확인합니다.
+     *
+     * @param clazz 클래스 타입
+     * @return 핸들러 클래스 여부
+     * */
+    private static boolean isHandlerClass(Class<?> clazz) {
+        return clazz.getDeclaredAnnotation(Handler.class) != null;
+    }
+
+    /**
+     * 해당 클래스에 ComponentScan 어노테이션이 붙어 있는지 확인합니다.
+     *
+     * @param clazz 클래스 타입
+     * @return ComponentScan 클래스 여부
+     * @see org.sam.server.annotation.ComponentScan
+     * */
+    private static boolean isComponentScanClass(Class<?> clazz) {
+        return clazz.getDeclaredAnnotation(ComponentScan.class) != null;
+    }
+
+    /**
+     * 해당 파일이 클래스 파일인지 확인합니다.
+     *
+     * @param file 파일
+     * @return 클래스 파일 여부
+     * */
+    private static boolean isClassFile(File file) {
+        return file.getName().endsWith(".class");
+    }
+
+    /**
+     * 클래스의 이름을 반환합니다.
+     *
+     * @param packageName 패키지명
+     * @param file 클래스 파일
+     * @return 클래스 이름
+     * */
+    private static String getClassName(String packageName, File file) {
+        return packageName + "." + getClassName(file.getName());
+    }
+
+    /**
+     * 클래스의 이름을 반환합니다.
+     *
+     * @param fileName 패키지명
+     * @return 클래스 이름
+     * */
+    private static String getClassName(String fileName) {
+        return fileName.substring(0, fileName.length() - 6);
     }
 }
