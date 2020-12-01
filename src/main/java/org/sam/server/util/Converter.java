@@ -24,20 +24,13 @@ public class Converter {
         Object instance = null;
         try {
             instance = type.getDeclaredConstructor().newInstance();
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            e.printStackTrace();
-        }
-        try {
             for (Method method : type.getDeclaredMethods()) {
                 String methodName = method.getName();
-                if (methodName.startsWith("set")) {
-                    String propertyName = methodName.replace("set", "");
-                    propertyName = propertyName.substring(0, 1).toLowerCase() + propertyName.substring(1);
-                    String parameter = parameters.get(propertyName);
-                    method.invoke(instance, parameter);
+                if (isSetterMethod(methodName)) {
+                    invokeSetterMethod(parameters, instance, method);
                 }
             }
-        } catch (IllegalAccessException | InvocationTargetException e) {
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
         }
         return instance;
@@ -53,6 +46,30 @@ public class Converter {
     public static <T> T jsonToObject(String json, Class<T> type) {
         Gson gson = new Gson();
         return gson.fromJson(json, type);
+    }
+
+    /**
+     * Setter 메서드를 실행 시킵니다.
+     *
+     * @param parameters Setter의 파라미터
+     * @param instance 실행할 인스턴스
+     * @param method Setter 메서드
+     * */
+    private static void invokeSetterMethod(Map<String, String> parameters, Object instance, Method method) throws IllegalAccessException, InvocationTargetException {
+        String propertyName = method.getName().replace("set", "");
+        propertyName = propertyName.substring(0, 1).toLowerCase() + propertyName.substring(1);
+        String parameter = parameters.get(propertyName);
+        method.invoke(instance, parameter);
+    }
+
+    /**
+     * Setter 메서드인지 확인합니다.
+     *
+     * @param methodName 메서드 이름
+     * @return Setter 메서드 여부
+     * */
+    private static boolean isSetterMethod(String methodName) {
+        return methodName.startsWith("set");
     }
 
 }

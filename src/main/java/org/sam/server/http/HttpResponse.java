@@ -375,7 +375,7 @@ public class HttpResponse implements Response {
      *
      * @see #execute(String, HttpStatus)
      * */
-    protected void getFavicon() throws ResourcesNotFoundException {
+    protected void responseFavicon() throws ResourcesNotFoundException {
         filePath = FAVICON;
         this.contentMimeType = ContentType.X_ICON.getValue();
         execute(filePath, HttpStatus.OK);

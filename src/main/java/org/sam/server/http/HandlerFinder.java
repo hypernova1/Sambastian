@@ -63,7 +63,7 @@ public class HandlerFinder {
             if (handlerMethod != null)
                 return new HandlerInfo(handlerInstance, handlerMethod);
         }
-        if (this.httpRequest.getPath().equals("/") && this.httpRequest.getMethod().equals(HttpMethod.GET)) {
+        if (isIndexFileRequest()) {
             httpResponse.responseIndexFile();
             return null;
         }
@@ -75,6 +75,10 @@ public class HandlerFinder {
             httpResponse.methodNotAllowed();
         }
         throw new HandlerNotFoundException();
+    }
+
+    private boolean isIndexFileRequest() {
+        return this.httpRequest.getPath().equals("/") && this.httpRequest.getMethod().equals(HttpMethod.GET);
     }
 
     /**
@@ -145,9 +149,9 @@ public class HandlerFinder {
             String path = String.valueOf(value.invoke(annotation));
             if (path.contains("{")) {
                 pathValueHandlerMethods.add(handlerMethod);
-            } else {
-                handlerMethods.add(handlerMethod);
+                return;
             }
+            handlerMethods.add(handlerMethod);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }

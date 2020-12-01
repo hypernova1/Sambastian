@@ -39,11 +39,11 @@ public class HttpLauncher {
      * @throws IOException 핸들러를 찾지 못 했을 시
      * */
     private static void findHandler(HttpRequest httpRequest, HttpResponse httpResponse) throws IOException {
-        if (httpRequest.getPath().equals("/favicon.ico")) {
-            httpResponse.getFavicon();
+        if (isFaviconRequest(httpRequest)) {
+            httpResponse.responseFavicon();
             return;
         }
-        if (httpRequest.getPath().startsWith("/resources")) {
+        if (isResourceRequest(httpRequest)) {
             httpResponse.responseStaticResources();
             return;
         }
@@ -56,5 +56,13 @@ public class HttpLauncher {
             httpResponse.notFound();
             throw new IOException(e);
         }
+    }
+
+    private static boolean isFaviconRequest(HttpRequest httpRequest) {
+        return httpRequest.getPath().equals("/favicon.ico");
+    }
+
+    private static boolean isResourceRequest(HttpRequest httpRequest) {
+        return httpRequest.getPath().startsWith("/resources");
     }
 }
