@@ -144,18 +144,11 @@ public interface Request {
         private void parse(InputStream in) {
             try {
                 BufferedInputStream inputStream = new BufferedInputStream(in);
-                StringBuilder sb = new StringBuilder();
-                String headersPart = "";
-                int i;
-                while ((i = inputStream.read()) != -1) {
-                    char c = (char) i;
-                    sb.append(c);
-                    if (sb.toString().endsWith("\r\n\r\n")) {
-                        headersPart = sb.toString().replace("\r\n\r\n", "");
-                        break;
-                    }
-                }
-                if (headersPart.trim().isEmpty()) return;
+
+                String headersPart = readHeader(inputStream);
+
+                if (isNonHttpRequest(headersPart)) return;
+
                 String[] headers = headersPart.split("\r\n");
                 StringTokenizer parse = new StringTokenizer(headers[0]);
                 String method = parse.nextToken().toUpperCase();
@@ -171,15 +164,8 @@ public interface Request {
 
                 String contentType = this.headers.getOrDefault("content-type", "");
 
-                if (HttpMethod.get(method).equals(HttpMethod.POST) ||
-                        HttpMethod.get(method).equals(HttpMethod.PUT) ||
-                        ContentType.APPLICATION_JSON.getValue().equals(contentType)) {
-                    if (contentType.startsWith(ContentType.MULTIPART_FORM_DATA.getValue())) {
-                        String boundary = "--" + contentType.split("; ")[1].split("=")[1];
-                        parseMultipartBody(inputStream, boundary);
-                    } else {
-                        parseRequestBody(inputStream, contentType);
-                    }
+                if (existHttpBody(method, contentType)) {
+                    parseBodyText(inputStream, contentType);
                 }
             } catch (IOException e) {
                 logger.error("terminate thread..");
@@ -188,7 +174,67 @@ public interface Request {
         }
 
         /**
-         * HTTP 바디를 파싱합니.
+         * HTTP 바디에 있는 데이터를 파싱합니다.
+         *
+         * @param inputStream 인풋 스트림
+         * @param contentType 미디어 타입
+         * */
+        private void parseBodyText(BufferedInputStream inputStream, String contentType) throws IOException {
+            if (contentType.startsWith(ContentType.MULTIPART_FORM_DATA.getValue())) {
+                String boundary = "--" + contentType.split("; ")[1].split("=")[1];
+                parseMultipartBody(inputStream, boundary);
+                return;
+            }
+            parseRequestBody(inputStream, contentType);
+        }
+
+        /**
+         * HTTP 바디에 메시지가 존재하는 지 확인합니다.
+         *
+         * @param method HTTP 메서드 타입
+         * @param contentType 미디어 타입
+         *
+         * @return HTTP 바디에 메시지가 존재하는지 여부
+         * */
+        private boolean existHttpBody(String method, String contentType) {
+            return HttpMethod.get(method).equals(HttpMethod.POST) ||
+                    HttpMethod.get(method).equals(HttpMethod.PUT) ||
+                    ContentType.APPLICATION_JSON.getValue().equals(contentType);
+        }
+
+        /**
+         * HTTP 헤더를 읽어 반환합니다.
+         *
+         * @param inputStream 인풋 스트림
+         * @return HTTP 헤더 내용
+         * */
+        private String readHeader(BufferedInputStream inputStream) throws IOException {
+            int i;
+            String headersPart = "";
+            StringBuilder sb = new StringBuilder();
+            while ((i = inputStream.read()) != -1) {
+                char c = (char) i;
+                sb.append(c);
+                if (isNewLine(sb)) {
+                    headersPart = sb.toString().replace("\r\n\r\n", "");
+                    break;
+                }
+            }
+            return headersPart;
+        }
+
+        /**
+         * HTTP 요청이 아닌지 확인합니다.
+         *
+         * @param headersPart 헤더
+         * @return HTTP 요청이 아닌지에 대한 여부
+         * */
+        private boolean isNonHttpRequest(String headersPart) {
+            return headersPart.trim().isEmpty();
+        }
+
+        /**
+         * HTTP 바디를 파싱합니다.
          *
          * @param inputStream 소켓의 InputSteam
          * @param contentType 미디어 타입
@@ -201,7 +247,7 @@ public interface Request {
             int i = 0;
             while ((binary = inputStream.read()) != -1) {
                 data[i] = (byte) binary;
-                if ((i != 0 && data[i - 1] == '\r' && data[i] == '\n') || inputStream.available() == 0) {
+                if (isNextLine(data, i) || inputStream.available() == 0) {
                     data = Arrays.copyOfRange(data, 0, ++i);
                     String line = new String(data, StandardCharsets.UTF_8);
                     sb.append(line);
@@ -211,12 +257,22 @@ public interface Request {
                 if (inputStream.available() == 0) break;
                 i++;
             }
-            if (ContentType.APPLICATION_JSON.getValue().equals(contentType)
-                    && this.parameters.isEmpty()) {
+            if (ContentType.APPLICATION_JSON.getValue().equals(contentType) && this.parameters.isEmpty()) {
                 this.json = sb.toString();
                 return;
             }
             this.parameters = parseQuery(sb.toString());
+        }
+
+        /**
+         * 한 줄의 끝인지 확인합니다.
+         *
+         * @param data 본문
+         * @param index 인덱스
+         * @return 한 줄의 끝인지에 대한 여부
+         * */
+        private boolean isNextLine(byte[] data, int index) {
+            return index != 0 && data[index - 1] == '\r' && data[index] == '\n';
         }
 
         /**
@@ -322,7 +378,7 @@ public interface Request {
             int binary;
             while ((binary = inputStream.read()) != -1) {
                 data[i] = (byte) binary;
-                if (i != 0 && data[i - 1] == '\r' && data[i] == '\n') {
+                if (isNextLine(data, i)) {
                     data = Arrays.copyOfRange(data, 0, i);
                     String line = new String(data, StandardCharsets.UTF_8);
                     data = new byte[inputStreamLength];
@@ -425,7 +481,7 @@ public interface Request {
                     data = temp;
                 }
                 data[fileLength] = (byte) i;
-                if (fileLength != 0 && data[fileLength - 1] == '\r' && data[fileLength] == '\n') {
+                if (isNextLine(data, fileLength)) {
                     String content = new String(data, StandardCharsets.UTF_8);
                     if (content.trim().equals(boundary)) return null;
                     boundary = new String(boundary.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
@@ -455,5 +511,10 @@ public interface Request {
                 return new HttpMultipartRequest(protocol, path, method, headers, parameters, json, cookies, files);
             return new HttpRequest(protocol, path, method, headers, parameters, json, cookies);
         }
+
+        private static boolean isNewLine(StringBuilder sb) {
+            return sb.toString().endsWith("\r\n\r\n");
+        }
     }
+
 }

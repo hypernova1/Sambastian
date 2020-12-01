@@ -13,7 +13,7 @@ import java.util.UUID;
  */
 public final class Session {
 
-    private String id;
+    private final String id;
 
     private LocalDateTime creationTime;
 
