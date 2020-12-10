@@ -1,5 +1,5 @@
-# HTTP Server
-Implementing HTTP Server using java socket.
+# Java HTTP Server Framework
+Implementing HTTP Server Framework using java socket.
 
 ### document
 https://hypernova1.github.io/java-http-server-doc
