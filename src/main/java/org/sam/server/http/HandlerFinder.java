@@ -25,6 +25,8 @@ import java.util.regex.Pattern;
  */
 public class HandlerFinder {
 
+    private static final Pattern PATH_VALUE_PATTERN = Pattern.compile("[{](.*?)[}]");
+
     private final HttpRequest httpRequest;
 
     private final HttpResponse httpResponse;
@@ -34,6 +36,7 @@ public class HandlerFinder {
     private final List<Method> pathValueHandlerMethods = new ArrayList<>();
 
     private final List<Method> handlerMethods = new ArrayList<>();
+
 
     private HandlerFinder(HttpRequest httpRequest, HttpResponse httpResponse) {
         this.httpRequest = httpRequest;
@@ -109,7 +112,9 @@ public class HandlerFinder {
             for (Annotation handlerMethodDeclaredAnnotation : handlerMethodDeclaredAnnotations) {
                 if (handlerMethodDeclaredAnnotation.annotationType().getDeclaredAnnotation(Handle.class) != null) {
                     boolean compareAnnotation = compareAnnotation(requestPath, handlerClassPath, handlerMethod, handlerMethodDeclaredAnnotation);
-                    if (compareAnnotation) return handlerMethod;
+                    if (compareAnnotation) {
+                        return handlerMethod;
+                    }
                 }
             }
         }
@@ -168,13 +173,17 @@ public class HandlerFinder {
             Method methodPropertyInAnnotation = handlerAnnotationType.getDeclaredMethod("method");
             Method pathPropertyInAnnotation = handlerAnnotationType.getDeclaredMethod("value");
             String path = pathPropertyInAnnotation.invoke(handlerMethodDeclaredAnnotation).toString();
-            if (!path.startsWith("/")) path = "/" + path;
+            if (!path.startsWith("/")) {
+                path = "/" + path;
+            }
             if (requestPath.equals(httpRequest.getPath())) {
                 path = handlerClassPath + path;
             }
             String method = methodPropertyInAnnotation.invoke(handlerMethodDeclaredAnnotation).toString();
             boolean isSame = compareMethodAndPath(requestPath, handlerMethod, path, method);
-            if (isSame) return true;
+            if (isSame) {
+                return true;
+            }
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
@@ -206,8 +215,9 @@ public class HandlerFinder {
         }
         boolean isHeadRequest = httpMethod.equals(HttpMethod.HEAD) && HttpMethod.GET.toString().equals(method);
         if (!isOptionsRequest && isSamePath && httpMethod.equals(HttpMethod.get(method)) || isHeadRequest) {
-            if (handlerMethod.getDeclaredAnnotation(RestApi.class) != null)
+            if (handlerMethod.getDeclaredAnnotation(RestApi.class) != null) {
                 this.httpResponse.setContentMimeType(ContentType.APPLICATION_JSON);
+            }
             return true;
         }
         return false;
@@ -222,8 +232,7 @@ public class HandlerFinder {
      * @return 일치 여부
      * */
     private boolean findPathValueHandler(String requestPath, String path, boolean isSamePath) {
-        Pattern pattern = Pattern.compile("[{](.*?)[}]");
-        Matcher matcher = pattern.matcher(path);
+        Matcher matcher = PATH_VALUE_PATTERN.matcher(path);
         Queue<String> paramNames = new ArrayDeque<>();
         while (matcher.find()) {
             paramNames.add(matcher.group(1));
@@ -263,7 +272,9 @@ public class HandlerFinder {
         String[] requestPathArr = requestPath.split("/");
         String[] pathArr = path.split("/");
         Map<String, String> param = new HashMap<>();
-        if (requestPathArr.length != pathArr.length) return false;
+        if (requestPathArr.length != pathArr.length) {
+            return false;
+        }
         for (int i = 0; i < pathArr.length; i++) {
             if (pathArr[i].contains("{")) {
                 param.put(paramNames.poll(), requestPathArr[i]);
@@ -290,12 +301,15 @@ public class HandlerFinder {
             rootRequestPath += requestPath.split("/")[1];
         }
         String handlerClassPath = handlerType.getDeclaredAnnotation(Handler.class).value();
-        if (!handlerClassPath.startsWith("/"))
+        if (!handlerClassPath.startsWith("/")) {
             handlerClassPath = "/" + handlerClassPath;
-        if (rootRequestPath.equals(handlerClassPath))
+        }
+        if (rootRequestPath.equals(handlerClassPath)) {
             requestPath = replaceRequestPath(requestPath, handlerClassPath);
-        if (!requestPath.equals("/") && requestPath.endsWith("/"))
+        }
+        if (!requestPath.equals("/") && requestPath.endsWith("/")) {
             requestPath = requestPath.substring(0, requestPath.length() - 1);
+        }
         return requestPath;
     }
 
@@ -309,7 +323,9 @@ public class HandlerFinder {
     private String replaceRequestPath(String requestPath, String handlerPath) {
         int index = requestPath.indexOf(handlerPath);
         requestPath = requestPath.substring(index + handlerPath.length());
-        if (!requestPath.startsWith("/")) requestPath = "/" + requestPath;
+        if (!requestPath.startsWith("/")) {
+            requestPath = "/" + requestPath;
+        }
         return requestPath;
     }
 }

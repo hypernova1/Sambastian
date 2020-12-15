@@ -13,6 +13,8 @@ import java.util.Map;
  */
 public class Converter {
 
+    private static final Gson gson = new Gson();
+
     /**
      * 파라미터를 받아 인스턴스에 값을 넣어주고 인스턴스를 반환합니다.
      *
@@ -51,8 +53,11 @@ public class Converter {
      * @return 파라미터 인스턴스
      * */
     public static <T> T jsonToObject(String json, Class<T> type) {
-        Gson gson = new Gson();
         return gson.fromJson(json, type);
+    }
+
+    public static String objectToJson(Object object) {
+        return gson.toJson(object);
     }
 
 }

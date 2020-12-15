@@ -188,7 +188,7 @@ public interface Request {
         }
 
         /**
-         * HTTP 바디를 파싱합니.
+         * HTTP 바디를 파싱합니다.
          *
          * @param inputStream 소켓의 InputSteam
          * @param contentType 미디어 타입
@@ -201,7 +201,7 @@ public interface Request {
             int i = 0;
             while ((binary = inputStream.read()) != -1) {
                 data[i] = (byte) binary;
-                if ((i != 0 && data[i - 1] == '\r' && data[i] == '\n') || inputStream.available() == 0) {
+                if (isNewLine(data, i) || inputStream.available() == 0) {
                     data = Arrays.copyOfRange(data, 0, ++i);
                     String line = new String(data, StandardCharsets.UTF_8);
                     sb.append(line);
@@ -322,7 +322,7 @@ public interface Request {
             int binary;
             while ((binary = inputStream.read()) != -1) {
                 data[i] = (byte) binary;
-                if (i != 0 && data[i - 1] == '\r' && data[i] == '\n') {
+                if (isNewLine(data, i)) {
                     data = Arrays.copyOfRange(data, 0, i);
                     String line = new String(data, StandardCharsets.UTF_8);
                     data = new byte[inputStreamLength];
@@ -425,7 +425,7 @@ public interface Request {
                     data = temp;
                 }
                 data[fileLength] = (byte) i;
-                if (fileLength != 0 && data[fileLength - 1] == '\r' && data[fileLength] == '\n') {
+                if (isNewLine(data, fileLength)) {
                     String content = new String(data, StandardCharsets.UTF_8);
                     if (content.trim().equals(boundary)) return null;
                     boundary = new String(boundary.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
@@ -454,6 +454,17 @@ public interface Request {
             if (contentType.startsWith(ContentType.MULTIPART_FORM_DATA.getValue()))
                 return new HttpMultipartRequest(protocol, path, method, headers, parameters, json, cookies, files);
             return new HttpRequest(protocol, path, method, headers, parameters, json, cookies);
+        }
+
+        /**
+         *  한 줄의 마지막인지 확인합니다.
+         *
+         * @param data 데이터
+         * @param index 인덱스
+         * @return 한 줄의 마지막인지 여부
+         * */
+        private boolean isNewLine(byte[] data, int index) {
+            return index != 0 && data[index - 1] == '\r' && data[index] == '\n';
         }
     }
 }

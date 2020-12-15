@@ -29,13 +29,10 @@ public class HandlerExecutor {
 
     private final HandlerInfo handlerInfo;
 
-    private final Gson gson;
-    
     private HandlerExecutor(HttpRequest httpRequest, HttpResponse httpResponse, HandlerInfo handlerInfo) {
         this.httpRequest = httpRequest;
         this.httpResponse = httpResponse;
         this.handlerInfo = handlerInfo;
-        this.gson = new Gson();
     }
 
     /**
@@ -71,7 +68,7 @@ public class HandlerExecutor {
             } else {
                 httpStatus = HttpStatus.OK;
             }
-            String json = gson.toJson(returnValue);
+            String json = Converter.objectToJson(returnValue);
             httpResponse.setContentMimeType(ContentType.APPLICATION_JSON);
             httpResponse.execute(json, httpStatus);
         } catch (IllegalArgumentException e) {

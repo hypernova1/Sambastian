@@ -11,18 +11,18 @@ import java.util.Map;
  */
 public class PrimitiveWrapper {
 
-    private static final Map<String, Class<?>> map = new HashMap<>(9);
+    private static final Map<String, Class<?>> boxTypes = new HashMap<>(9);
 
     static {
-        map.put(Boolean.TYPE.getName(), Boolean.class);
-        map.put(Character.TYPE.getName(), Character.class);
-        map.put(Byte.TYPE.getName(), Byte.class);
-        map.put(Short.TYPE.getName(), Short.class);
-        map.put(Integer.TYPE.getName(), Integer.class);
-        map.put(Long.TYPE.getName(), Long.class);
-        map.put(Float.TYPE.getName(), Float.class);
-        map.put(Double.TYPE.getName(), Double.class);
-        map.put(Void.TYPE.getName(), Void.class);
+        boxTypes.put(Boolean.TYPE.getName(), Boolean.class);
+        boxTypes.put(Character.TYPE.getName(), Character.class);
+        boxTypes.put(Byte.TYPE.getName(), Byte.class);
+        boxTypes.put(Short.TYPE.getName(), Short.class);
+        boxTypes.put(Integer.TYPE.getName(), Integer.class);
+        boxTypes.put(Long.TYPE.getName(), Long.class);
+        boxTypes.put(Float.TYPE.getName(), Float.class);
+        boxTypes.put(Double.TYPE.getName(), Double.class);
+        boxTypes.put(Void.TYPE.getName(), Void.class);
     }
 
     /**
@@ -66,7 +66,7 @@ public class PrimitiveWrapper {
      * 원시 타입에 해당하는 박스 타입을 반환합니다.
      * */
     public static Class<?> getType(String type) {
-        return map.get(type);
+        return boxTypes.get(type);
     }
 
 }
