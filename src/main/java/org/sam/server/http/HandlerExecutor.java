@@ -223,15 +223,18 @@ public class HandlerExecutor {
      * */
     private void addSession(List<Object> params) {
         Set<Cookie> cookies = httpRequest.getCookies();
-        for (Cookie cookie : cookies) {
+        Iterator<Cookie> iterator = cookies.iterator();
+        while (iterator.hasNext()) {
+            Cookie cookie = iterator.next();
             if (cookie.getName().equals("sessionId")) {
                 Session session = httpRequest.getSession();
                 if (session != null) {
                     session.renewAccessTime();
                     params.add(session);
                     return;
+                } else {
+                    iterator.remove();
                 }
-                cookies.remove(cookie);
             }
         }
         Session session = new Session();
