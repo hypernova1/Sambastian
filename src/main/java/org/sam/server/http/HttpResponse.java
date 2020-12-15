@@ -190,13 +190,16 @@ public class HttpResponse implements Response {
      * @throws IOException 문자열을 읽다가 오류 발생시
      * */
     private int readJson(String json) throws IOException {
-        if (httpStatus.equals(HttpStatus.NOT_FOUND) || httpStatus.equals(HttpStatus.BAD_REQUEST))
+        if (httpStatus.equals(HttpStatus.NOT_FOUND) || httpStatus.equals(HttpStatus.BAD_REQUEST)) {
             return 0;
+        }
 
         byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+
         if (!this.requestMethod.equals(HttpMethod.HEAD)) {
             outputStream.write(bytes);
         }
+
         return bytes.length;
     }
 
@@ -208,16 +211,19 @@ public class HttpResponse implements Response {
         headers.put("Date", LocalDateTime.now());
         headers.put("Content-Type", getContentMimeType());
         headers.put("Content-length", this.fileLength);
+
         if (requestPath.startsWith("/resources")) {
             headers.put("Cache-Control", "max-age=86400");
         } else {
             headers.put("Cache-Control", "no-cache, no-store, must-revalidate");
         }
+
         if (requestMethod.equals(HttpMethod.OPTIONS) && allowedMethods.size() > 0) {
             StringJoiner stringJoiner = new StringJoiner(", ");
             allowedMethods.forEach(allowedMethod -> stringJoiner.add(allowedMethod.toString()));
             headers.put("Allow", stringJoiner.toString());
         }
+
         writer.print("HTTP/1.1 " + httpStatus.getCode() + " " + httpStatus.getMessage() + "\r\n");
         headers.keySet().forEach(key -> writer.print(key + ": " + headers.get(key) + "\r\n"));
         printCookies();
@@ -268,14 +274,21 @@ public class HttpResponse implements Response {
      * */
     public String getContentMimeType() {
         if (contentMimeType != null) return contentMimeType;
-        if (httpStatus.equals(HttpStatus.NOT_FOUND) ||
-                httpStatus.equals(HttpStatus.BAD_REQUEST) ||
-                httpStatus.equals(HttpStatus.NOT_IMPLEMENTED) ||
-                this.requestPath.endsWith(".html")) return ContentType.TEXT_HTML.getValue();
+        if (isHtmlResponse()) return ContentType.TEXT_HTML.getValue();
         if (requestPath.endsWith(".css")) return ContentType.CSS.getValue();
         if (requestPath.endsWith(".js")) return ContentType.JAVASCRIPT.getValue();
 
         return ContentType.TEXT_PLAIN.getValue();
+    }
+
+    /**
+     * 응답할 MIME 형식이 HTML인지 확인합니다
+     *
+     * @return HTML 여부
+     * */
+    private boolean isHtmlResponse() {
+        return httpStatus.equals(HttpStatus.NOT_FOUND) || httpStatus.equals(HttpStatus.BAD_REQUEST) ||
+                httpStatus.equals(HttpStatus.NOT_IMPLEMENTED) || this.requestPath.endsWith(".html");
     }
 
     /**
@@ -377,7 +390,7 @@ public class HttpResponse implements Response {
      *
      * @see #execute(String, HttpStatus)
      * */
-    protected void getFavicon() throws ResourcesNotFoundException {
+    protected void responseFavicon() throws ResourcesNotFoundException {
         filePath = FAVICON;
         this.contentMimeType = ContentType.X_ICON.getValue();
         execute(filePath, HttpStatus.OK);

@@ -56,11 +56,13 @@ public class HandlerExecutor {
             Map<String, String> requestData = httpRequest.getParameters();
             List<Interceptor> interceptors = BeanContainer.getInterceptors();
             Object returnValue;
-            if (interceptors.isEmpty())
-                returnValue = executeHandler(requestData);
-            else
-                returnValue = executeInterceptors(interceptors, requestData);
             HttpStatus httpStatus;
+
+            if (interceptors.isEmpty()) {
+                returnValue = executeHandler(requestData);
+            } else {
+                returnValue = executeInterceptors(interceptors, requestData);
+            }
             if (returnValue.getClass().equals(ResponseEntity.class)) {
                 ResponseEntity<?> responseEntity = (ResponseEntity<?>) returnValue;
                 httpStatus = responseEntity.getHttpStatus();
@@ -83,8 +85,9 @@ public class HandlerExecutor {
     private void setCrossOriginConfig() {
         Class<?> handlerClass = this.handlerInfo.getInstance().getClass();
         String origin = httpRequest.getHeader("origin");
-        if (origin != null)
+        if (origin != null) {
             setAccessControlAllowOriginHeader(handlerClass, origin);
+        }
     }
 
     /**
@@ -98,10 +101,11 @@ public class HandlerExecutor {
         if (crossOrigin != null) {
             String[] value = crossOrigin.value();
             List<String> allowPaths = Arrays.asList(value);
-            if (allowPaths.contains("*"))
+            if (allowPaths.contains("*")) {
                 httpResponse.setHeader("Access-Control-Allow-Origin", "*");
-            else if (allowPaths.contains(origin))
+            } else if (allowPaths.contains(origin)) {
                 httpResponse.setHeader("Access-Control-Allow-Origin", origin);
+            }
         }
     }
 
@@ -222,12 +226,12 @@ public class HandlerExecutor {
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals("sessionId")) {
                 Session session = httpRequest.getSession();
-                if (session == null) cookies.remove(cookie);
-                else {
+                if (session != null) {
                     session.renewAccessTime();
                     params.add(session);
                     return;
                 }
+                cookies.remove(cookie);
             }
         }
         Session session = new Session();
