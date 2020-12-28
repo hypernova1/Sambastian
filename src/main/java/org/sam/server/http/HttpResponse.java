@@ -29,6 +29,8 @@ public class HttpResponse implements Response {
     private static final String FAVICON = "favicon.ico";
     private static final String METHOD_NOT_ALLOWED = "static/method_not_allowed.html";
 
+    private final static String BUFFER_SIZE_PROPERTY = ServerProperties.get("file-buffer-size");
+
     private final PrintWriter writer;
 
     private  final BufferedOutputStream outputStream;
@@ -58,8 +60,8 @@ public class HttpResponse implements Response {
     }
 
     private HttpResponse(OutputStream os, String path, HttpMethod requestMethod) {
-        String bufferSizeStr = ServerProperties.get("file-buffer-size");
-        int bufferSize = bufferSizeStr != null ? Integer.parseInt(bufferSizeStr) : 8192;
+
+        int bufferSize = BUFFER_SIZE_PROPERTY != null ? Integer.parseInt(BUFFER_SIZE_PROPERTY) : 8192;
         this.writer = new PrintWriter(os);
         this.outputStream = new BufferedOutputStream(os, bufferSize);
         this.requestPath = path;

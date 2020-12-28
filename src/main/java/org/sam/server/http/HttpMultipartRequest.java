@@ -30,8 +30,12 @@ public class HttpMultipartRequest extends HttpRequest {
      * */
     public MultipartFile getMultipartFile(String name) throws IllegalAccessException {
         Object obj = files.get(name);
-        if (obj == null) return null;
-        if (MultipartFile.class.equals(obj.getClass())) return (MultipartFile) obj;
+        if (obj == null) {
+            return null;
+        }
+        if (MultipartFile.class.equals(obj.getClass())) {
+            return (MultipartFile) obj;
+        }
 
         throw new IllegalAccessException("file size is not one.");
     }
@@ -45,8 +49,12 @@ public class HttpMultipartRequest extends HttpRequest {
     @SuppressWarnings("unchecked")
     public List<MultipartFile> getMultipartFileList(String name) {
         Object obj = files.get(name);
-        if (obj == null) return null;
-        if (MultipartFile.class.equals(obj.getClass())) return Collections.singletonList((MultipartFile) obj);
+        if (obj == null) {
+            return null;
+        }
+        if (MultipartFile.class.equals(obj.getClass())) {
+            return Collections.singletonList((MultipartFile) obj);
+        }
 
         return (ArrayList<MultipartFile>) files.get(name);
     }

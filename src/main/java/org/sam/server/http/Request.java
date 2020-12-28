@@ -215,7 +215,7 @@ public interface Request {
             while ((i = inputStream.read()) != -1) {
                 char c = (char) i;
                 sb.append(c);
-                if (isNewLine(sb)) {
+                if (isCompleteHeader(sb.toString())) {
                     headersPart = sb.toString().replace("\r\n\r\n", "");
                     break;
                 }
@@ -247,7 +247,7 @@ public interface Request {
             int i = 0;
             while ((binary = inputStream.read()) != -1) {
                 data[i] = (byte) binary;
-                if (isNextLine(data, i) || inputStream.available() == 0) {
+                if (isNewLine(data, i) || inputStream.available() == 0) {
                     data = Arrays.copyOfRange(data, 0, ++i);
                     String line = new String(data, StandardCharsets.UTF_8);
                     sb.append(line);
@@ -378,7 +378,7 @@ public interface Request {
             int binary;
             while ((binary = inputStream.read()) != -1) {
                 data[i] = (byte) binary;
-                if (isNextLine(data, i)) {
+                if (isNewLine(data, i)) {
                     data = Arrays.copyOfRange(data, 0, i);
                     String line = new String(data, StandardCharsets.UTF_8);
                     data = new byte[inputStreamLength];
@@ -481,7 +481,7 @@ public interface Request {
                     data = temp;
                 }
                 data[fileLength] = (byte) i;
-                if (isNextLine(data, fileLength)) {
+                if (isNewLine(data, fileLength)) {
                     String content = new String(data, StandardCharsets.UTF_8);
                     if (content.trim().equals(boundary)) return null;
                     boundary = new String(boundary.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
@@ -512,8 +512,25 @@ public interface Request {
             return new HttpRequest(protocol, path, method, headers, parameters, json, cookies);
         }
 
-        private static boolean isNewLine(StringBuilder sb) {
-            return sb.toString().endsWith("\r\n\r\n");
+        /**
+         *  한 줄의 마지막인지 확인합니다.
+         *
+         * @param data 데이터
+         * @param index 인덱스
+         * @return 한 줄의 마지막인지 여부
+         * */
+        private boolean isNewLine(byte[] data, int index) {
+            return index != 0 && data[index - 1] == '\r' && data[index] == '\n';
+        }
+
+        /**
+         *  헤더의 끝 부분인지 확인합니다.
+         *
+         * @param data 데이터
+         * @return 헤더의 끝인지 여부
+         * */
+        private static boolean isCompleteHeader(String data) {
+            return data.endsWith("\r\n\r\n");
         }
     }
 

@@ -1,6 +1,5 @@
 package org.sam.server.http;
 
-import com.google.gson.Gson;
 import org.sam.server.annotation.CrossOrigin;
 import org.sam.server.annotation.handle.JsonRequest;
 import org.sam.server.constant.ContentType;
@@ -29,13 +28,10 @@ public class HandlerExecutor {
 
     private final HandlerInfo handlerInfo;
 
-    private final Gson gson;
-    
     private HandlerExecutor(Request request, Response response, HandlerInfo handlerInfo) {
         this.request = request;
         this.response = response;
         this.handlerInfo = handlerInfo;
-        this.gson = new Gson();
     }
 
     /**
@@ -73,7 +69,7 @@ public class HandlerExecutor {
             } else {
                 httpStatus = HttpStatus.OK;
             }
-            String json = gson.toJson(returnValue);
+            String json = Converter.objectToJson(returnValue);
             response.setContentMimeType(ContentType.APPLICATION_JSON);
             response.execute(json, httpStatus);
         } catch (IllegalArgumentException e) {
@@ -226,15 +222,18 @@ public class HandlerExecutor {
      * */
     private void addSession(List<Object> params) {
         Set<Cookie> cookies = request.getCookies();
-        for (Cookie cookie : cookies) {
+        Iterator<Cookie> iterator = cookies.iterator();
+        while (iterator.hasNext()) {
+            Cookie cookie = iterator.next();
             if (cookie.getName().equals("sessionId")) {
                 Session session = request.getSession();
                 if (session != null) {
                     session.renewAccessTime();
                     params.add(session);
                     return;
+                } else {
+                    iterator.remove();
                 }
-                cookies.remove(cookie);
             }
         }
         Session session = new Session();

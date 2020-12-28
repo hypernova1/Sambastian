@@ -25,6 +25,8 @@ import java.util.regex.Pattern;
  */
 public class HandlerFinder {
 
+    private static final Pattern PATH_VALUE_PATTERN = Pattern.compile("[{](.*?)[}]");
+
     private final Request request;
 
     private final Response response;
@@ -174,7 +176,9 @@ public class HandlerFinder {
             Method methodPropertyInAnnotation = handlerAnnotationType.getDeclaredMethod("method");
             Method pathPropertyInAnnotation = handlerAnnotationType.getDeclaredMethod("value");
             String path = pathPropertyInAnnotation.invoke(handlerMethodDeclaredAnnotation).toString();
-            if (!path.startsWith("/")) path = "/" + path;
+            if (!path.startsWith("/")) {
+                path = "/" + path;
+            }
             if (requestPath.equals(request.getPath())) {
                 path = this.handlerClassPath + path;
             }
@@ -212,8 +216,9 @@ public class HandlerFinder {
         }
         boolean isHeadRequest = httpMethod.equals(HttpMethod.HEAD) && HttpMethod.GET.toString().equals(method);
         if (!isOptionsRequest && isSamePath && httpMethod.equals(HttpMethod.get(method)) || isHeadRequest) {
-            if (handlerMethod.getDeclaredAnnotation(RestApi.class) != null)
+            if (handlerMethod.getDeclaredAnnotation(RestApi.class) != null) {
                 this.response.setContentMimeType(ContentType.APPLICATION_JSON);
+            }
             return true;
         }
         return false;
@@ -228,8 +233,7 @@ public class HandlerFinder {
      * @return 일치 여부
      * */
     private boolean findPathValueHandler(String requestPath, String path, boolean isSamePath) {
-        Pattern pattern = Pattern.compile("[{](.*?)[}]");
-        Matcher matcher = pattern.matcher(path);
+        Matcher matcher = PATH_VALUE_PATTERN.matcher(path);
         Queue<String> paramNames = new ArrayDeque<>();
         while (matcher.find()) {
             paramNames.add(matcher.group(1));
@@ -269,7 +273,9 @@ public class HandlerFinder {
         String[] requestPathArr = requestPath.split("/");
         String[] pathArr = path.split("/");
         Map<String, String> param = new HashMap<>();
-        if (requestPathArr.length != pathArr.length) return false;
+        if (requestPathArr.length != pathArr.length) {
+            return false;
+        }
         for (int i = 0; i < pathArr.length; i++) {
             if (pathArr[i].contains("{")) {
                 param.put(paramNames.poll(), requestPathArr[i]);
@@ -294,12 +300,15 @@ public class HandlerFinder {
         if (!requestPath.equals("/")) {
             rootRequestPath += requestPath.split("/")[1];
         }
-        if (!this.handlerClassPath.startsWith("/"))
+        if (!this.handlerClassPath.startsWith("/")) {
             this.handlerClassPath = "/" + this.handlerClassPath;
-        if (rootRequestPath.equals(this.handlerClassPath))
+        }
+        if (rootRequestPath.equals(this.handlerClassPath)) {
             requestPath = replaceRequestPath(requestPath);
-        if (!requestPath.equals("/") && requestPath.endsWith("/"))
+        }
+        if (!requestPath.equals("/") && requestPath.endsWith("/")) {
             requestPath = requestPath.substring(0, requestPath.length() - 1);
+        }
         return requestPath;
     }
 
