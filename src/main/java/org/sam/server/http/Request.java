@@ -21,7 +21,7 @@ import java.util.*;
  */
 public interface Request {
 
-    static HttpRequest create(InputStream in) {
+    static Request of(InputStream in) {
         return new UrlParser(in).createRequest();
     }
 
@@ -495,10 +495,10 @@ public interface Request {
 
         /**
          * HttpRequest 혹은 HttpMultipartRequest 인스턴스를 생성합니다.
-         * 
+         *
          * @return 요청 인스턴스
          * */
-        public HttpRequest createRequest() {
+        public Request createRequest() {
             if (this.headers.isEmpty()) return null;
             Map<String, String> headers = this.headers;
             HttpMethod method = this.method;

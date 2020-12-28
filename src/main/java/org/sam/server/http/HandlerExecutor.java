@@ -23,17 +23,17 @@ import java.util.*;
  * */
 public class HandlerExecutor {
 
-    private final HttpResponse httpResponse;
+    private final Request request;
 
-    private final HttpRequest httpRequest;
+    private final Response response;
 
     private final HandlerInfo handlerInfo;
 
     private final Gson gson;
     
-    private HandlerExecutor(HttpRequest httpRequest, HttpResponse httpResponse, HandlerInfo handlerInfo) {
-        this.httpRequest = httpRequest;
-        this.httpResponse = httpResponse;
+    private HandlerExecutor(Request request, Response response, HandlerInfo handlerInfo) {
+        this.request = request;
+        this.response = response;
         this.handlerInfo = handlerInfo;
         this.gson = new Gson();
     }
@@ -41,13 +41,13 @@ public class HandlerExecutor {
     /**
      * 인스턴스를 생성합니다.
      * 
-     * @param httpRequest 요청 인스턴스
-     * @param httpResponse 응답 인스턴스
+     * @param request 요청 인스턴스
+     * @param response 응답 인스턴스
      * @param handlerInfo 핸들러 정보
      * @return 인스턴스
      * */
-    static HandlerExecutor of(HttpRequest httpRequest, HttpResponse httpResponse, HandlerInfo handlerInfo) {
-        return new HandlerExecutor(httpRequest, httpResponse, handlerInfo);
+    static HandlerExecutor create(Request request, Response response, HandlerInfo handlerInfo) {
+        return new HandlerExecutor(request, response, handlerInfo);
     }
 
     /**
@@ -56,7 +56,7 @@ public class HandlerExecutor {
     void execute() {
         setCrossOriginConfig();
         try {
-            Map<String, String> requestData = httpRequest.getParameters();
+            Map<String, String> requestData = request.getParameters();
             List<Interceptor> interceptors = BeanContainer.getInterceptors();
             Object returnValue;
             HttpStatus httpStatus;
@@ -74,11 +74,11 @@ public class HandlerExecutor {
                 httpStatus = HttpStatus.OK;
             }
             String json = gson.toJson(returnValue);
-            httpResponse.setContentMimeType(ContentType.APPLICATION_JSON);
-            httpResponse.execute(json, httpStatus);
+            response.setContentMimeType(ContentType.APPLICATION_JSON);
+            response.execute(json, httpStatus);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
-            httpResponse.badRequest();
+            response.badRequest();
         }
     }
 
@@ -87,7 +87,7 @@ public class HandlerExecutor {
      * */
     private void setCrossOriginConfig() {
         Class<?> handlerClass = this.handlerInfo.getInstance().getClass();
-        String origin = httpRequest.getHeader("origin");
+        String origin = request.getHeader("origin");
         if (origin != null) {
             setAccessControlAllowOriginHeader(handlerClass, origin);
         }
@@ -105,9 +105,9 @@ public class HandlerExecutor {
             String[] value = crossOrigin.value();
             List<String> allowPaths = Arrays.asList(value);
             if (allowPaths.contains("*")) {
-                httpResponse.setHeader("Access-Control-Allow-Origin", "*");
+                response.setHeader("Access-Control-Allow-Origin", "*");
             } else if (allowPaths.contains(origin)) {
-                httpResponse.setHeader("Access-Control-Allow-Origin", origin);
+                response.setHeader("Access-Control-Allow-Origin", origin);
             }
         }
     }
@@ -122,9 +122,9 @@ public class HandlerExecutor {
     private Object executeInterceptors(List<Interceptor> interceptors, Map<String, String> requestData) {
         Object returnValue = null;
         for (Interceptor interceptor : interceptors) {
-            interceptor.preHandler(httpRequest, httpResponse);
+            interceptor.preHandler(request, response);
             returnValue = executeHandler(requestData);
-            interceptor.postHandler(httpRequest, httpResponse);
+            interceptor.postHandler(request, response);
         }
         return returnValue;
     }
@@ -174,11 +174,11 @@ public class HandlerExecutor {
         Object value = requestData.get(name);
         Class<?> type = handlerParameter.getType();
         if (HttpRequest.class.isAssignableFrom(type)) {
-            inputParameter.add(httpRequest);
+            inputParameter.add(request);
             return;
         }
         if (HttpResponse.class.equals(type)) {
-            inputParameter.add(httpResponse);
+            inputParameter.add(response);
             return;
         }
         if (Session.class.equals(type)) {
@@ -186,7 +186,7 @@ public class HandlerExecutor {
             return;
         }
         if (handlerParameter.getDeclaredAnnotation(JsonRequest.class) != null) {
-            Object object = Converter.jsonToObject(httpRequest.getJson(), type);
+            Object object = Converter.jsonToObject(request.getJson(), type);
             inputParameter.add(object);
             return;
         }
@@ -194,7 +194,7 @@ public class HandlerExecutor {
         if (value != null) {
             object = setParameter(value, type);
         } else {
-            object = Converter.parameterToObject(httpRequest.getParameters(), type);
+            object = Converter.parameterToObject(request.getParameters(), type);
         }
         inputParameter.add(object);
     }
@@ -225,10 +225,10 @@ public class HandlerExecutor {
      * @param params 핸들러의 파라미터 목록
      * */
     private void addSession(List<Object> params) {
-        Set<Cookie> cookies = httpRequest.getCookies();
+        Set<Cookie> cookies = request.getCookies();
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals("sessionId")) {
-                Session session = httpRequest.getSession();
+                Session session = request.getSession();
                 if (session != null) {
                     session.renewAccessTime();
                     params.add(session);

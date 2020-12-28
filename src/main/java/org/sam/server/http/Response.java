@@ -1,5 +1,7 @@
 package org.sam.server.http;
 
+import org.sam.server.constant.ContentType;
+import org.sam.server.constant.HttpMethod;
 import org.sam.server.constant.HttpStatus;
 
 /**
@@ -18,4 +20,23 @@ public interface Response {
      * */
     void execute(String pathOrJson, HttpStatus status);
 
+    void responseFavicon();
+
+    void responseStaticResources();
+
+    void notFound();
+
+    void badRequest();
+
+    void methodNotAllowed();
+
+    void setHeader(String key, String value);
+
+    void setContentMimeType(ContentType contentMimeType);
+
+    void executeOptionsResponse();
+
+    void responseIndexFile();
+
+    void addAllowedMethod(HttpMethod httpMethod);
 }

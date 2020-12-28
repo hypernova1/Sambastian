@@ -75,7 +75,7 @@ public class HttpResponse implements Response {
      * @param requestMethod 요청 HTTP Method
      * @return HttpResponse 인스턴스
      * */
-    static HttpResponse create(OutputStream os, String requestPath, HttpMethod requestMethod) {
+    static Response of(OutputStream os, String requestPath, HttpMethod requestMethod) {
         return new HttpResponse(os, requestPath, requestMethod);
     }
 
@@ -336,7 +336,7 @@ public class HttpResponse implements Response {
      * 
      * @see #execute(String, HttpStatus) 
      * */
-    protected void responseStaticResources() {
+    public void responseStaticResources() {
         String filePath = requestPath.replace("/resources", "/resources/static");
         execute(filePath, HttpStatus.OK);
     }
@@ -346,7 +346,7 @@ public class HttpResponse implements Response {
      * 
      * @see #execute(String, HttpStatus) 
      * */
-    protected void notFound() {
+    public void notFound() {
         logger.warn("File " + requestPath + " not found");
         execute(NOT_FOUND, HttpStatus.NOT_FOUND);
     }
@@ -356,7 +356,7 @@ public class HttpResponse implements Response {
      * 
      * @see #execute(String, HttpStatus) 
      * */
-    protected void badRequest() {
+    public void badRequest() {
         logger.warn("Bad Request");
         execute(BAD_REQUEST, HttpStatus.BAD_REQUEST);
     }
@@ -366,7 +366,7 @@ public class HttpResponse implements Response {
      * 
      * @see #execute(String, HttpStatus)
      * */
-    protected void methodNotAllowed() {
+    public void methodNotAllowed() {
         logger.warn("Method Not Allowed");
         execute(METHOD_NOT_ALLOWED, HttpStatus.METHOD_NOT_ALLOWED);
     }
@@ -376,7 +376,7 @@ public class HttpResponse implements Response {
      *
      * @see #execute(String, HttpStatus)
      * */
-    protected void responseIndexFile() {
+    public void responseIndexFile() {
         if (this.requestPath.endsWith("/"))
             filePath = DEFAULT_FILE;
         this.contentMimeType = ContentType.TEXT_HTML.getValue();
@@ -388,7 +388,7 @@ public class HttpResponse implements Response {
      *
      * @see #execute(String, HttpStatus)
      * */
-    protected void responseFavicon() throws ResourcesNotFoundException {
+    public void responseFavicon() throws ResourcesNotFoundException {
         filePath = FAVICON;
         this.contentMimeType = ContentType.X_ICON.getValue();
         execute(filePath, HttpStatus.OK);

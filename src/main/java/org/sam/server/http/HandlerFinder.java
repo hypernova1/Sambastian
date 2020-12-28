@@ -25,9 +25,9 @@ import java.util.regex.Pattern;
  */
 public class HandlerFinder {
 
-    private final HttpRequest httpRequest;
+    private final Request request;
 
-    private final HttpResponse httpResponse;
+    private final Response response;
 
     private final List<Method> pathValueHandlerMethods = new ArrayList<>();
 
@@ -37,16 +37,16 @@ public class HandlerFinder {
 
     private boolean isExistPath;
 
-    private HandlerFinder(HttpRequest httpRequest, HttpResponse httpResponse) {
-        this.httpRequest = httpRequest;
-        this.httpResponse = httpResponse;
+    private HandlerFinder(Request request, Response response) {
+        this.request = request;
+        this.response = response;
     }
 
     /**
      * 인스턴스를 생성합니다.
      * */
-    public static HandlerFinder of(HttpRequest httpRequest, HttpResponse httpResponse) {
-        return new HandlerFinder(httpRequest, httpResponse);
+    public static HandlerFinder create(Request request, Response response) {
+        return new HandlerFinder(request, response);
     }
 
     /**
@@ -63,19 +63,13 @@ public class HandlerFinder {
             classifyHandlers(handlerType);
             this.handlerClassPath = handlerType.getDeclaredAnnotation(Handler.class).value();
             Method handlerMethod = findHandlerMethod();
-            if (handlerMethod != null)
+            if (handlerMethod != null) {
                 return new HandlerInfo(handlerInstance, handlerMethod);
+            }
         }
-        if (isIndexFileRequest()) {
-            httpResponse.responseIndexFile();
-            return null;
-        }
-        if (httpRequest.getMethod().equals(HttpMethod.OPTIONS)) {
-            httpResponse.executeOptionsResponse();
-            return null;
-        }
+
         if (isExistPath) {
-            httpResponse.methodNotAllowed();
+            response.methodNotAllowed();
         }
         throw new HandlerNotFoundException();
     }
@@ -181,7 +175,7 @@ public class HandlerFinder {
             Method pathPropertyInAnnotation = handlerAnnotationType.getDeclaredMethod("value");
             String path = pathPropertyInAnnotation.invoke(handlerMethodDeclaredAnnotation).toString();
             if (!path.startsWith("/")) path = "/" + path;
-            if (requestPath.equals(httpRequest.getPath())) {
+            if (requestPath.equals(request.getPath())) {
                 path = this.handlerClassPath + path;
             }
             String method = methodPropertyInAnnotation.invoke(handlerMethodDeclaredAnnotation).toString();
@@ -203,7 +197,7 @@ public class HandlerFinder {
      * @return 일치 여부
      * */
     private boolean compareMethodAndPath(String requestPath, Method handlerMethod, String path, String method) {
-        HttpMethod httpMethod = httpRequest.getMethod();
+        HttpMethod httpMethod = request.getMethod();
         boolean containPathValue = findPathValueAnnotation(handlerMethod);
         boolean isSamePath = requestPath.equals(path);
         if (isSamePath) {
@@ -214,12 +208,12 @@ public class HandlerFinder {
         }
         boolean isOptionsRequest = httpMethod.equals(HttpMethod.OPTIONS);
         if (isSamePath && isOptionsRequest) {
-            httpResponse.addAllowedMethod(HttpMethod.get(method));
+            response.addAllowedMethod(HttpMethod.get(method));
         }
         boolean isHeadRequest = httpMethod.equals(HttpMethod.HEAD) && HttpMethod.GET.toString().equals(method);
         if (!isOptionsRequest && isSamePath && httpMethod.equals(HttpMethod.get(method)) || isHeadRequest) {
             if (handlerMethod.getDeclaredAnnotation(RestApi.class) != null)
-                this.httpResponse.setContentMimeType(ContentType.APPLICATION_JSON);
+                this.response.setContentMimeType(ContentType.APPLICATION_JSON);
             return true;
         }
         return false;
@@ -285,7 +279,7 @@ public class HandlerFinder {
                 return false;
             }
         }
-        httpRequest.getParameters().putAll(param);
+        request.getParameters().putAll(param);
         return true;
     }
 
@@ -295,7 +289,7 @@ public class HandlerFinder {
      * @return 수정된 요청 URL
      * */
     private String getRequestPath() {
-        String requestPath = httpRequest.getPath();
+        String requestPath = request.getPath();
         String rootRequestPath = "/";
         if (!requestPath.equals("/")) {
             rootRequestPath += requestPath.split("/")[1];
@@ -320,10 +314,6 @@ public class HandlerFinder {
         requestPath = requestPath.substring(index + this.handlerClassPath.length());
         if (!requestPath.startsWith("/")) requestPath = "/" + requestPath;
         return requestPath;
-    }
-
-    private boolean isIndexFileRequest() {
-        return this.httpRequest.getPath().equals("/") && this.httpRequest.getMethod().equals(HttpMethod.GET);
     }
 
     private boolean isHandleMethod(Annotation annotation) {

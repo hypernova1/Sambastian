@@ -1,5 +1,6 @@
 package org.sam.server.http;
 
+import org.sam.server.constant.HttpMethod;
 import org.sam.server.context.HandlerInfo;
 import org.sam.server.exception.HandlerNotFoundException;
 
@@ -22,10 +23,12 @@ public class HttpLauncher {
      * */
     static void execute(Socket connect) {
         try {
-            HttpRequest httpRequest = Request.create(connect.getInputStream());
-            if (httpRequest == null) return;
-            HttpResponse httpResponse = HttpResponse.create(connect.getOutputStream(), httpRequest.getPath(), httpRequest.getMethod());
-            findHandler(httpRequest, httpResponse);
+            Request request = Request.of(connect.getInputStream());
+            if (isEmptyRequest(request)) {
+                return;
+            }
+            Response response = HttpResponse.of(connect.getOutputStream(), request.getPath(), request.getMethod());
+            findHandler(request, response);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -34,35 +37,59 @@ public class HttpLauncher {
     /**
      * 요청 URL을 읽어 핸들러를 찾을지 정적 자원을 찾을지 분기합니다.
      * 
-     * @param httpRequest 요청 인스턴스
-     * @param httpResponse 응답 인스턴스
+     * @param request 요청 인스턴스
+     * @param response 응답 인스턴스
      * @throws IOException 핸들러를 찾지 못 했을 시
      * */
-    private static void findHandler(HttpRequest httpRequest, HttpResponse httpResponse) throws IOException {
-        if (isFaviconRequest(httpRequest)) {
-            httpResponse.responseFavicon();
+    private static void findHandler(Request request, Response response) throws IOException {
+        if (isFaviconRequest(request)) {
+            response.responseFavicon();
             return;
         }
-        if (isResourceRequest(httpRequest)) {
-            httpResponse.responseStaticResources();
+        if (isResourceRequest(request)) {
+            response.responseStaticResources();
+            return;
+        }
+
+        if (isIndexRequest(request)) {
+            response.responseIndexFile();
+            return;
+        }
+
+        if (isOptionsRequest(request)) {
+            response.executeOptionsResponse();
             return;
         }
 
         try {
-            HandlerInfo handlerInfo = HandlerFinder.of(httpRequest, httpResponse).createHandlerInfo();
-            if (handlerInfo == null) return;
-            HandlerExecutor.of(httpRequest, httpResponse, handlerInfo).execute();
+            HandlerFinder handlerFinder = HandlerFinder.create(request, response);
+            HandlerInfo handlerInfo = handlerFinder.createHandlerInfo();
+            HandlerExecutor handlerExecutor = HandlerExecutor.create(request, response, handlerInfo);
+            handlerExecutor.execute();
         } catch (HandlerNotFoundException e) {
-            httpResponse.notFound();
+            response.notFound();
             throw new IOException(e);
         }
     }
 
-    private static boolean isFaviconRequest(HttpRequest httpRequest) {
-        return httpRequest.getPath().equals("/favicon.ico");
+    private static boolean isIndexRequest(Request request) {
+        return request.getPath().equals("/") && request.getMethod().equals(HttpMethod.GET);
     }
 
-    private static boolean isResourceRequest(HttpRequest httpRequest) {
-        return httpRequest.getPath().startsWith("/resources");
+    private static boolean isFaviconRequest(Request request) {
+        return request.getPath().equals("/favicon.ico");
     }
+
+    private static boolean isResourceRequest(Request request) {
+        return request.getPath().startsWith("/resources");
+    }
+
+    private static boolean isEmptyRequest(Request request) {
+        return request == null;
+    }
+
+    private static boolean isOptionsRequest(Request request) {
+        return request.getMethod().equals(HttpMethod.OPTIONS);
+    }
+
 }
