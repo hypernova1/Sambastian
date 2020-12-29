@@ -24,9 +24,13 @@ public class HttpResponse implements Response {
     private static final Logger logger = LoggerFactory.getLogger(HttpResponse.class);
 
     private static final String DEFAULT_FILE = "static/index.html";
+
     private static final String BAD_REQUEST = "static/400.html";
+
     private static final String NOT_FOUND = "static/404.html";
+
     private static final String FAVICON = "favicon.ico";
+
     private static final String METHOD_NOT_ALLOWED = "static/method_not_allowed.html";
 
     private final static String BUFFER_SIZE_PROPERTY = ServerProperties.get("file-buffer-size");
@@ -108,6 +112,84 @@ public class HttpResponse implements Response {
         }
     }
 
+    @Override
+    public void setContentMimeType(ContentType contentMimeType) {
+        this.contentMimeType = contentMimeType.getValue();
+    }
+
+    @Override
+    public void addCookies(Cookie cookie) {
+        this.cookies.add(cookie);
+    }
+
+    @Override
+    public void setHeader(String key, String value) {
+        this.headers.put(key, value);
+    }
+
+    @Override
+    public Object getHeader(String key) {
+        return headers.get(key);
+    }
+
+    @Override
+    public Set<String> getHeaderNames() {
+        return headers.keySet();
+    }
+
+    @Override
+    public void staticResources() {
+        String filePath = requestPath.replace("/resources", "/resources/static");
+        execute(filePath, HttpStatus.OK);
+    }
+
+    @Override
+    public void notFound() {
+        logger.warn("File " + requestPath + " not found");
+        execute(NOT_FOUND, HttpStatus.NOT_FOUND);
+    }
+
+    @Override
+    public void badRequest() {
+        logger.warn("Bad Request");
+        execute(BAD_REQUEST, HttpStatus.BAD_REQUEST);
+    }
+
+    @Override
+    public void methodNotAllowed() {
+        logger.warn("Method Not Allowed");
+        execute(METHOD_NOT_ALLOWED, HttpStatus.METHOD_NOT_ALLOWED);
+    }
+
+    @Override
+    public void indexFile() {
+        if (this.requestPath.endsWith("/"))
+            filePath = DEFAULT_FILE;
+        this.contentMimeType = ContentType.TEXT_HTML.getValue();
+        execute(filePath, HttpStatus.OK);
+    }
+
+    @Override
+    public void favicon() throws ResourcesNotFoundException {
+        filePath = FAVICON;
+        this.contentMimeType = ContentType.X_ICON.getValue();
+        execute(filePath, HttpStatus.OK);
+    }
+
+    @Override
+    public void addAllowedMethod(HttpMethod httpMethod) {
+        this.allowedMethods.add(httpMethod);
+    }
+
+    @Override
+    public void allowedMethods() {
+        if (allowedMethods.isEmpty()) {
+            this.notFound();
+            return;
+        }
+        this.execute(null, HttpStatus.OK);
+    }
+
     /**
      * 정적 자원의 경로를 받아 파일을 읽습니다. 파일이 존재하지 않으면 notFound 메서드를 호출합니다.
      *
@@ -115,7 +197,7 @@ public class HttpResponse implements Response {
      * @return 파일의 길이
      * @see #notFound()
      * @see #readFileData(File)
-     * @see #writeStaticFile(InputStream)  
+     * @see #readStaticResources(InputStream)
      * */
     private long readStaticResource(String filePath) {
         InputStream fis = Thread.currentThread().getContextClassLoader().getResourceAsStream(filePath);
@@ -134,7 +216,7 @@ public class HttpResponse implements Response {
                 fileLength = readFileData(staticFile);
             } else {
                 assert fis != null;
-                fileLength = writeStaticFile(fis);
+                fileLength = readStaticResources(fis);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -149,7 +231,7 @@ public class HttpResponse implements Response {
      * @return 파일의 길이
      * @throws IOException 파일을 읽다가 오류 발생시
      * */
-    private long writeStaticFile(InputStream fis) throws IOException {
+    private long readStaticResources(InputStream fis) throws IOException {
         long fileLength = 0;
         int i;
         while ((i = fis.read()) != -1) {
@@ -231,6 +313,22 @@ public class HttpResponse implements Response {
     }
 
     /**
+     * 조건에 따라 미디어타입을 반환합니다.
+     *
+     * @return 미디어 타입
+     * @see org.sam.server.constant.ContentType
+     * @see org.sam.server.constant.HttpStatus
+     * */
+    private String getContentMimeType() {
+        if (contentMimeType != null) return contentMimeType;
+        if (isHtmlResponse()) return ContentType.TEXT_HTML.getValue();
+        if (requestPath.endsWith(".css")) return ContentType.CSS.getValue();
+        if (requestPath.endsWith(".js")) return ContentType.JAVASCRIPT.getValue();
+
+        return ContentType.TEXT_PLAIN.getValue();
+    }
+
+    /**
      * 쿠키에 대한 정보를 OutputStream에 씁니다.
      *
      * @see org.sam.server.http.Cookie
@@ -256,32 +354,6 @@ public class HttpResponse implements Response {
     }
 
     /**
-     * 응답할 미디어 타입을 설정합니다.
-     *
-     * @param contentMimeType 미디어 타입
-     * @see org.sam.server.constant.ContentType
-     * */
-    public void setContentMimeType(ContentType contentMimeType) {
-        this.contentMimeType = contentMimeType.getValue();
-    }
-
-    /**
-     * 조건에 따라 미디어타입을 반환합니다.
-     *
-     * @return 미디어 타입
-     * @see org.sam.server.constant.ContentType
-     * @see org.sam.server.constant.HttpStatus
-     * */
-    public String getContentMimeType() {
-        if (contentMimeType != null) return contentMimeType;
-        if (isHtmlResponse()) return ContentType.TEXT_HTML.getValue();
-        if (requestPath.endsWith(".css")) return ContentType.CSS.getValue();
-        if (requestPath.endsWith(".js")) return ContentType.JAVASCRIPT.getValue();
-
-        return ContentType.TEXT_PLAIN.getValue();
-    }
-
-    /**
      * 응답할 MIME 형식이 HTML인지 확인합니다
      *
      * @return HTML 여부
@@ -291,131 +363,4 @@ public class HttpResponse implements Response {
                 httpStatus.equals(HttpStatus.NOT_IMPLEMENTED) || this.requestPath.endsWith(".html");
     }
 
-    /**
-     * 쿠키 정보를 추가합니다.
-     *
-     * @param cookie 추가할 쿠키
-     * @see org.sam.server.http.Cookie
-     * */
-    public void addCookies(Cookie cookie) {
-        this.cookies.add(cookie);
-    }
-
-    /**
-     * 헤더 정보를 추가합니다.
-     *
-     * @param key 헤더명
-     * @param value 헤더값
-     * @see org.sam.server.constant.HttpHeader
-     * */
-    public void setHeader(String key, String value) {
-        this.headers.put(key, value);
-    }
-
-    /**
-     * 헤더 정보를 반환합니다.
-     *
-     * @param key 헤더명
-     * @return 헤더
-     * @see org.sam.server.constant.HttpHeader
-     * */
-    public Object getHeader(String key) {
-        return headers.get(key);
-    }
-
-    /**
-     * 모든 헤더의 이름을 반환합니다.
-     *
-     * @return 헤더 이름 리스트
-     * @see org.sam.server.constant.HttpHeader
-     * */
-    public Set<String> getHeaderNames() {
-        return headers.keySet();
-    }
-
-    /**
-     * 정적 자원에 대한 처리를 합니다.
-     * 
-     * @see #execute(String, HttpStatus) 
-     * */
-    public void responseStaticResources() {
-        String filePath = requestPath.replace("/resources", "/resources/static");
-        execute(filePath, HttpStatus.OK);
-    }
-
-    /**
-     * 찾는 정적 자원이 존재하지 않을시 처리합니다.
-     * 
-     * @see #execute(String, HttpStatus) 
-     * */
-    public void notFound() {
-        logger.warn("File " + requestPath + " not found");
-        execute(NOT_FOUND, HttpStatus.NOT_FOUND);
-    }
-
-    /**
-     * 잘못된 요청에 대한 처리를 합니다.
-     * 
-     * @see #execute(String, HttpStatus) 
-     * */
-    public void badRequest() {
-        logger.warn("Bad Request");
-        execute(BAD_REQUEST, HttpStatus.BAD_REQUEST);
-    }
-
-    /**
-     * 요청한 URL이 일치하는 핸들러는 있지만 HTTP Method가 일치하지 않을 때에 대한 처리를 합니다.
-     * 
-     * @see #execute(String, HttpStatus)
-     * */
-    public void methodNotAllowed() {
-        logger.warn("Method Not Allowed");
-        execute(METHOD_NOT_ALLOWED, HttpStatus.METHOD_NOT_ALLOWED);
-    }
-
-    /**
-     * 루트 경로의 요청을 처리합니다.
-     *
-     * @see #execute(String, HttpStatus)
-     * */
-    public void responseIndexFile() {
-        if (this.requestPath.endsWith("/"))
-            filePath = DEFAULT_FILE;
-        this.contentMimeType = ContentType.TEXT_HTML.getValue();
-        execute(filePath, HttpStatus.OK);
-    }
-
-    /**
-     * 파비콘에 대한 요청을 처리 합니다.
-     *
-     * @see #execute(String, HttpStatus)
-     * */
-    public void responseFavicon() throws ResourcesNotFoundException {
-        filePath = FAVICON;
-        this.contentMimeType = ContentType.X_ICON.getValue();
-        execute(filePath, HttpStatus.OK);
-    }
-
-    /**
-     * OPTION Method으로 요청이 왔을 시 해당 URL로 사용할 수 있는 HttpMethod를 추가합니다.
-     *
-     * @param httpMethod 추가할 HTTP Method
-     * @see org.sam.server.constant.HttpMethod
-     * */
-    public void addAllowedMethod(HttpMethod httpMethod) {
-        this.allowedMethods.add(httpMethod);
-    }
-
-    /**
-     * OPTION Method에 대한 요청을 처리합니다.
-     * 
-     * @see #execute(String, HttpStatus)
-     * */
-    public void executeOptionsResponse() {
-        if (allowedMethods.isEmpty()) {
-            this.notFound();
-            return;
-        }
-        this.execute(null, HttpStatus.OK);
-    }
 }

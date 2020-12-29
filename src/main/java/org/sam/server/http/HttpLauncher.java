@@ -43,21 +43,21 @@ public class HttpLauncher {
      * */
     private static void findHandler(Request request, Response response) throws IOException {
         if (isFaviconRequest(request)) {
-            response.responseFavicon();
+            response.favicon();
             return;
         }
         if (isResourceRequest(request)) {
-            response.responseStaticResources();
+            response.staticResources();
             return;
         }
 
         if (isIndexRequest(request)) {
-            response.responseIndexFile();
+            response.indexFile();
             return;
         }
 
         if (isOptionsRequest(request)) {
-            response.executeOptionsResponse();
+            response.allowedMethods();
             return;
         }
 

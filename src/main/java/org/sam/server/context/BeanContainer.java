@@ -3,6 +3,7 @@ package org.sam.server.context;
 import org.sam.server.annotation.Qualifier;
 import org.sam.server.annotation.component.Bean;
 import org.sam.server.exception.BeanAccessModifierException;
+import org.sam.server.exception.BeanCreationException;
 import org.sam.server.exception.BeanNotFoundException;
 import org.sam.server.http.Interceptor;
 import org.slf4j.Logger;
@@ -48,7 +49,6 @@ public class BeanContainer {
             String beanName = getBeanName(componentClass);
             if (!isDuplicated(beanName, componentClass)) {
                 Object componentInstance = createComponentInstance(componentClass);
-                assert componentInstance != null;
                 Method[] declaredMethods = componentInstance.getClass().getDeclaredMethods();
                 loadMethodBean(componentInstance, declaredMethods);
                 addBeanMap(componentClass, componentInstance, beanName);
@@ -131,20 +131,34 @@ public class BeanContainer {
         Constructor<?>[] constructors = clazz.getConstructors();
         try {
             Constructor<?> constructor = getDefaultConstructor(clazz, constructors);
-            Parameter[] parameters = constructor.getParameters();
-            List<Object> parameterList = createParameters(parameters);
-            if (isEqualsParameterSize(parameters.length, parameterList.size())) {
-                int differenceCount = parameters.length - parameterList.size();
-                for (int i = 0; i < differenceCount; i++) {
-                    parameterList.add(null);
-                }
+            Parameter[] constructorParameters = constructor.getParameters();
+            List<Object> createdParameters = createParameters(constructorParameters);
+            int differenceNumber = constructorParameters.length - createdParameters.size();
+            if (differenceNumber < 0) {
+                throw new BeanCreationException(clazz);
             }
-            return constructor.newInstance(parameterList.toArray());
-
+            if (differenceNumber != 0) {
+                injectNull(createdParameters, differenceNumber);
+            }
+            return constructor.newInstance(createdParameters.toArray());
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
-        return null;
+
+        throw new BeanCreationException(clazz);
+    }
+
+    /**
+     * 모자란 파라미터 개수만큼 null을 주입합니다.
+     *
+     * @param createdParameters 주입할 파라미터
+     * @param differenceNumber 모자란 파라미터 개수
+     * @param 클래스 타입
+     * */
+    private static void injectNull(List<Object> createdParameters, int differenceNumber) {
+        for (int i = 0; i < differenceNumber; i++) {
+            createdParameters.add(null);
+        }
     }
 
     /**
@@ -288,14 +302,4 @@ public class BeanContainer {
         return constructors[0];
     }
 
-    /**
-     * 생성된 파라미터 리스트와 해당 메서드의 파라미터의 개수가 일치하는 지 확인합니다.
-     *
-     * @param constructorParamSize 생성자의 파라미터 개수
-     * @param createParamSize 생성된 파라미터 개수
-     * @return 일치 여부
-     * */
-    private static boolean isEqualsParameterSize(int constructorParamSize, int createParamSize) {
-        return constructorParamSize > createParamSize;
-    }
 }
