@@ -1,8 +1,11 @@
-package org.sam.server.http;
+package org.sam.server.http.context;
 
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.context.HandlerInfo;
 import org.sam.server.exception.HandlerNotFoundException;
+import org.sam.server.http.web.HttpResponse;
+import org.sam.server.http.web.Request;
+import org.sam.server.http.web.Response;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -11,8 +14,8 @@ import java.net.Socket;
  * Request, Response 인스턴스를 만들고 HTTP 요청을 분기합니다.
  *
  * @author hypernova1
- * @see org.sam.server.http.Request
- * @see org.sam.server.http.Response
+ * @see Request
+ * @see Response
  */
 public class HttpLauncher {
 
@@ -21,7 +24,7 @@ public class HttpLauncher {
      * 
      * @param connect 소켓
      * */
-    static void execute(Socket connect) {
+    public static void execute(Socket connect) {
         try {
             Request request = Request.of(connect.getInputStream());
             if (isEmptyRequest(request)) {

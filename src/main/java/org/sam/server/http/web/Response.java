@@ -1,8 +1,9 @@
-package org.sam.server.http;
+package org.sam.server.http.web;
 
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.constant.HttpStatus;
+import org.sam.server.http.Cookie;
 
 import java.util.Set;
 

@@ -66,8 +66,9 @@ public class BeanFactory {
                 .orElseGet(() -> getMatchType(classes, type));
         List<BeanInfo> beanInfos = BeanContainer.getBeanMap().get(beanType);
         List<Object> result = new ArrayList<>();
-        beanInfos.forEach(beanInfo -> result.add(beanInfo.getInstance()));
-
+        for (BeanInfo beanInfo : beanInfos) {
+            result.add(beanInfo.getInstance());
+        }
         return result;
     }
 

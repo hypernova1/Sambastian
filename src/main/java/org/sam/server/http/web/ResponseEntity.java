@@ -1,4 +1,4 @@
-package org.sam.server.http;
+package org.sam.server.http.web;
 
 import org.sam.server.constant.HttpStatus;
 

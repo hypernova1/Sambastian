@@ -1,10 +1,12 @@
-package org.sam.server.http;
+package org.sam.server.http.web;
 
 import org.sam.server.common.ServerProperties;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.constant.HttpStatus;
 import org.sam.server.exception.ResourcesNotFoundException;
+import org.sam.server.http.Cookie;
+import org.sam.server.http.CookieStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +83,7 @@ public class HttpResponse implements Response {
      * @param requestMethod 요청 HTTP Method
      * @return HttpResponse 인스턴스
      * */
-    static Response of(OutputStream os, String requestPath, HttpMethod requestMethod) {
+    public static Response of(OutputStream os, String requestPath, HttpMethod requestMethod) {
         return new HttpResponse(os, requestPath, requestMethod);
     }
 
@@ -302,12 +304,16 @@ public class HttpResponse implements Response {
 
         if (requestMethod.equals(HttpMethod.OPTIONS) && allowedMethods.size() > 0) {
             StringJoiner stringJoiner = new StringJoiner(", ");
-            allowedMethods.forEach(allowedMethod -> stringJoiner.add(allowedMethod.toString()));
+            for (HttpMethod allowedMethod : allowedMethods) {
+                stringJoiner.add(allowedMethod.toString());
+            }
             headers.put("Allow", stringJoiner.toString());
         }
 
         writer.print("HTTP/1.1 " + httpStatus.getCode() + " " + httpStatus.getMessage() + "\r\n");
-        headers.keySet().forEach(key -> writer.print(key + ": " + headers.get(key) + "\r\n"));
+        for (String key : headers.keySet()) {
+            writer.print(key + ": " + headers.get(key) + "\r\n");
+        }
         printCookies();
         writer.print("\r\n");
     }

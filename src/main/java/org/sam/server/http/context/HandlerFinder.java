@@ -1,4 +1,4 @@
-package org.sam.server.http;
+package org.sam.server.http.context;
 
 import org.sam.server.annotation.component.Handler;
 import org.sam.server.annotation.handle.Handle;
@@ -9,6 +9,8 @@ import org.sam.server.constant.HttpMethod;
 import org.sam.server.context.BeanContainer;
 import org.sam.server.context.HandlerInfo;
 import org.sam.server.exception.HandlerNotFoundException;
+import org.sam.server.http.web.Request;
+import org.sam.server.http.web.Response;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -38,7 +40,7 @@ public class HandlerFinder {
 
     private String handlerClassPath;
 
-    private boolean isExistPath;
+    private boolean isExistsPath;
 
     private HandlerFinder(Request request, Response response) {
         this.request = request;
@@ -71,7 +73,7 @@ public class HandlerFinder {
             }
         }
 
-        if (isExistPath) {
+        if (isExistsPath) {
             response.methodNotAllowed();
         }
         throw new HandlerNotFoundException();
@@ -210,7 +212,7 @@ public class HandlerFinder {
         boolean containPathValue = isExistsPathValueAnnotation(handlerMethod);
         boolean isSamePath = requestPath.equals(path);
         if (isSamePath) {
-            this.isExistPath = true;
+            this.isExistsPath = true;
         }
         if (containPathValue) {
             isSamePath = findPathValueHandler(requestPath, path, isSamePath);

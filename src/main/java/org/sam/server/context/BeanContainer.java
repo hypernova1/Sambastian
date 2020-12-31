@@ -45,7 +45,7 @@ public class BeanContainer {
      * 컴포넌트 클래스의 인스턴스를 생성하고 저장합니다.
      * */
     private static void loadComponentBeans() {
-        componentClasses.forEach(componentClass  -> {
+        for (Class<?> componentClass : componentClasses) {
             String beanName = getBeanName(componentClass);
             if (!isDuplicated(beanName, componentClass)) {
                 Object componentInstance = createComponentInstance(componentClass);
@@ -53,7 +53,7 @@ public class BeanContainer {
                 loadMethodBean(componentInstance, declaredMethods);
                 addBeanMap(componentClass, componentInstance, beanName);
             }
-        });
+        }
     }
 
     /**
@@ -63,7 +63,7 @@ public class BeanContainer {
      * @param declaredMethods 컴포넌트 클래스에 선언 된 메서드 목록
      * */
     private static void loadMethodBean(Object componentInstance, Method[] declaredMethods) {
-        Arrays.stream(declaredMethods).forEach(declaredMethod -> {
+        for (Method declaredMethod : declaredMethods) {
             if (declaredMethod.getDeclaredAnnotation(Bean.class) != null) {
                 try {
                     Class<?> beanType = declaredMethod.getReturnType();
@@ -74,7 +74,7 @@ public class BeanContainer {
                     throw new BeanAccessModifierException();
                 }
             }
-        });
+        }
     }
 
     /**
@@ -87,38 +87,38 @@ public class BeanContainer {
     private static void addBeanMap(Class<?> componentType, Object componentInstance, String beanName) {
         BeanInfo beanInfo = new BeanInfo(beanName, componentInstance);
         logger.info("create bean: " + beanName + " > " + componentType.getName());
-        if (beanMap.get(componentType) != null)
+        if (beanMap.get(componentType) != null) {
             beanMap.get(componentType).add(beanInfo);
-        else {
-            List<BeanInfo> beanInfoList = new ArrayList<>();
-            beanInfoList.add(beanInfo);
-            beanMap.put(componentType, beanInfoList);
+            return;
         }
+        List<BeanInfo> beanInfoList = new ArrayList<>();
+        beanInfoList.add(beanInfo);
+        beanMap.put(componentType, beanInfoList);
     }
 
     /**
      * 핸들러 클래스의 인스턴스를 생성하고 저장합니다.
      * */
     private static void loadHandlerBeans() {
-        BeanClassLoader.getHandlerClasses().forEach(handlerClass -> {
+        for (Class<?> handlerClass : BeanClassLoader.getHandlerClasses()) {
             Object bean = createComponentInstance(handlerClass);
             logger.info("create handler bean: " + handlerClass.getName());
             handlerBeans.add(bean);
-        });
+        }
     }
 
     /**
      * 인터셉터 구현체 클래스의 인스턴스를 생성하고 저장합니다.
      * */
     private static void loadInterceptor() {
-        BeanClassLoader.getInterceptorClasses().forEach(interceptorClass -> {
+        for (Class<?> interceptorClass : BeanClassLoader.getInterceptorClasses()) {
             try {
                 Interceptor interceptor = (Interceptor) interceptorClass.getDeclaredConstructor().newInstance();
                 interceptors.add(interceptor);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 e.printStackTrace();
             }
-        });
+        }
     }
 
     /**

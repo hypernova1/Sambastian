@@ -1,4 +1,6 @@
-package org.sam.server.http;
+package org.sam.server.http.web;
+
+import org.sam.server.http.web.HttpMultipartRequest;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -8,7 +10,7 @@ import java.io.IOException;
  * multipart/form-data 요청으로 온 파일을 저장하는 클래스입니다.
  *
  * @author hypernova1
- * @see org.sam.server.http.HttpMultipartRequest
+ * @see HttpMultipartRequest
  */
 public class MultipartFile {
 
@@ -18,7 +20,7 @@ public class MultipartFile {
 
     private final byte[] fileData;
 
-    protected MultipartFile(String fileName, String contentType, byte[] fileData) {
+    public MultipartFile(String fileName, String contentType, byte[] fileData) {
         this.fileName = fileName;
         this.contentType = contentType;
         this.fileData = fileData;

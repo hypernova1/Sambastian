@@ -1,7 +1,10 @@
-package org.sam.server.http;
+package org.sam.server.http.web;
 
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
+import org.sam.server.http.Cookie;
+import org.sam.server.http.CookieStore;
+import org.sam.server.http.Session;
 import org.sam.server.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,8 +19,8 @@ import java.util.*;
  * HTTP 요청에 대한 정보를 가지는 클래스입니다.
  *
  * @author hypernova1
- * @see org.sam.server.http.HttpRequest
- * @see org.sam.server.http.HttpMultipartRequest
+ * @see HttpRequest
+ * @see HttpMultipartRequest
  */
 public interface Request {
 
@@ -98,9 +101,9 @@ public interface Request {
     Set<Cookie> getCookies();
 
     /**
-     * 모든 세션을 반환합니다.
+     * 세션을 반환합니다.
      * 
-     * @return 세션 목록
+     * @return 세션
      * */
     Session getSession();
 
@@ -108,9 +111,9 @@ public interface Request {
      * 소켓으로 부터 받은 InputStream을 읽어 Request 인스턴스를 생성하는 클래스입니다.
      *
      * @author hypernova1
-     * @see org.sam.server.http.Request
-     * @see org.sam.server.http.HttpRequest
-     * @see org.sam.server.http.HttpMultipartRequest
+     * @see Request
+     * @see HttpRequest
+     * @see HttpMultipartRequest
      * */
     class UrlParser {
 
@@ -215,22 +218,12 @@ public interface Request {
             while ((i = inputStream.read()) != -1) {
                 char c = (char) i;
                 sb.append(c);
-                if (isCompleteHeader(sb.toString())) {
+                if (isEndOfHeader(sb.toString())) {
                     headersPart = sb.toString().replace("\r\n\r\n", "");
                     break;
                 }
             }
             return headersPart;
-        }
-
-        /**
-         * HTTP 요청이 아닌지 확인합니다.
-         *
-         * @param headersPart 헤더
-         * @return HTTP 요청이 아닌지에 대한 여부
-         * */
-        private boolean isNonHttpRequest(String headersPart) {
-            return headersPart.trim().isEmpty();
         }
 
         /**
@@ -310,12 +303,12 @@ public interface Request {
          * */
         private String parseRequestPath(String requestPath) {
             int index = requestPath.indexOf("?");
-            if (index != -1) {
-                this.path = requestPath.substring(0, index);
-                return requestPath.substring(index + 1);
+            if (index == -1) {
+                this.path = requestPath;
+                return "";
             }
-            this.path = requestPath;
-            return "";
+            this.path = requestPath.substring(0, index);
+            return requestPath.substring(index + 1);
         }
 
         /**
@@ -327,15 +320,15 @@ public interface Request {
         private Map<String, String> parseQuery(String parameters) {
             Map<String, String> map = new HashMap<>();
             String[] rawParameters = parameters.split("&");
-            Arrays.stream(rawParameters).forEach(rawParameter -> {
+            for (String rawParameter : rawParameters) {
                 String[] parameterPair = rawParameter.split("=");
                 String name = parameterPair[0];
                 String value = "";
-                if (parameterPair.length == 2) {
+                if (isExistsParameterValue(parameterPair)) {
                     value = parameterPair[1];
                 }
                 map.put(name, value);
-            });
+            }
             return map;
         }
 
@@ -431,7 +424,7 @@ public interface Request {
          * @param filename 파일 전체 이름
          * @param contentType 미디어 타입
          * @param fileData 파일의 데이터
-         * @see org.sam.server.http.MultipartFile
+         * @see MultipartFile
          * */
         private void createMultipartFile(String name, String filename, String contentType, byte[] fileData) {
             MultipartFile multipartFile = new MultipartFile(filename, contentType, fileData);
@@ -529,9 +522,30 @@ public interface Request {
          * @param data 데이터
          * @return 헤더의 끝인지 여부
          * */
-        private static boolean isCompleteHeader(String data) {
+        private static boolean isEndOfHeader(String data) {
             return data.endsWith("\r\n\r\n");
         }
+
+        /**
+         * 파라미터에 값이 있는지 확인합니다.
+         *
+         * @param parameterPair 파라미터 쌍
+         * @return 파라미터 값 존재 여부
+         * */
+        private boolean isExistsParameterValue(String[] parameterPair) {
+            return parameterPair.length == 2;
+        }
+
+        /**
+         * HTTP 요청이 아닌지 확인합니다.
+         *
+         * @param headersPart 헤더
+         * @return HTTP 요청이 아닌지에 대한 여부
+         * */
+        private boolean isNonHttpRequest(String headersPart) {
+            return headersPart.trim().isEmpty();
+        }
+
     }
 
 }

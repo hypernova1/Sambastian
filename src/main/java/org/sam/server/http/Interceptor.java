@@ -1,5 +1,8 @@
 package org.sam.server.http;
 
+import org.sam.server.http.web.Request;
+import org.sam.server.http.web.Response;
+
 /**
  * 핸들러 전/후로 실행되는 메서드를 가진 인터페이스입니다.
  * 상속 받아 구현하면 핸들러 실행 전/후로 호출 됩니다.

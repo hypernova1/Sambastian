@@ -18,7 +18,7 @@ public class CookieStore {
      * 
      * @return 쿠키 목록
      * */
-    static Set<Cookie> getCookies() {
+    public static Set<Cookie> getCookies() {
         return cookies;
     }
 
@@ -28,7 +28,7 @@ public class CookieStore {
      * @param cookieStr 쿠키 내용
      * @return 쿠키 목록
      * */
-    static Set<Cookie> parseCookie(String cookieStr) {
+    public static Set<Cookie> parseCookie(String cookieStr) {
         String[] cookiePairs = cookieStr.split("; ");
         for (String cookiePairStr : cookiePairs) {
             String[] cookiePair = cookiePairStr.split("=");
@@ -43,7 +43,7 @@ public class CookieStore {
     /**
      * 쿠키 목록을 초기화 합니다.
      * */
-    static void vacateList() {
+    public static void vacateList() {
         cookies = new HashSet<>();
     }
 

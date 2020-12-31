@@ -77,14 +77,14 @@ public class BeanClassLoader {
      * */
     private static void loadComponentClasses(List<Class<?>> classes) {
         List<Class<?>> componentTypes = Arrays.asList(Service.class, Component.class, Repository.class);
-        classes.forEach(clazz -> {
+        for (Class<?> clazz : classes) {
             Annotation[] declaredAnnotations = clazz.getDeclaredAnnotations();
             for (Annotation declaredAnnotation : declaredAnnotations) {
                 if (componentTypes.contains(declaredAnnotation.annotationType())) {
                     componentClasses.add(clazz);
                 }
             }
-        });
+        }
     }
 
     /**
@@ -94,11 +94,11 @@ public class BeanClassLoader {
      * @see org.sam.server.http.Interceptor
      * */
     private static void loadInterceptorClasses(List<Class<?>> classes) {
-        classes.forEach(clazz -> {
-            Class<?>[] interfaces = clazz.getInterfaces();
-            long count = Arrays.stream(interfaces).filter(interfaceType -> interfaceType.equals(Interceptor.class)).count();
-            if (count > 0) interceptorClasses.add(clazz);
-        });
+        for (Class<?> clazz : classes) {
+            if (isInterceptorClass(clazz)) {
+                interceptorClasses.add(clazz);
+            }
+        }
     }
 
     /**
@@ -271,4 +271,16 @@ public class BeanClassLoader {
     private static String getClassName(String fileName) {
         return fileName.substring(0, fileName.length() - 6);
     }
+
+    /**
+     * Interceptor를 구현한 클래스인지 확인합니다.
+     *
+     * @param clazz 클래스 타입
+     * @return Interceptor 구현 여부
+     * */
+    private static boolean isInterceptorClass(Class<?> clazz) {
+        Class<?>[] interfaces = clazz.getInterfaces();
+        return Arrays.asList(interfaces).contains(Interceptor.class);
+    }
+
 }

@@ -1,6 +1,9 @@
-package org.sam.server.http;
+package org.sam.server.http.web;
 
 import org.sam.server.constant.HttpMethod;
+import org.sam.server.http.Cookie;
+import org.sam.server.http.context.HttpServer;
+import org.sam.server.http.Session;
 
 import java.util.Map;
 import java.util.Set;
@@ -9,7 +12,7 @@ import java.util.Set;
  * Request 인터페이스의 구현체입니다. 일반적인 HTTP 요청에 대한 정보를 저장합니다.
  *
  * @author hypernova1
- * @see org.sam.server.http.Request
+ * @see Request
  */
 public class HttpRequest implements Request {
 
@@ -93,7 +96,8 @@ public class HttpRequest implements Request {
     public Session getSession() {
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals("sessionId")) {
-                return HttpServer.SessionManager.getSession(cookie.getValue());
+                return HttpServer.SessionManager.getSession(cookie.getValue())
+                        .orElse(null);
             }
         }
         return new Session();

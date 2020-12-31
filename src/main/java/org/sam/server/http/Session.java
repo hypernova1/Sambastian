@@ -1,5 +1,7 @@
 package org.sam.server.http;
 
+import org.sam.server.http.context.HttpServer;
+
 import java.time.LocalDateTime;
 import java.util.Hashtable;
 import java.util.Map;
@@ -23,7 +25,7 @@ public final class Session {
 
     private final Map<String, Object> attribute = new Hashtable<>();
 
-    Session() {
+    public Session() {
         this.id = UUID.randomUUID().toString();
         this.creationTime = LocalDateTime.now();
         this.accessTime = LocalDateTime.now();
@@ -145,7 +147,7 @@ public final class Session {
     /**
      * 최종 접근 시간을 현재 시간으로 변경합니다.
      * */
-    protected void renewAccessTime() {
+    public void renewAccessTime() {
         this.accessTime = LocalDateTime.now();
     }
 

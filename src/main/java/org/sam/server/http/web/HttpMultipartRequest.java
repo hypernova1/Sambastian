@@ -1,6 +1,7 @@
-package org.sam.server.http;
+package org.sam.server.http.web;
 
 import org.sam.server.constant.HttpMethod;
+import org.sam.server.http.Cookie;
 
 import java.util.*;
 
@@ -8,7 +9,7 @@ import java.util.*;
  * Multipart 요청에 대한 클래스
  *
  * @author hypernova1
- * @see org.sam.server.http.HttpRequest
+ * @see HttpRequest
  */
 public class HttpMultipartRequest extends HttpRequest {
 

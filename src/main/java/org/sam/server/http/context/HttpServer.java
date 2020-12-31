@@ -1,7 +1,8 @@
-package org.sam.server.http;
+package org.sam.server.http.context;
 
 import org.sam.server.common.ServerProperties;
 import org.sam.server.context.BeanContainer;
+import org.sam.server.http.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,8 +22,8 @@ import java.util.concurrent.TimeUnit;
  *
  * @author hypernova1
  * @see org.sam.server.context.BeanContainer
- * @see org.sam.server.http.HttpLauncher
- * @see org.sam.server.http.HttpServer.SessionManager
+ * @see HttpLauncher
+ * @see HttpServer.SessionManager
  */
 public class HttpServer implements Runnable {
 
@@ -38,7 +39,7 @@ public class HttpServer implements Runnable {
      * 애플리케이션을 시작합니다. 서버가 종료될 때 까지 무한 루프를 돌며 쓰레드를 생성하고 요청을 HttpLauncher에 위임합니다.
      *
      * @author hypernova1
-     * @see org.sam.server.http.HttpLauncher
+     * @see HttpLauncher
      * */
     public static void start() {
         try {
@@ -46,7 +47,7 @@ public class HttpServer implements Runnable {
             logger.info("server started..");
             logger.info("server port: " + serverSocket.getLocalPort());
             BeanContainer.createBeans();
-            SessionManager.enableSessionChecker();
+            SessionManager.checkEnableSessions();
 
             ThreadPoolExecutor threadPool = new ThreadPoolExecutor(
                     5,
@@ -56,7 +57,8 @@ public class HttpServer implements Runnable {
                     new SynchronousQueue<>()
             );
             while (!Thread.currentThread().isInterrupted()) {
-                HttpServer httpServer = new HttpServer(serverSocket.accept());
+                Socket clientSocket = serverSocket.accept();
+                HttpServer httpServer = new HttpServer(clientSocket);
                 threadPool.execute(httpServer);
             }
         } catch (IOException e) {
@@ -117,7 +119,7 @@ public class HttpServer implements Runnable {
      *
      * @see org.sam.server.http.Session
      * */
-    static class SessionManager extends TimerTask {
+    public static class SessionManager extends TimerTask {
 
         private static final Logger logger = LoggerFactory.getLogger(SessionManager.class);
         private static final Set<Session> sessionList = new HashSet<>();
@@ -129,7 +131,7 @@ public class HttpServer implements Runnable {
          *
          * @param session 추가할 세션
          * */
-        static void addSession(Session session) {
+        public static void addSession(Session session) {
             sessionList.add(session);
         }
 
@@ -139,13 +141,10 @@ public class HttpServer implements Runnable {
          * @param id 가져올 세션의 아이디
          * @return 세션
          * */
-        static Session getSession(String id) {
-            for (Session session : sessionList) {
-                if (session.getId().equals(id)) {
-                    return session;
-                }
-            }
-            return null;
+        public static Optional<Session> getSession(String id) {
+            return sessionList.stream()
+                    .filter(session -> session.getId().equals(id))
+                    .findFirst();
         }
 
         /**
@@ -153,14 +152,14 @@ public class HttpServer implements Runnable {
          *
          * @param id 삭제할 세션의 아이디
          * */
-        static void removeSession(String id) {
+        public static void removeSession(String id) {
             sessionList.removeIf(session -> session.getId().equals(id));
         }
 
         /**
          * 세션의 유효성을 확인합니다. 30분마다 현재 시간과 만료 시간을 비교하여 판단합니다.
          * */
-        static void enableSessionChecker() {
+        static void checkEnableSessions() {
             new Timer().schedule(new SessionManager(), 0, 60 * 1000);
         }
 
@@ -169,14 +168,24 @@ public class HttpServer implements Runnable {
             Iterator<Session> iterator = sessionList.iterator();
             while (iterator.hasNext()) {
                 Session session = iterator.next();
-                long accessTime = session.getAccessTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-                long now = System.currentTimeMillis();
-                int timeout = session.getTimeout() * 1000 * 1800;
-                if (now - accessTime > timeout) {
+                if (isExpiredSession(session)) {
                     iterator.remove();
                     logger.info("remove Session:" + session.getId());
                 }
             }
+        }
+
+        /**
+         * 만료된 세션인지 확인 합니다.
+         *
+         * @param session 세션
+         * @return 만료 여부
+         * */
+        private boolean isExpiredSession(Session session) {
+            long accessTime = session.getAccessTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+            long now = System.currentTimeMillis();
+            int timeout = session.getTimeout() * 1000 * 1800;
+            return now - accessTime > timeout;
         }
     }
 }

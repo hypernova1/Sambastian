@@ -1,4 +1,4 @@
-package org.sam.server.http;
+package org.sam.server.http.context;
 
 import org.sam.server.annotation.CrossOrigin;
 import org.sam.server.annotation.handle.JsonRequest;
@@ -6,6 +6,8 @@ import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpStatus;
 import org.sam.server.context.BeanContainer;
 import org.sam.server.context.HandlerInfo;
+import org.sam.server.http.*;
+import org.sam.server.http.web.*;
 import org.sam.server.util.Converter;
 import org.sam.server.util.PrimitiveWrapper;
 
@@ -18,7 +20,7 @@ import java.util.*;
  * 핸들러를 실행 시키는 클래스입니다.
  *
  * @author hypernova1
- * @see org.sam.server.http.HandlerExecutor
+ * @see HandlerExecutor
  * */
 public class HandlerExecutor {
 
@@ -42,14 +44,14 @@ public class HandlerExecutor {
      * @param handlerInfo 핸들러 정보
      * @return 인스턴스
      * */
-    static HandlerExecutor create(Request request, Response response, HandlerInfo handlerInfo) {
+    public static HandlerExecutor create(Request request, Response response, HandlerInfo handlerInfo) {
         return new HandlerExecutor(request, response, handlerInfo);
     }
 
     /**
      * 핸들러를 실행합니다.
      * */
-    void execute() {
+    public void execute() {
         setCrossOriginConfig();
         try {
             Map<String, String> requestData = request.getParameters();
