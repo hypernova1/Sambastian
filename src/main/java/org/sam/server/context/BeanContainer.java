@@ -141,7 +141,7 @@ public class BeanContainer {
                 injectNull(createdParameters, differenceNumber);
             }
             return constructor.newInstance(createdParameters.toArray());
-        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
 
@@ -153,7 +153,6 @@ public class BeanContainer {
      *
      * @param createdParameters 주입할 파라미터
      * @param differenceNumber 모자란 파라미터 개수
-     * @param 클래스 타입
      * */
     private static void injectNull(List<Object> createdParameters, int differenceNumber) {
         for (int i = 0; i < differenceNumber; i++) {
@@ -250,6 +249,7 @@ public class BeanContainer {
      * 컴포넌트 타입에 해당하는 빈이 존재하는 지 확인 후 있다면 키를 반환합니다.
      *
      * @param componentType 컴포넌트 타입
+     * @return 빈 키
      * */
     private static Class<?> findSuperClass(Class<?> componentType) {
         Set<Class<?>> keys = beanMap.keySet();
@@ -295,9 +295,13 @@ public class BeanContainer {
      * @param constructors 생성자 목록
      * @return 기본 생성자
      * */
-    private static Constructor<?> getDefaultConstructor(Class<?> clazz, Constructor<?>[] constructors) throws NoSuchMethodException {
+    private static Constructor<?> getDefaultConstructor(Class<?> clazz, Constructor<?>[] constructors) {
         if (constructors.length == 0) {
-            return clazz.getDeclaredConstructor();
+            try {
+                return clazz.getDeclaredConstructor();
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            }
         }
         return constructors[0];
     }

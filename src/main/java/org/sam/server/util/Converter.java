@@ -29,11 +29,9 @@ public class Converter {
         Object instance = null;
         try {
             instance = type.getDeclaredConstructor().newInstance();
-            List<Method> setters = Arrays.stream(type.getMethods())
-                    .filter(m -> m.getName().startsWith("set"))
-                    .collect(Collectors.toList());
+            List<Method> setters = getSetters(type);
             for (Method setter : setters) {
-                invokeSetterMethod(parameters, instance, setter);
+                invokeSetter(parameters, instance, setter);
             }
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
@@ -42,10 +40,23 @@ public class Converter {
     }
 
     /**
+     * 클래스의 Setter 목록을 가져옵니다.
+     *
+     * @param clazz 클래스
+     * @return Setter 목록
+     * */
+    private static List<Method> getSetters(Class<?> clazz) {
+        return Arrays.stream(clazz.getMethods())
+                .filter(m -> m.getName().startsWith("set"))
+                .collect(Collectors.toList());
+    }
+
+    /**
      * JSON을 인스턴스로 바꾸고 반환합니다.
      *
+     * @param <T> 핸들러 파라미터의 클래스 타입
      * @param json 요청 JSON
-     * @param type 핸들러 파라미터 타입
+     * @param type 핸들러 파라미터 클래스
      * @return 파라미터 인스턴스
      * */
     public static <T> T jsonToObject(String json, Class<T> type) {
@@ -59,11 +70,15 @@ public class Converter {
      * @param instance 실행할 인스턴스
      * @param method Setter 메서드
      * */
-    private static void invokeSetterMethod(Map<String, String> parameters, Object instance, Method method) throws IllegalAccessException, InvocationTargetException {
+    private static void invokeSetter(Map<String, String> parameters, Object instance, Method method) {
         String propertyName = method.getName().replace("set", "");
         propertyName = propertyName.substring(0, 1).toLowerCase() + propertyName.substring(1);
         String parameter = parameters.get(propertyName);
-        method.invoke(instance, parameter);
+        try {
+            method.invoke(instance, parameter);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

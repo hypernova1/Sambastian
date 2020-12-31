@@ -64,6 +64,9 @@ public class PrimitiveWrapper {
 
     /**
      * 원시 타입에 해당하는 박스 타입을 반환합니다.
+     *
+     * @param type 원시타명
+     * @return 박싱 인스턴스
      * */
     public static Class<?> getType(String type) {
         return boxTypes.get(type);

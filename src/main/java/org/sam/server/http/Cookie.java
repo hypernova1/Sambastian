@@ -40,12 +40,12 @@ public class Cookie {
     /**
      * 쿠키의 유효 날짜 및 시간을 반환합니다.
      *
-     * @param minutes
+     * @param minutes 유효 시간
      * @return 쿠키의 유효 날짜 및 시간
      * */
     public String getAfterTime(int minutes) {
         Date expiredDate = new Date();
-        expiredDate.setTime(expiredDate.getTime() + (1000 * minutes));
+        expiredDate.setTime(expiredDate.getTime() + (1000L * minutes));
         DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
         return DATE_FORMAT.format(expiredDate);
     }
@@ -135,6 +135,7 @@ public class Cookie {
     /**
      * HTTP-only 유무를 반환합니다.
      *
+     * @return HTTP-only 유무
      * */
     public boolean isHttpOnly() {
         return httpOnly;

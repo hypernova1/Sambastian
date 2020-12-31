@@ -16,8 +16,11 @@ public class ModelMapper {
     /**
      * 인스턴스를 다른 클래스 타입으로 변환합니다.
      *
+     * @param <T> 기존 인스턴스 타입
+     * @param <U> 변경할 클래스 타입
      * @param instance 기존 인스턴스
      * @param clazz 변경할 클래스 타입
+     * @return 변경된 인스턴스
      * */
     public <T, U> U convert(T instance, Class<U> clazz) {
         U target = null;
@@ -33,6 +36,8 @@ public class ModelMapper {
     /**
      * 기존 인스턴스의 프로퍼티를 변경할 인스턴스에 설정합니다.
      *
+     * @param <T> 기존 인스턴스 타입
+     * @param <U> 변경할 인스턴스 타입
      * @param instance 기존 인스턴스
      * @param target 변경할 인스턴스
      * */

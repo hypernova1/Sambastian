@@ -14,6 +14,8 @@ public @interface RequiredParam {
 
     /**
      * 파라미터 이름
+     *
+     * @return 필수 파라미터 여부
      * */
     boolean value() default true;
 }

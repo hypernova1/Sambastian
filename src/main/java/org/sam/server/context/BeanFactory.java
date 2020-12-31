@@ -38,8 +38,9 @@ public class BeanFactory {
     /**
      * 인자로 받은 이름과, 타입에 해당하는 빈을 반환합니다.
      *
+     * @param <T> 빈 클래스 타입
      * @param name 빈 이름
-     * @param type 빈 타입
+     * @param type 빈 클래스
      * @return 빈
      * */
     @SuppressWarnings("unchecked")
@@ -75,6 +76,7 @@ public class BeanFactory {
     /**
      * 인자로 받은 인스턴스를 빈으로 만들어 저장합니다.
      *
+     * @param <T> 인스턴스 타입
      * @param name 빈 이름
      * @param instance 인스턴스
      * */
@@ -82,7 +84,8 @@ public class BeanFactory {
         List<BeanInfo> list = Optional
                 .ofNullable(BeanContainer.getBeanMap().get(instance.getClass()))
                 .orElseGet(ArrayList::new);
-        boolean isExist = list.stream().anyMatch(beanInfo -> beanInfo.getName().equals(name));
+        boolean isExist = list.stream()
+                .anyMatch(beanInfo -> beanInfo.getName().equals(name));
         if (isExist) return;
         BeanInfo beanInfo = new BeanInfo(name, instance);
         list.add(beanInfo);

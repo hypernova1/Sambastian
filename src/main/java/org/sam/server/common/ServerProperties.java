@@ -57,6 +57,8 @@ public class ServerProperties {
 
     /**
      * SSL 설정이 되어 있는지 확인합니다.
+     *
+     * @return SSL 설정 여부
      * */
     public static boolean isSSL() {
         return isSSL;

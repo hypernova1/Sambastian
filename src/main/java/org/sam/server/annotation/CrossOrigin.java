@@ -15,7 +15,9 @@ import java.lang.annotation.Target;
 public @interface CrossOrigin {
 
     /**
-     * 허용할 IP 목록
+     * 허용할 주소 목록
+     *
+     * @return 허용할 주소
      * */
     String[] value() default "";
 }

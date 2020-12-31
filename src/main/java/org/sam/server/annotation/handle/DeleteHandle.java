@@ -26,11 +26,15 @@ public @interface DeleteHandle {
 
     /**
      * 받을 수 있는 미디어 타입입니다.
+     *
+     * @return 받을 수 있는 미디어 타입
      * */
     ContentType contentType() default ContentType.APPLICATION_JSON;
 
     /**
      * 받을 수 있는 HTTP Method 입니다.
+     *
+     * @return 받을 수 있는 HTTP Method
      * */
     HttpMethod method() default HttpMethod.DELETE;
 }

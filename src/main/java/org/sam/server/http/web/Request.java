@@ -145,34 +145,29 @@ public interface Request {
          * @param in 소켓의 InputStream
          * */
         private void parse(InputStream in) {
-            try {
-                BufferedInputStream inputStream = new BufferedInputStream(in);
+            BufferedInputStream inputStream = new BufferedInputStream(in);
 
-                String headersPart = readHeader(inputStream);
+            String headersPart = readHeader(inputStream);
 
-                if (isNonHttpRequest(headersPart)) return;
+            if (isNonHttpRequest(headersPart)) return;
 
-                String[] headers = headersPart.split("\r\n");
-                StringTokenizer parse = new StringTokenizer(headers[0]);
-                String method = parse.nextToken().toUpperCase();
-                String requestPath = parse.nextToken().toLowerCase();
-                this.protocol = parse.nextToken().toUpperCase();
-                String query = parseRequestPath(requestPath);
+            String[] headers = headersPart.split("\r\n");
+            StringTokenizer parse = new StringTokenizer(headers[0]);
+            String method = parse.nextToken().toUpperCase();
+            String requestPath = parse.nextToken().toLowerCase();
+            this.protocol = parse.nextToken().toUpperCase();
+            String query = parseRequestPath(requestPath);
 
-                parseHeaders(headers);
-                parseMethod(method);
+            parseHeaders(headers);
+            parseMethod(method);
 
-                if (StringUtils.isNotEmpty(query))
-                    this.parameters = parseQuery(query);
+            if (StringUtils.isNotEmpty(query))
+                this.parameters = parseQuery(query);
 
-                String contentType = this.headers.getOrDefault("content-type", "");
+            String contentType = this.headers.getOrDefault("content-type", "");
 
-                if (existHttpBody(method, contentType)) {
-                    parseBodyText(inputStream, contentType);
-                }
-            } catch (IOException e) {
-                logger.error("terminate thread..");
-                e.printStackTrace();
+            if (existHttpBody(method, contentType)) {
+                parseBodyText(inputStream, contentType);
             }
         }
 
@@ -182,13 +177,15 @@ public interface Request {
          * @param inputStream 인풋 스트림
          * @param contentType 미디어 타입
          * */
-        private void parseBodyText(BufferedInputStream inputStream, String contentType) throws IOException {
+        private void parseBodyText(BufferedInputStream inputStream, String contentType) {
             if (contentType.startsWith(ContentType.MULTIPART_FORM_DATA.getValue())) {
                 String boundary = "--" + contentType.split("; ")[1].split("=")[1];
                 parseMultipartBody(inputStream, boundary);
                 return;
             }
             parseRequestBody(inputStream, contentType);
+
+
         }
 
         /**
@@ -211,17 +208,21 @@ public interface Request {
          * @param inputStream 인풋 스트림
          * @return HTTP 헤더 내용
          * */
-        private String readHeader(BufferedInputStream inputStream) throws IOException {
+        private String readHeader(BufferedInputStream inputStream) {
             int i;
             String headersPart = "";
             StringBuilder sb = new StringBuilder();
-            while ((i = inputStream.read()) != -1) {
-                char c = (char) i;
-                sb.append(c);
-                if (isEndOfHeader(sb.toString())) {
-                    headersPart = sb.toString().replace("\r\n\r\n", "");
-                    break;
+            try {
+                while ((i = inputStream.read()) != -1) {
+                    char c = (char) i;
+                    sb.append(c);
+                    if (isEndOfHeader(sb.toString())) {
+                        headersPart = sb.toString().replace("\r\n\r\n", "");
+                        break;
+                    }
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
             return headersPart;
         }
@@ -232,29 +233,34 @@ public interface Request {
          * @param inputStream 소켓의 InputSteam
          * @param contentType 미디어 타입
          * */
-        private void parseRequestBody(InputStream inputStream, String contentType) throws IOException {
+        private void parseRequestBody(InputStream inputStream, String contentType) {
             StringBuilder sb = new StringBuilder();
-            int binary;
-            int inputStreamLength = inputStream.available();
-            byte[] data = new byte[inputStreamLength];
-            int i = 0;
-            while ((binary = inputStream.read()) != -1) {
-                data[i] = (byte) binary;
-                if (isNewLine(data, i) || inputStream.available() == 0) {
-                    data = Arrays.copyOfRange(data, 0, ++i);
-                    String line = new String(data, StandardCharsets.UTF_8);
-                    sb.append(line);
-                    data = new byte[inputStreamLength];
-                    i = 0;
+            try {
+                int binary;
+                int inputStreamLength = inputStream.available();
+                byte[] data = new byte[inputStreamLength];
+                int i = 0;
+                while ((binary = inputStream.read()) != -1) {
+                    data[i] = (byte) binary;
+                    if (isNewLine(data, i) || inputStream.available() == 0) {
+                        data = Arrays.copyOfRange(data, 0, ++i);
+                        String line = new String(data, StandardCharsets.UTF_8);
+                        sb.append(line);
+                        data = new byte[inputStreamLength];
+                        i = 0;
+                    }
+                    if (inputStream.available() == 0) break;
+                    i++;
                 }
-                if (inputStream.available() == 0) break;
-                i++;
+                if (ContentType.APPLICATION_JSON.getValue().equals(contentType) && this.parameters.isEmpty()) {
+                    this.json = sb.toString();
+                    return;
+                }
+                this.parameters = parseQuery(sb.toString());
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            if (ContentType.APPLICATION_JSON.getValue().equals(contentType) && this.parameters.isEmpty()) {
-                this.json = sb.toString();
-                return;
-            }
-            this.parameters = parseQuery(sb.toString());
+
         }
 
         /**
@@ -338,15 +344,19 @@ public interface Request {
          * @param inputStream 소켓의 InputStream
          * @param boundary Multipart boundary
          * */
-        private void parseMultipartBody(InputStream inputStream, String boundary) throws IOException {
-            StringBuilder sb = new StringBuilder();
-            int i;
-            while ((i = inputStream.read()) != -1) {
-                sb.append((char) i);
-                if (sb.toString().contains(boundary + "\r\n")) {
-                    parseMultipartLine(inputStream, boundary);
-                    return;
+        private void parseMultipartBody(InputStream inputStream, String boundary) {
+            try {
+                StringBuilder sb = new StringBuilder();
+                int i;
+                while ((i = inputStream.read()) != -1) {
+                    sb.append((char) i);
+                    if (sb.toString().contains(boundary + "\r\n")) {
+                        parseMultipartLine(inputStream, boundary);
+                        return;
+                    }
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
@@ -463,26 +473,31 @@ public interface Request {
          * @param boundary Multipart boundary
          * @return 파일의 바이트 배열
          * */
-        private byte[] parseFile(InputStream inputStream, String boundary) throws IOException {
-            int i;
-            int fileLength = 0;
+        private byte[] parseFile(InputStream inputStream, String boundary) {
             byte[] data = new byte[1024 * 8];
-            while ((i = inputStream.read()) != -1) {
-                if (data.length == fileLength) {
-                    byte[] temp = new byte[data.length * 2];
-                    System.arraycopy(data, 0, temp, 0, data.length);
-                    data = temp;
+            int fileLength = 0;
+            try {
+                int i;
+                while ((i = inputStream.read()) != -1) {
+                    if (data.length == fileLength) {
+                        byte[] temp = new byte[data.length * 2];
+                        System.arraycopy(data, 0, temp, 0, data.length);
+                        data = temp;
+                    }
+                    data[fileLength] = (byte) i;
+                    if (isNewLine(data, fileLength)) {
+                        String content = new String(data, StandardCharsets.UTF_8);
+                        if (content.trim().equals(boundary)) return null;
+                        boundary = new String(boundary.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
+                        int index = content.indexOf(boundary);
+                        if (index != -1) break;
+                    }
+                    fileLength++;
                 }
-                data[fileLength] = (byte) i;
-                if (isNewLine(data, fileLength)) {
-                    String content = new String(data, StandardCharsets.UTF_8);
-                    if (content.trim().equals(boundary)) return null;
-                    boundary = new String(boundary.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
-                    int index = content.indexOf(boundary);
-                    if (index != -1) break;
-                }
-                fileLength++;
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+
             return Arrays.copyOfRange(data, 2, fileLength - boundary.getBytes(StandardCharsets.UTF_8).length);
         }
 
