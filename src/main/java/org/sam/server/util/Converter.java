@@ -4,7 +4,10 @@ import com.google.gson.Gson;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 요청 파라미터나 JSON을 인스턴슫로 변환하는 클래스입니다.
@@ -26,11 +29,11 @@ public class Converter {
         Object instance = null;
         try {
             instance = type.getDeclaredConstructor().newInstance();
-            for (Method method : type.getDeclaredMethods()) {
-                String methodName = method.getName();
-                if (isSetterMethod(methodName)) {
-                    invokeSetterMethod(parameters, instance, method);
-                }
+            List<Method> setters = Arrays.stream(type.getMethods())
+                    .filter(m -> m.getName().startsWith("set"))
+                    .collect(Collectors.toList());
+            for (Method setter : setters) {
+                invokeSetterMethod(parameters, instance, setter);
             }
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
@@ -61,16 +64,6 @@ public class Converter {
         propertyName = propertyName.substring(0, 1).toLowerCase() + propertyName.substring(1);
         String parameter = parameters.get(propertyName);
         method.invoke(instance, parameter);
-    }
-
-    /**
-     * Setter 메서드인지 확인합니다.
-     *
-     * @param methodName 메서드 이름
-     * @return Setter 메서드 여부
-     * */
-    private static boolean isSetterMethod(String methodName) {
-        return methodName.startsWith("set");
     }
 
     /**
