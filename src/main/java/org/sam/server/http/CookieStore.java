@@ -44,7 +44,7 @@ public class CookieStore {
      * 쿠키 목록을 초기화 합니다.
      * */
     public static void vacateList() {
-        cookies = new HashSet<>();
+        cookies.clear();
     }
 
 
