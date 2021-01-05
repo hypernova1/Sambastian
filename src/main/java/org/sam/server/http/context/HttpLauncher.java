@@ -42,9 +42,8 @@ public class HttpLauncher {
      * 
      * @param request 요청 인스턴스
      * @param response 응답 인스턴스
-     * @throws IOException 핸들러를 찾지 못 했을 시
      * */
-    private static void findHandler(Request request, Response response) throws IOException {
+    private static void findHandler(Request request, Response response) {
         if (isFaviconRequest(request)) {
             response.favicon();
             return;
@@ -71,7 +70,6 @@ public class HttpLauncher {
             handlerExecutor.execute();
         } catch (HandlerNotFoundException e) {
             response.notFound();
-            throw new IOException(e);
         }
     }
 

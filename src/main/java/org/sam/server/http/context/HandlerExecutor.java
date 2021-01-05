@@ -209,7 +209,7 @@ public class HandlerExecutor {
             return PrimitiveWrapper.wrapPrimitiveValue(type, value.toString());
         } else if (type.getSuperclass().equals(Number.class))  {
             try {
-                return type.getMethod("valueOf", String.class).invoke(null, value);
+                return type.getMethod("valueOf", String.class).invoke(null, value.toString());
             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
             }
@@ -233,9 +233,8 @@ public class HandlerExecutor {
                     session.renewAccessTime();
                     params.add(session);
                     return;
-                } else {
-                    iterator.remove();
                 }
+                iterator.remove();
             }
         }
         Session session = new Session();
