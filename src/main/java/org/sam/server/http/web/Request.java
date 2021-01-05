@@ -25,7 +25,9 @@ import java.util.*;
 public interface Request {
 
     static Request of(InputStream in) {
-        return new UrlParser(in).createRequest();
+        UrlParser urlParser = new UrlParser();
+        urlParser.parse(in);
+        return urlParser.createRequest();
     }
 
     /**
@@ -123,9 +125,13 @@ public interface Request {
 
         protected String path;
 
-        protected HttpMethod method;
+        protected HttpMethod httpMethod;
 
         protected Map<String, String> headers = new HashMap<>();
+
+        protected ContentType contentType;
+
+        protected String boundary;
 
         protected Map<String, String> parameters = new HashMap<>();
 
@@ -135,9 +141,7 @@ public interface Request {
 
         protected Map<String, Object> files = new HashMap<>();
 
-        private UrlParser(InputStream in) {
-            parse(in);
-        }
+        private UrlParser() {}
 
         /**
          * InputStream에서 HTTP 본문을 읽은 후 파싱합니다.
@@ -146,60 +150,54 @@ public interface Request {
          * */
         private void parse(InputStream in) {
             BufferedInputStream inputStream = new BufferedInputStream(in);
-
             String headersPart = readHeader(inputStream);
 
             if (isNonHttpRequest(headersPart)) return;
 
             String[] headers = headersPart.split("\r\n");
-            StringTokenizer parse = new StringTokenizer(headers[0]);
-            String method = parse.nextToken().toUpperCase();
-            String requestPath = parse.nextToken().toLowerCase();
-            this.protocol = parse.nextToken().toUpperCase();
+            StringTokenizer tokenizer = new StringTokenizer(headers[0]);
+            String httpMethodPart = tokenizer.nextToken().toUpperCase();
+            String requestPath = tokenizer.nextToken().toLowerCase();
+
+            this.protocol = tokenizer.nextToken().toUpperCase();
+            this.headers = parseHeaders(headers);
+            this.httpMethod = HttpMethod.valueOf(httpMethodPart);
+            this.contentType = parseContentType();
+
             String query = parseRequestPath(requestPath);
 
-            parseHeaders(headers);
-            parseMethod(method);
-
-            if (StringUtils.isNotEmpty(query))
+            if (StringUtils.isNotEmpty(query)) {
                 this.parameters = parseQuery(query);
-
-            String contentType = this.headers.getOrDefault("content-type", "");
-
-            if (existHttpBody(method, contentType)) {
-                parseBodyText(inputStream, contentType);
             }
+
+            if (isExistsHttpBody()) {
+                parseBodyText(inputStream);
+            }
+        }
+
+        private ContentType parseContentType() {
+            String contentType = this.headers.getOrDefault("content-type", "");
+            ContentType result = ContentType.valueOf(contentType);
+            if (contentType.startsWith(ContentType.MULTIPART_FORM_DATA.getValue())) {
+                this.boundary = "--" + contentType.split("; ")[1].split("=")[1];
+                this.contentType = ContentType.valueOf(contentType.split("; ")[0]);
+            }
+            return result;
         }
 
         /**
          * HTTP 바디에 있는 데이터를 파싱합니다.
          *
          * @param inputStream 인풋 스트림
-         * @param contentType 미디어 타입
          * */
-        private void parseBodyText(BufferedInputStream inputStream, String contentType) {
-            if (contentType.startsWith(ContentType.MULTIPART_FORM_DATA.getValue())) {
-                String boundary = "--" + contentType.split("; ")[1].split("=")[1];
-                parseMultipartBody(inputStream, boundary);
+        private void parseBodyText(BufferedInputStream inputStream) {
+            if (this.boundary != null) {
+                parseMultipartBody(inputStream);
                 return;
             }
-            parseRequestBody(inputStream, contentType);
+            parseRequestBody(inputStream);
 
 
-        }
-
-        /**
-         * HTTP 바디에 메시지가 존재하는 지 확인합니다.
-         *
-         * @param method HTTP 메서드 타입
-         * @param contentType 미디어 타입
-         *
-         * @return HTTP 바디에 메시지가 존재하는지 여부
-         * */
-        private boolean existHttpBody(String method, String contentType) {
-            return HttpMethod.get(method).equals(HttpMethod.POST) ||
-                    HttpMethod.get(method).equals(HttpMethod.PUT) ||
-                    ContentType.APPLICATION_JSON.getValue().equals(contentType);
         }
 
         /**
@@ -231,9 +229,8 @@ public interface Request {
          * HTTP 바디를 파싱합니다.
          *
          * @param inputStream 소켓의 InputSteam
-         * @param contentType 미디어 타입
          * */
-        private void parseRequestBody(InputStream inputStream, String contentType) {
+        private void parseRequestBody(InputStream inputStream) {
             StringBuilder sb = new StringBuilder();
             try {
                 int binary;
@@ -242,7 +239,7 @@ public interface Request {
                 int i = 0;
                 while ((binary = inputStream.read()) != -1) {
                     data[i] = (byte) binary;
-                    if (isNewLine(data, i) || inputStream.available() == 0) {
+                    if (isEndOfLine(data, i) || inputStream.available() == 0) {
                         data = Arrays.copyOfRange(data, 0, ++i);
                         String line = new String(data, StandardCharsets.UTF_8);
                         sb.append(line);
@@ -252,7 +249,7 @@ public interface Request {
                     if (inputStream.available() == 0) break;
                     i++;
                 }
-                if (ContentType.APPLICATION_JSON.getValue().equals(contentType) && this.parameters.isEmpty()) {
+                if (isJsonRequest()) {
                     this.json = sb.toString();
                     return;
                 }
@@ -264,22 +261,12 @@ public interface Request {
         }
 
         /**
-         * 한 줄의 끝인지 확인합니다.
-         *
-         * @param data 본문
-         * @param index 인덱스
-         * @return 한 줄의 끝인지에 대한 여부
-         * */
-        private boolean isNextLine(byte[] data, int index) {
-            return index != 0 && data[index - 1] == '\r' && data[index] == '\n';
-        }
-
-        /**
          * HTTP 헤더를 파싱합니다.
-         * 
-         * @param headers 헤더
+         *  @param headers 헤더 본문
+         *  @return 헤더 목록
          * */
-        private void parseHeaders(String[] headers) {
+        private Map<String, String> parseHeaders(String[] headers) {
+            Map<String, String> result = new HashMap<>();
             for (int i = 1; i < headers.length; i++) {
                 int index = headers[i].indexOf(": ");
                 String key = headers[i].substring(0, index).toLowerCase();
@@ -288,17 +275,9 @@ public interface Request {
                     this.cookies = CookieStore.parseCookie(value);
                     continue;
                 }
-                this.headers.put(key, value);
+                result.put(key, value);
             }
-        }
-
-        /**
-         * HTTP Method를 파싱합니다.
-         * 
-         * @param method HTTP Method 이름
-         * */
-        private void parseMethod(String method) {
-            this.method = HttpMethod.get(method);
+            return result;
         }
 
         /**
@@ -342,16 +321,15 @@ public interface Request {
          * multipart/form-data 요청을 파싱합니다.
          *
          * @param inputStream 소켓의 InputStream
-         * @param boundary Multipart boundary
          * */
-        private void parseMultipartBody(InputStream inputStream, String boundary) {
+        private void parseMultipartBody(InputStream inputStream) {
             try {
                 StringBuilder sb = new StringBuilder();
                 int i;
                 while ((i = inputStream.read()) != -1) {
                     sb.append((char) i);
                     if (sb.toString().contains(boundary + "\r\n")) {
-                        parseMultipartLine(inputStream, boundary);
+                        parseMultipartLine(inputStream);
                         return;
                     }
                 }
@@ -364,16 +342,15 @@ public interface Request {
          * multipart/form-data 본문을 한 파트씩 파싱합니다.
          * 
          * @param inputStream 소켓의 InputStream
-         * @param boundary 멀티파트의 boundary
-         * @throws IOException InputStream을 읽다가 오류 발생시 
+         * @throws IOException InputStream을 읽다가 오류 발생시
          * */
-        private void parseMultipartLine(InputStream inputStream, String boundary) throws IOException {
+        private void parseMultipartLine(InputStream inputStream) throws IOException {
             int i = 0;
             int loopCnt = 0;
             String name = "";
             String value = "";
             String filename = "";
-            String contentType = "";
+            String mimeType = "";
             byte[] fileData = null;
             boolean isFile = false;
             int inputStreamLength = inputStream.available();
@@ -381,7 +358,7 @@ public interface Request {
             int binary;
             while ((binary = inputStream.read()) != -1) {
                 data[i] = (byte) binary;
-                if (isNewLine(data, i)) {
+                if (isEndOfLine(data, i)) {
                     data = Arrays.copyOfRange(data, 0, i);
                     String line = new String(data, StandardCharsets.UTF_8);
                     data = new byte[inputStreamLength];
@@ -399,8 +376,8 @@ public interface Request {
                         continue;
                     } else if (loopCnt == 1 && isFile) {
                         int index = line.indexOf(": ");
-                        contentType = line.substring(index + 2);
-                        fileData = parseFile(inputStream, boundary);
+                        mimeType = line.substring(index + 2);
+                        fileData = parseFile(inputStream);
                         loopCnt = 0;
                         if (fileData == null) continue;
                         line = boundary;
@@ -411,13 +388,16 @@ public interface Request {
                     }
 
                     if (line.contains(boundary)) {
-                        if (!filename.equals("")) createMultipartFile(name, filename, contentType, fileData);
-                        else this.parameters.put(name, value);
+                        if (!filename.equals("")) {
+                            createMultipartFile(name, filename, mimeType, fileData);
+                        } else {
+                            this.parameters.put(name, value);
+                        }
 
                         name = "";
                         value = "";
                         filename = "";
-                        contentType = "";
+                        mimeType = "";
                         fileData = null;
                         loopCnt = 0;
                     }
@@ -432,12 +412,12 @@ public interface Request {
          * 
          * @param name 파일 이름
          * @param filename 파일 전체 이름
-         * @param contentType 미디어 타입
+         * @param mimeType 미디어 타입
          * @param fileData 파일의 데이터
          * @see MultipartFile
          * */
-        private void createMultipartFile(String name, String filename, String contentType, byte[] fileData) {
-            MultipartFile multipartFile = new MultipartFile(filename, contentType, fileData);
+        private void createMultipartFile(String name, String filename, String mimeType, byte[] fileData) {
+            MultipartFile multipartFile = new MultipartFile(filename, mimeType, fileData);
             if (this.files.get(name) == null) {
                 this.files.put(name, multipartFile);
                 return;
@@ -470,10 +450,9 @@ public interface Request {
          * Multipart boundary를 기준으로 파일을 읽어 들이고 바이트 배열을 반환합니다.
          *
          * @param inputStream 소켓의 InputStream
-         * @param boundary Multipart boundary
          * @return 파일의 바이트 배열
          * */
-        private byte[] parseFile(InputStream inputStream, String boundary) {
+        private byte[] parseFile(InputStream inputStream) {
             byte[] data = new byte[1024 * 8];
             int fileLength = 0;
             try {
@@ -485,11 +464,11 @@ public interface Request {
                         data = temp;
                     }
                     data[fileLength] = (byte) i;
-                    if (isNewLine(data, fileLength)) {
+                    if (isEndOfLine(data, fileLength)) {
                         String content = new String(data, StandardCharsets.UTF_8);
-                        if (content.trim().equals(boundary)) return null;
-                        boundary = new String(boundary.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
-                        int index = content.indexOf(boundary);
+                        if (content.trim().equals(this.boundary)) return null;
+                        String _boundary = new String(this.boundary.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
+                        int index = content.indexOf(_boundary);
                         if (index != -1) break;
                     }
                     fileLength++;
@@ -507,17 +486,11 @@ public interface Request {
          * @return 요청 인스턴스
          * */
         public Request createRequest() {
-            if (this.headers.isEmpty()) return null;
-            Map<String, String> headers = this.headers;
-            HttpMethod method = this.method;
-            String path = this.path;
-            Map<String, String> parameters = this.parameters;
-            String json = this.json;
-            Set<Cookie> cookies = this.cookies;
-            String contentType = headers.get("content-type") != null ? headers.get("content-type") : "";
-            if (contentType.startsWith(ContentType.MULTIPART_FORM_DATA.getValue()))
-                return new HttpMultipartRequest(protocol, path, method, headers, parameters, json, cookies, files);
-            return new HttpRequest(protocol, path, method, headers, parameters, json, cookies);
+            if (headers.isEmpty()) return null;
+            if (contentType == ContentType.MULTIPART_FORM_DATA) {
+                return new HttpMultipartRequest(protocol, path, httpMethod, headers, parameters, json, cookies, files);
+            }
+            return new HttpRequest(protocol, path, httpMethod, headers, parameters, json, cookies);
         }
 
         /**
@@ -527,7 +500,7 @@ public interface Request {
          * @param index 인덱스
          * @return 한 줄의 마지막인지 여부
          * */
-        private boolean isNewLine(byte[] data, int index) {
+        private boolean isEndOfLine(byte[] data, int index) {
             return index != 0 && data[index - 1] == '\r' && data[index] == '\n';
         }
 
@@ -559,6 +532,24 @@ public interface Request {
          * */
         private boolean isNonHttpRequest(String headersPart) {
             return headersPart.trim().isEmpty();
+        }
+
+        /**
+         * HTTP 바디에 메시지가 존재하는 지 확인합니다.
+         *
+         * @return HTTP 바디에 메시지가 존재하는지 여부
+         * */
+        private boolean isExistsHttpBody() {
+            return this.httpMethod == HttpMethod.POST ||
+                    this.httpMethod == HttpMethod.PUT ||
+                    this.contentType == ContentType.APPLICATION_JSON;
+        }
+
+        /**
+         * HTTP 요청 본문이 JSON인지 확인합니다.
+         * */
+        private boolean isJsonRequest() {
+            return this.contentType == ContentType.APPLICATION_JSON && this.parameters.isEmpty();
         }
 
     }

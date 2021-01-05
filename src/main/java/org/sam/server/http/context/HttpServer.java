@@ -160,7 +160,7 @@ public class HttpServer implements Runnable {
          * 세션의 유효성을 확인합니다. 30분마다 현재 시간과 만료 시간을 비교하여 판단합니다.
          * */
         static void checkEnableSessions() {
-            new Timer().schedule(new SessionManager(), 0, 60 * 1000);
+            new Timer().schedule(new SessionManager(), 0, 30 * 60 * 1000);
         }
 
         @Override

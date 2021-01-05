@@ -1,7 +1,5 @@
 package org.sam.server.http.web;
 
-import org.sam.server.http.web.HttpMultipartRequest;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -16,13 +14,13 @@ public class MultipartFile {
 
     private final String fileName;
 
-    private final String contentType;
+    private final String mimeType;
 
     private final byte[] fileData;
 
-    public MultipartFile(String fileName, String contentType, byte[] fileData) {
+    public MultipartFile(String fileName, String mimeType, byte[] fileData) {
         this.fileName = fileName;
-        this.contentType = contentType;
+        this.mimeType = mimeType;
         this.fileData = fileData;
     }
 
@@ -44,10 +42,9 @@ public class MultipartFile {
      * 파일의 미디어 타입을 반환합니다.
      *
      * @return 미디어 타입
-     * @see org.sam.server.constant.ContentType
      * */
-    public String getContentType() {
-        return contentType;
+    public String getMimeType() {
+        return mimeType;
     }
 
     /**
