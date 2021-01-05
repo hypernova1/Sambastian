@@ -16,7 +16,7 @@
 # Generated files
 .idea
 
-web-server.iml
+*.iml
 
 # Gradle
 .idea/**/gradle.xml
