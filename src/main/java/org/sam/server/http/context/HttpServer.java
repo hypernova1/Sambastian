@@ -46,7 +46,7 @@ public class HttpServer implements Runnable {
             ServerSocket serverSocket = createServerSocket();
             logger.info("server started..");
             logger.info("server port: " + serverSocket.getLocalPort());
-            BeanContainer.createBeans();
+            BeanContainer.loadBeans();
             SessionManager.checkEnableSessions();
 
             ThreadPoolExecutor threadPool = new ThreadPoolExecutor(
@@ -141,10 +141,10 @@ public class HttpServer implements Runnable {
          * @param id 가져올 세션의 아이디
          * @return 세션
          * */
-        public static Optional<Session> getSession(String id) {
+        public static Session getSession(String id) {
             return sessionList.stream()
                     .filter(session -> session.getId().equals(id))
-                    .findFirst();
+                    .findFirst().orElse(null);
         }
 
         /**

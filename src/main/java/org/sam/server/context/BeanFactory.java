@@ -21,7 +21,7 @@ public class BeanFactory {
         List<BeanInfo> list = new ArrayList<>();
         BeanInfo beanInfo = new BeanInfo("beanFactory", beanFactory);
         list.add(beanInfo);
-        BeanContainer.getBeanMap().put(BeanFactory.class, list);
+        BeanContainer.getBeanInfoMap().put(BeanFactory.class, list);
     }
 
     private BeanFactory() {}
@@ -45,7 +45,7 @@ public class BeanFactory {
      * */
     @SuppressWarnings("unchecked")
     public <T> T getBean(String name, Class<?> type) {
-        List<BeanInfo> beanInfos = BeanContainer.getBeanMap().get(type);
+        List<BeanInfo> beanInfos = BeanContainer.getBeanInfoList(type);
         BeanInfo savedBeanInfo = beanInfos.stream()
                 .filter(beanInfo -> beanInfo.getName().equals(name))
                 .findFirst()
@@ -60,12 +60,12 @@ public class BeanFactory {
      * @return 빈 목록
      * */
     public List<?> getBeanList(Class<?> type) {
-        Set<Class<?>> classes = BeanContainer.getBeanMap().keySet();
+        Set<Class<?>> classes = BeanContainer.getBeanInfoMap().keySet();
         Class<?> beanType = classes.stream()
                 .filter(savedBeanType -> savedBeanType.isAssignableFrom(type))
                 .findFirst()
                 .orElseGet(() -> getMatchType(classes, type));
-        List<BeanInfo> beanInfos = BeanContainer.getBeanMap().get(beanType);
+        List<BeanInfo> beanInfos = BeanContainer.getBeanInfoList(beanType);
         List<Object> result = new ArrayList<>();
         for (BeanInfo beanInfo : beanInfos) {
             result.add(beanInfo.getInstance());
@@ -82,7 +82,7 @@ public class BeanFactory {
      * */
     public <T> void registerBean(String name, T instance) {
         List<BeanInfo> list = Optional
-                .ofNullable(BeanContainer.getBeanMap().get(instance.getClass()))
+                .ofNullable(BeanContainer.getBeanInfoList(instance.getClass()))
                 .orElseGet(ArrayList::new);
         boolean isExist = list.stream()
                 .anyMatch(beanInfo -> beanInfo.getName().equals(name));

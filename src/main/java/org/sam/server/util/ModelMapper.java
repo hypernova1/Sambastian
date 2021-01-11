@@ -44,27 +44,30 @@ public class ModelMapper {
     private <T, U> void setValue(T instance, U target) {
         Method[] declaredMethods = instance.getClass().getDeclaredMethods();
         for (Method declaredMethod : declaredMethods) {
-            if (declaredMethod.getName().startsWith("get")) {
-                try {
-                    String propertyName = declaredMethod.getName().replace("get", "");
-                    Object value = declaredMethod.invoke(instance);
-                    Method setter = target.getClass().getMethod("set" + propertyName, value.getClass());
-                    setter.invoke(target, value);
-                } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ignored) {
-                }
-            }
+            String methodName = declaredMethod.getName();
+            if (!methodName.startsWith("get")) continue;
+
+            try {
+                String setterName = methodName.replace("get", "set");
+                Object value = declaredMethod.invoke(instance);
+                Method setter = target.getClass().getMethod(setterName, value.getClass());
+                setter.invoke(target, value);
+            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ignored) {}
         }
 
         BeanFactory beanFactory = BeanFactory.getInstance();
         List<?> beanList = beanFactory.getBeanList(CustomModelMapper.class);
-        if (beanList != null) {
-            try {
-                CustomModelMapper customModelMapper = (CustomModelMapper) beanList.get(0);
-                Method map = customModelMapper.getClass().getMethod("map", instance.getClass(), target.getClass());
-                map.invoke(customModelMapper, instance, target);
-            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
-            }
+        if (!beanList.isEmpty()) {
+            applyCustomConfig(instance, target, beanList);
         }
+    }
+
+    private <T, U> void applyCustomConfig(T instance, U target, List<?> beanList) {
+        try {
+            CustomModelMapper customModelMapper = (CustomModelMapper) beanList.get(0);
+            Method map = customModelMapper.getClass().getMethod("map", instance.getClass(), target.getClass());
+            map.invoke(customModelMapper, instance, target);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {}
     }
 
 }

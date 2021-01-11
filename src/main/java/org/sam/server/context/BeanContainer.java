@@ -35,10 +35,41 @@ public class BeanContainer {
     /**
      * 모든 포넌트 클래스 및 인터페이스 구현체를 인스턴스로 만들어 저컴장합니다.
      * */
-    public static void createBeans() {
+    public static void loadBeans() {
         loadComponentBeans();
         loadHandlerBeans();
         loadInterceptor();
+    }
+
+    /**
+     * 핸들러 빈 목록을 반환합니다.
+     *
+     * @return 핸들러 빈 목록
+     * */
+    public static List<Object> getHandlerBeans() {
+        return handlerBeans;
+    }
+
+    /**
+     * 인터셉터 구현체 인스턴스 목록을 반환합니다.
+     *
+     * @return 인터셉터 구현체 인스턴스
+     * */
+    public static List<Interceptor> getInterceptors() {
+        return interceptors;
+    }
+
+    /**
+     * 빈 목록을 반환합니다.
+     *
+     * @return 빈 목록
+     * */
+    public static Map<Class<?>, List<BeanInfo>> getBeanInfoMap() {
+        return beanMap;
+    }
+
+    public static List<BeanInfo> getBeanInfoList(Class<?> type) {
+        return beanMap.get(type);
     }
 
     /**
@@ -171,7 +202,7 @@ public class BeanContainer {
         for (Parameter parameter : parameters) {
             String parameterName = parameter.getName();
             try {
-                BeanInfo beanInfo = findBean(parameter.getType(), parameterName);
+                BeanInfo beanInfo = findBeanInfo(parameter.getType(), parameterName);
                 if (beanInfo == null) {
                     int index = componentClasses.indexOf(parameter.getType());
                     if (index == -1) continue;
@@ -231,7 +262,7 @@ public class BeanContainer {
      * @param parameterName 파라미터 이름
      * @return 빈 정보
      * */
-    private static BeanInfo findBean(Class<?> componentType, String parameterName) {
+    private static BeanInfo findBeanInfo(Class<?> componentType, String parameterName) {
         if (!componentClasses.contains(componentType))
             componentType = findSuperClass(componentType);
         List<BeanInfo> beanInfos = beanMap.get(componentType);
@@ -259,33 +290,6 @@ public class BeanContainer {
             }
         }
         return null;
-    }
-
-    /**
-     * 핸들러 빈 목록을 반환합니다.
-     *
-     * @return 핸들러 빈 목록
-     * */
-    public static List<Object> getHandlerBeans() {
-        return handlerBeans;
-    }
-
-    /**
-     * 인터셉터 구현체 인스턴스 목록을 반환합니다.
-     *
-     * @return 인터셉터 구현체 인스턴스
-     * */
-    public static List<Interceptor> getInterceptors() {
-        return interceptors;
-    }
-
-    /**
-     * 빈 목록을 반환합니다.
-     *
-     * @return 빈 목록
-     * */
-    static Map<Class<?>, List<BeanInfo>> getBeanMap() {
-        return beanMap;
     }
 
     /**

@@ -25,15 +25,15 @@ public class HttpResponse implements Response {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpResponse.class);
 
-    private static final String DEFAULT_FILE = "static/index.html";
+    private static final String DEFAULT_FILE_PAGE = "static/index.html";
 
-    private static final String BAD_REQUEST = "static/400.html";
+    private static final String BAD_REQUEST_PAGE = "static/400.html";
 
-    private static final String NOT_FOUND = "static/404.html";
+    private static final String NOT_FOUND_PAGE = "static/404.html";
 
     private static final String FAVICON = "favicon.ico";
 
-    private static final String METHOD_NOT_ALLOWED = "static/method_not_allowed.html";
+    private static final String METHOD_NOT_ALLOWED_PAGE = "static/method_not_allowed.html";
 
     private final static String BUFFER_SIZE_PROPERTY = ServerProperties.get("file-buffer-size");
 
@@ -66,7 +66,6 @@ public class HttpResponse implements Response {
     }
 
     private HttpResponse(OutputStream os, String path, HttpMethod requestMethod) {
-
         int bufferSize = BUFFER_SIZE_PROPERTY != null ? Integer.parseInt(BUFFER_SIZE_PROPERTY) : 8192;
         this.writer = new PrintWriter(os);
         this.outputStream = new BufferedOutputStream(os, bufferSize);
@@ -148,25 +147,25 @@ public class HttpResponse implements Response {
     @Override
     public void notFound() {
         logger.warn("File " + requestPath + " not found");
-        execute(NOT_FOUND, HttpStatus.NOT_FOUND);
+        execute(NOT_FOUND_PAGE, HttpStatus.NOT_FOUND);
     }
 
     @Override
     public void badRequest() {
         logger.warn("Bad Request");
-        execute(BAD_REQUEST, HttpStatus.BAD_REQUEST);
+        execute(BAD_REQUEST_PAGE, HttpStatus.BAD_REQUEST);
     }
 
     @Override
     public void methodNotAllowed() {
         logger.warn("Method Not Allowed");
-        execute(METHOD_NOT_ALLOWED, HttpStatus.METHOD_NOT_ALLOWED);
+        execute(METHOD_NOT_ALLOWED_PAGE, HttpStatus.METHOD_NOT_ALLOWED);
     }
 
     @Override
     public void indexFile() {
         if (this.requestPath.endsWith("/"))
-            filePath = DEFAULT_FILE;
+            filePath = DEFAULT_FILE_PAGE;
         this.contentMimeType = ContentType.TEXT_HTML.getValue();
         execute(filePath, HttpStatus.OK);
     }
@@ -208,7 +207,7 @@ public class HttpResponse implements Response {
             notFound();
             return 0;
         }
-        if (!filePath.equals(NOT_FOUND) && requestMethod.equals(HttpMethod.OPTIONS)) {
+        if (!filePath.equals(NOT_FOUND_PAGE) && requestMethod.equals(HttpMethod.OPTIONS)) {
             allowedMethods.add(HttpMethod.GET);
             return 0;
         }
