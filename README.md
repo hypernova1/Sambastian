@@ -1,8 +1,8 @@
 # Java HTTP Server Framework
 Implementing HTTP Server Framework using java socket.
 
-### document
-https://hypernova1.github.io/java-http-server-doc
+#### [document](https://hypernova1.github.io/java-http-server-doc/)
+#### [Sample Project](https://github.com/hypernova1/Java-Http-Server-Sample)
 
 ### How to use
 ##### 0. install jdk 1.8++
@@ -55,7 +55,3 @@ public class Application {
 22:26:34.015 [main] INFO  org.sam.server.HttpServer - server started..
 22:26:34.019 [main] INFO  org.sam.server.HttpServer - server port: 8081
 ~~~
-
-#### [Sample Project](https://github.com/hypernova1/Java-Http-Server-Sample)
-
-
