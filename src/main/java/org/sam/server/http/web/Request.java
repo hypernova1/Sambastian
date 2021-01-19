@@ -6,8 +6,6 @@ import org.sam.server.http.Cookie;
 import org.sam.server.http.CookieStore;
 import org.sam.server.http.Session;
 import org.sam.server.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -119,8 +117,6 @@ public interface Request {
      * */
     class UrlParser {
 
-        private static final Logger logger = LoggerFactory.getLogger(Request.class);
-
         protected String protocol;
 
         protected String path;
@@ -196,8 +192,6 @@ public interface Request {
                 return;
             }
             parseRequestBody(inputStream);
-
-
         }
 
         /**
@@ -240,7 +234,7 @@ public interface Request {
                 while ((binary = inputStream.read()) != -1) {
                     data[i] = (byte) binary;
                     if (isEndOfLine(data, i) || inputStream.available() == 0) {
-                        data = Arrays.copyOfRange(data, 0, ++i);
+                        data = Arrays.copyOfRange(data, 0, i + 1);
                         String line = new String(data, StandardCharsets.UTF_8);
                         sb.append(line);
                         data = new byte[inputStreamLength];
@@ -328,7 +322,7 @@ public interface Request {
                 int i;
                 while ((i = inputStream.read()) != -1) {
                     sb.append((char) i);
-                    if (sb.toString().contains(boundary + "\r\n")) {
+                    if (isStartBoundaryLine(sb.toString())) {
                         parseMultipartLine(inputStream);
                         return;
                     }
@@ -458,25 +452,20 @@ public interface Request {
             try {
                 int i;
                 while ((i = inputStream.read()) != -1) {
-                    if (data.length == fileLength) {
-                        byte[] temp = new byte[data.length * 2];
-                        System.arraycopy(data, 0, temp, 0, data.length);
-                        data = temp;
+                    if (isFullCapacity(data, fileLength)) {
+                        data = doubleArray(data);
                     }
                     data[fileLength] = (byte) i;
                     if (isEndOfLine(data, fileLength)) {
                         String content = new String(data, StandardCharsets.UTF_8);
-                        if (content.trim().equals(this.boundary)) return null;
-                        String _boundary = new String(this.boundary.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
-                        int index = content.indexOf(_boundary);
-                        if (index != -1) break;
+                        if (isEmptyBoundaryContent(content)) return null;
+                        if (isEndOfBoundaryLine(content)) break;
                     }
                     fileLength++;
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
             return Arrays.copyOfRange(data, 2, fileLength - boundary.getBytes(StandardCharsets.UTF_8).length);
         }
 
@@ -550,6 +539,29 @@ public interface Request {
          * */
         private boolean isJsonRequest() {
             return this.contentType == ContentType.APPLICATION_JSON && this.parameters.isEmpty();
+        }
+
+        private boolean isStartBoundaryLine(String line) {
+            return line.contains(this.boundary + "\r\n");
+        }
+
+        private boolean isFullCapacity(byte[] data, int fileLength) {
+            return data.length == fileLength;
+        }
+
+        private boolean isEndOfBoundaryLine(String content) {
+            String boundary = new String(this.boundary.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
+            return content.contains(boundary);
+        }
+
+        private boolean isEmptyBoundaryContent(String content) {
+            return content.trim().equals(this.boundary);
+        }
+
+        private byte[] doubleArray(byte[] data) {
+            byte[] arr = new byte[data.length * 2];
+            System.arraycopy(data, 0, arr, 0, data.length);
+            return arr;
         }
 
     }

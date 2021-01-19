@@ -90,7 +90,7 @@ public class HttpResponse implements Response {
     public void execute(String pathOrJson, HttpStatus status) {
         this.httpStatus = status;
         try {
-            if (getContentMimeType().equals(ContentType.APPLICATION_JSON.getValue())) {
+            if (getContentMimeType() == ContentType.APPLICATION_JSON) {
                 if (!requestMethod.equals(HttpMethod.OPTIONS)) {
                     this.fileLength = readJson(pathOrJson);
                 }
@@ -292,7 +292,7 @@ public class HttpResponse implements Response {
     private void printHeader() {
         headers.put("Server", "Java HTTP Server from sam : 1.0");
         headers.put("Date", LocalDateTime.now());
-        headers.put("Content-Type", getContentMimeType());
+        headers.put("Content-Type", getContentMimeType().getValue());
         headers.put("Content-length", this.fileLength);
 
         if (requestPath.startsWith("/resources")) {
@@ -324,13 +324,13 @@ public class HttpResponse implements Response {
      * @see org.sam.server.constant.ContentType
      * @see org.sam.server.constant.HttpStatus
      * */
-    private String getContentMimeType() {
-        if (contentMimeType != null) return contentMimeType;
-        if (isHtmlResponse()) return ContentType.TEXT_HTML.getValue();
-        if (requestPath.endsWith(".css")) return ContentType.CSS.getValue();
-        if (requestPath.endsWith(".js")) return ContentType.JAVASCRIPT.getValue();
+    private ContentType getContentMimeType() {
+        if (contentMimeType != null) ContentType.valueOf(contentMimeType);
+        if (isHtmlResponse()) return ContentType.TEXT_HTML;
+        if (requestPath.endsWith(".css")) return ContentType.CSS;
+        if (requestPath.endsWith(".js")) return ContentType.JAVASCRIPT;
 
-        return ContentType.TEXT_PLAIN.getValue();
+        return ContentType.TEXT_PLAIN;
     }
 
     /**

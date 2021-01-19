@@ -16,8 +16,8 @@ public enum HttpStatus {
     METHOD_NOT_ALLOWED("405", "Method Not Allowed"),
     NOT_IMPLEMENTED("501", "Not Implemented");
 
-    private String code;
-    private String message;
+    private final String code;
+    private final String message;
 
     HttpStatus(String code, String message) {
         this.code = code;
