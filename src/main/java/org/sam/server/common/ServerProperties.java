@@ -29,12 +29,11 @@ public class ServerProperties {
     private static void load() {
         InputStream resourceAsStream = Thread.currentThread().getContextClassLoader()
                 .getResourceAsStream("config/application.properties");
-        if (resourceAsStream != null) {
-            try {
-                properties.load(resourceAsStream);
-            } catch (IOException e) {
-                logger.error("properties loading error", e);
-            }
+        if (resourceAsStream == null) return;
+        try {
+            properties.load(resourceAsStream);
+        } catch (IOException e) {
+            logger.error("properties loading error", e);
         }
     }
 

@@ -48,4 +48,11 @@ public class CookieStore {
     }
 
 
+    /**
+     * 세션 정보를 추가합니다.
+     * */
+    public static void addSession(String id) {
+        Cookie cookie = new Cookie("sessionId", id);
+        CookieStore.getCookies().add(cookie);
+    }
 }

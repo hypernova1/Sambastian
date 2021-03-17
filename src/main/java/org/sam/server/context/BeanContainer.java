@@ -78,12 +78,11 @@ public class BeanContainer {
     private static void loadComponentBeans() {
         for (Class<?> componentClass : componentClasses) {
             String beanName = getBeanName(componentClass);
-            if (!isDuplicated(beanName, componentClass)) {
-                Object componentInstance = createComponentInstance(componentClass);
-                Method[] declaredMethods = componentInstance.getClass().getDeclaredMethods();
-                loadMethodBean(componentInstance, declaredMethods);
-                addBeanMap(componentClass, componentInstance, beanName);
-            }
+            if (isDuplicated(beanName, componentClass)) continue;
+            Object componentInstance = createComponentInstance(componentClass);
+            Method[] declaredMethods = componentInstance.getClass().getDeclaredMethods();
+            loadMethodBean(componentInstance, declaredMethods);
+            addBeanMap(componentClass, componentInstance, beanName);
         }
     }
 
@@ -95,15 +94,14 @@ public class BeanContainer {
      * */
     private static void loadMethodBean(Object componentInstance, Method[] declaredMethods) {
         for (Method declaredMethod : declaredMethods) {
-            if (declaredMethod.getDeclaredAnnotation(Bean.class) != null) {
-                try {
-                    Class<?> beanType = declaredMethod.getReturnType();
-                    Object instance = declaredMethod.invoke(componentInstance);
-                    String beanName = declaredMethod.getName();
-                    addBeanMap(beanType, instance, beanName);
-                } catch (IllegalAccessException | InvocationTargetException e) {
-                    throw new BeanAccessModifierException();
-                }
+            if (declaredMethod.getDeclaredAnnotation(Bean.class) == null) continue;
+            try {
+                Class<?> beanType = declaredMethod.getReturnType();
+                Object instance = declaredMethod.invoke(componentInstance);
+                String beanName = declaredMethod.getName();
+                addBeanMap(beanType, instance, beanName);
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                throw new BeanAccessModifierException();
             }
         }
     }
@@ -245,12 +243,10 @@ public class BeanContainer {
      * */
     private static boolean isDuplicated(String beanName, Class<?> componentType) {
         List<BeanInfo> beanInfos = beanMap.get(componentType);
-        if (beanInfos != null) {
-            for (BeanInfo beanInfo : beanInfos) {
-                if (beanInfo.getName().equals(beanName)) {
-                    return true;
-                }
-            }
+        if (beanInfos == null) return false;
+        for (BeanInfo beanInfo : beanInfos) {
+            if (!beanInfo.getName().equals(beanName)) continue;
+            return true;
         }
         return false;
     }
@@ -263,15 +259,16 @@ public class BeanContainer {
      * @return 빈 정보
      * */
     private static BeanInfo findBeanInfo(Class<?> componentType, String parameterName) {
-        if (!componentClasses.contains(componentType))
+        if (!componentClasses.contains(componentType)) {
             componentType = findSuperClass(componentType);
+        }
         List<BeanInfo> beanInfos = beanMap.get(componentType);
         if (beanInfos == null) return null;
         if (beanInfos.size() == 1)
             return beanInfos.get(0);
         for (BeanInfo beanInfo : beanInfos) {
-            if (beanInfo.getName().equals(parameterName))
-                return beanInfo;
+            if (!beanInfo.getName().equals(parameterName)) continue;
+            return beanInfo;
         }
         return null;
     }
@@ -285,9 +282,8 @@ public class BeanContainer {
     private static Class<?> findSuperClass(Class<?> componentType) {
         Set<Class<?>> keys = beanMap.keySet();
         for (Class<?> key : keys) {
-            if (key.isAssignableFrom(componentType)) {
-                return key;
-            }
+            if (!key.isAssignableFrom(componentType)) continue;
+            return key;
         }
         return null;
     }

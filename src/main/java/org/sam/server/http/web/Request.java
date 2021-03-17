@@ -117,6 +117,9 @@ public interface Request {
      * */
     class UrlParser {
 
+        private static final char CR = (char) 0x0D;
+        private static final char LF = (char) 0x0A;
+
         protected String protocol;
 
         protected String path;
@@ -500,7 +503,8 @@ public interface Request {
          * @return 헤더의 끝인지 여부
          * */
         private static boolean isEndOfHeader(String data) {
-            return data.endsWith("\r\n\r\n");
+            String CR = "\r";
+            return data.endsWith(CR + "\n\r\n");
         }
 
         /**

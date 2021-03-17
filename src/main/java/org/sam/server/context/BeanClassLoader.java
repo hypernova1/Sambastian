@@ -80,9 +80,8 @@ public class BeanClassLoader {
         for (Class<?> clazz : classes) {
             Annotation[] declaredAnnotations = clazz.getDeclaredAnnotations();
             for (Annotation declaredAnnotation : declaredAnnotations) {
-                if (componentTypes.contains(declaredAnnotation.annotationType())) {
-                    componentClasses.add(clazz);
-                }
+                if (!componentTypes.contains(declaredAnnotation.annotationType())) continue;
+                componentClasses.add(clazz);
             }
         }
     }
@@ -95,9 +94,8 @@ public class BeanClassLoader {
      * */
     private static void loadInterceptorClasses(List<Class<?>> classes) {
         for (Class<?> clazz : classes) {
-            if (isInterceptorClass(clazz)) {
-                interceptorClasses.add(clazz);
-            }
+            if (!isInterceptorClass(clazz)) continue;
+            interceptorClasses.add(clazz);
         }
     }
 
@@ -119,29 +117,28 @@ public class BeanClassLoader {
                 classes.addAll(foundClasses);
                 continue;
             }
-            classes.addAll(createClasses(packageName, file));
+            Class<?> clazz = createClass(packageName, file);
+            if (clazz == null) continue;
+            classes.add(clazz);
         }
         return classes;
     }
 
     /**
-     * 패키지 안에 있는 클래스 목록을 반환합니다.
+     * 패키지 안에 있는 클래스를 반환합니다.
      *
      * @param packageName 패키지 이름
      * @param file 패키지 안의 파일
-     * @return 해당 패키지의 클래스 목록
+     * @return 클래스
      * */
-    private static List<Class<?>> createClasses(String packageName, File file) {
-        List<Class<?>> classes = new ArrayList<>();
-        if (isClassFile(file)) {
-            try {
-                Class<?> clazz = Class.forName(getClassName(packageName, file));
-                classes.add(clazz);
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
+    private static Class<?> createClass(String packageName, File file) {
+        if (!isClassFile(file)) return null;
+        try {
+            return Class.forName(getClassName(packageName, file));
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
         }
-        return classes;
+        return null;
     }
 
     /**

@@ -73,7 +73,7 @@ public class HandlerFinder {
             this.handlerClassPath = handlerType.getDeclaredAnnotation(Handler.class).value();
             Method handlerMethod = findHandlerMethod();
             if (handlerMethod != null) {
-                return new HandlerInfo(handlerInstance, handlerMethod);
+                return HandlerInfo.of(handlerInstance, handlerMethod);
             }
         }
 
@@ -147,9 +147,8 @@ public class HandlerFinder {
      * */
     private void classifyHandlerMethod(Method handlerMethod) {
         for (Annotation annotation : handlerMethod.getDeclaredAnnotations()) {
-            if (isHandleMethod(annotation)) {
-                classifyHandler(handlerMethod, annotation);
-            }
+            if (!isHandleMethod(annotation)) continue;
+            classifyHandler(handlerMethod, annotation);
         }
     }
 

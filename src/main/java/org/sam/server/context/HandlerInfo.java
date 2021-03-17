@@ -9,13 +9,17 @@ import java.lang.reflect.Method;
  */
 public class HandlerInfo {
 
-    private final Object instance;
+    private Object instance;
 
-    private final Method handlerMethod;
+    private Method handlerMethod;
 
-    public HandlerInfo(Object instance, Method handlerMethod) {
-        this.instance = instance;
-        this.handlerMethod = handlerMethod;
+    private HandlerInfo() {}
+
+    public static HandlerInfo of(Object instance, Method handlerMethod) {
+        HandlerInfo handlerInfo = new HandlerInfo();
+        handlerInfo.instance = instance;
+        handlerInfo.handlerMethod = handlerMethod;
+        return handlerInfo;
     }
 
     /**
