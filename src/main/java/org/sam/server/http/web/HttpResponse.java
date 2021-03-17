@@ -325,7 +325,7 @@ public class HttpResponse implements Response {
      * @see org.sam.server.constant.HttpStatus
      * */
     private ContentType getContentMimeType() {
-        if (contentMimeType != null) ContentType.valueOf(contentMimeType);
+        if (contentMimeType != null) return ContentType.get(contentMimeType);
         if (isHtmlResponse()) return ContentType.TEXT_HTML;
         if (requestPath.endsWith(".css")) return ContentType.CSS;
         if (requestPath.endsWith(".js")) return ContentType.JAVASCRIPT;

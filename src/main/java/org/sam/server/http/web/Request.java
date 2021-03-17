@@ -172,11 +172,11 @@ public interface Request {
         }
 
         private ContentType parseContentType() {
-            String contentType = this.headers.getOrDefault("content-type", "");
-            ContentType result = ContentType.valueOf(contentType);
+            String contentType = this.headers.getOrDefault("content-type", "text/plain");
+            ContentType result = ContentType.get(contentType);
             if (contentType.startsWith(ContentType.MULTIPART_FORM_DATA.getValue())) {
                 this.boundary = "--" + contentType.split("; ")[1].split("=")[1];
-                this.contentType = ContentType.valueOf(contentType.split("; ")[0]);
+                this.contentType = ContentType.get(contentType.split("; ")[0]);
             }
             return result;
         }

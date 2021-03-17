@@ -27,6 +27,15 @@ public enum ContentType {
         return this.value;
     }
 
+    public static ContentType get(String name) {
+        for(ContentType contentType : values()){
+            if(contentType.value.equals(name)){
+                return contentType;
+            }
+        }
+        return TEXT_HTML;
+    }
+
     @Override
     public String toString() {
         return this.value;
