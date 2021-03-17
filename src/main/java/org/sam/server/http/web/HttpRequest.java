@@ -95,9 +95,8 @@ public class HttpRequest implements Request {
     @Override
     public Session getSession() {
         for (Cookie cookie : cookies) {
-            if (cookie.getName().equals("sessionId")) {
-                return HttpServer.SessionManager.getSession(cookie.getValue());
-            }
+            if (!cookie.getName().equals("sessionId")) continue;
+            return HttpServer.SessionManager.getSession(cookie.getValue());
         }
         return new Session();
     }

@@ -168,10 +168,9 @@ public class HttpServer implements Runnable {
             Iterator<Session> iterator = sessionList.iterator();
             while (iterator.hasNext()) {
                 Session session = iterator.next();
-                if (isExpiredSession(session)) {
-                    iterator.remove();
-                    logger.info("remove Session:" + session.getId());
-                }
+                if (!isExpiredSession(session)) continue;
+                iterator.remove();
+                logger.info("remove Session:" + session.getId());
             }
         }
 

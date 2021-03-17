@@ -50,12 +50,11 @@ public class PrimitiveWrapper {
         for (Constructor<?> constructor : constructors) {
             Parameter[] parameters = constructor.getParameters();
             for (Parameter parameter : parameters) {
-                if (parameter.getType().equals(String.class)) {
-                    try {
-                        return constructor.newInstance(value);
-                    } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
+                if (!parameter.getType().equals(String.class)) continue;
+                try {
+                    return constructor.newInstance(value);
+                } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                    e.printStackTrace();
                 }
             }
         }

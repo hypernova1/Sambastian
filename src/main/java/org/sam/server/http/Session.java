@@ -31,8 +31,7 @@ public final class Session {
         this.accessTime = LocalDateTime.now();
         this.timeout = 30;
         HttpServer.SessionManager.addSession(this);
-        Cookie cookie = new Cookie("sessionId", this.id);
-        CookieStore.getCookies().add(cookie);
+        CookieStore.addSession(this.id);
     }
 
     /**

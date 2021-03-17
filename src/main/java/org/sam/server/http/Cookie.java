@@ -160,7 +160,7 @@ public class Cookie {
     }
 
     /**
-     * Path를 설정합니다
+     * path를 설정합니다
      * 
      * @param path 쿠키의 범위
      * */
