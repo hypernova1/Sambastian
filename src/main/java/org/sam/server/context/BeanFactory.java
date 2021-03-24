@@ -102,9 +102,8 @@ public class BeanFactory {
         for (Class<?> savedClass : classes) {
             Class<?>[] interfaces = savedClass.getInterfaces();
             for (Class<?> interfaceClass : interfaces) {
-                if (interfaceClass.equals(type)) {
-                    return savedClass;
-                }
+                if (!interfaceClass.equals(type)) continue;
+                return savedClass;
             }
         }
         return null;

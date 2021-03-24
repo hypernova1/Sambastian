@@ -44,7 +44,7 @@ public class HandlerExecutor {
      * @param handlerInfo 핸들러 정보
      * @return 인스턴스
      * */
-    public static HandlerExecutor create(Request request, Response response, HandlerInfo handlerInfo) {
+    public static HandlerExecutor of(Request request, Response response, HandlerInfo handlerInfo) {
         return new HandlerExecutor(request, response, handlerInfo);
     }
 
@@ -56,15 +56,15 @@ public class HandlerExecutor {
         try {
             Map<String, String> requestData = request.getParameters();
             List<Interceptor> interceptors = BeanContainer.getInterceptors();
+
             Object returnValue;
             HttpStatus httpStatus;
-
             if (interceptors.isEmpty()) {
                 returnValue = executeHandler(requestData);
             } else {
                 returnValue = executeInterceptors(interceptors, requestData);
             }
-            if (returnValue.getClass().equals(ResponseEntity.class)) {
+            if (returnValue != null && returnValue.getClass().equals(ResponseEntity.class)) {
                 ResponseEntity<?> responseEntity = (ResponseEntity<?>) returnValue;
                 httpStatus = responseEntity.getHttpStatus();
                 returnValue = responseEntity.getValue();
@@ -137,13 +137,12 @@ public class HandlerExecutor {
     private Object executeHandler(Map<String, String> requestData) {
         Method handlerMethod = handlerInfo.getMethod();
         Object[] parameters = createParameters(handlerMethod.getParameters(), requestData);
-        Object returnValue = null;
         try {
-            returnValue = handlerMethod.invoke(handlerInfo.getInstance(), parameters);
+            return handlerMethod.invoke(handlerInfo.getInstance(), parameters);
         } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
-        return returnValue;
+        return null;
     }
 
     /**

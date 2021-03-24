@@ -78,7 +78,7 @@ public class BeanContainer {
     private static void loadComponentBeans() {
         for (Class<?> componentClass : componentClasses) {
             String beanName = getBeanName(componentClass);
-            if (isDuplicated(beanName, componentClass)) continue;
+            if (isExistDuplicatedBean(componentClass)) continue;
             Object componentInstance = createComponentInstance(componentClass);
             Method[] declaredMethods = componentInstance.getClass().getDeclaredMethods();
             loadMethodBean(componentInstance, declaredMethods);
@@ -237,11 +237,11 @@ public class BeanContainer {
     /**
      * 존재하는 빈이 있는 지 확인합니다.
      *
-     * @param beanName 빈 이름
      * @param componentType 컴포넌트 타입
      * @return 중복 유무
      * */
-    private static boolean isDuplicated(String beanName, Class<?> componentType) {
+    private static boolean isExistDuplicatedBean(Class<?> componentType) {
+        String beanName = getBeanName(componentType);
         List<BeanInfo> beanInfos = beanMap.get(componentType);
         if (beanInfos == null) return false;
         for (BeanInfo beanInfo : beanInfos) {

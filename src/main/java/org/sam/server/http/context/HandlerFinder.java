@@ -54,7 +54,7 @@ public class HandlerFinder {
      * @param response 응답 인스턴스
      * @return HandlerFinder 인스턴스
      * */
-    public static HandlerFinder create(Request request, Response response) {
+    public static HandlerFinder of(Request request, Response response) {
         return new HandlerFinder(request, response);
     }
 
@@ -72,9 +72,8 @@ public class HandlerFinder {
             classifyHandler(handlerType);
             this.handlerClassPath = handlerType.getDeclaredAnnotation(Handler.class).value();
             Method handlerMethod = findHandlerMethod();
-            if (handlerMethod != null) {
-                return HandlerInfo.of(handlerInstance, handlerMethod);
-            }
+            if (handlerMethod == null) continue;
+            return HandlerInfo.of(handlerInstance, handlerMethod);
         }
 
         if (isExistsPath) {
@@ -90,10 +89,9 @@ public class HandlerFinder {
      * @throws HandlerNotFoundException 핸들러를 찾지 못 했을 시
      * */
     private Method findHandlerMethod() throws HandlerNotFoundException {
-        String requestPath = getRequestPath();
         return Stream.of(
-                findHandlerMethod(handlerMethods, requestPath),
-                findHandlerMethod(pathValueHandlerMethods, requestPath)
+                findHandlerMethod(handlerMethods),
+                findHandlerMethod(pathValueHandlerMethods)
         )
                 .filter(Optional::isPresent)
                 .map(Optional::get)
@@ -105,12 +103,11 @@ public class HandlerFinder {
      * 어노테이션의 정보와 요청 정보가 일치하는 핸들러의 메서드를 반환합니다.
      *
      * @param handlerMethods 핸들러 메서드 목록
-     * @param requestPath 요청 URL
      * @return 핸들러 메서드
      * */
-    private Optional<Method> findHandlerMethod(List<Method> handlerMethods, String requestPath) {
+    private Optional<Method> findHandlerMethod(List<Method> handlerMethods) {
         return handlerMethods.stream()
-                .filter(handlerMethod -> isMatchMethod(handlerMethod, requestPath))
+                .filter(this::isMatchHandlerMethod)
                 .findFirst();
     }
 
@@ -118,14 +115,13 @@ public class HandlerFinder {
      * 핸들러 메서드가 요청과 일치히는지 확인합니다.
      *
      * @param handlerMethod 한들러 메서드
-     * @param requestPath 요청 URL
      * @return 일치여부
      * */
-    private boolean isMatchMethod(Method handlerMethod, String requestPath) {
-        Annotation[] handlerMethodDeclaredAnnotations = handlerMethod.getDeclaredAnnotations();
-        return Arrays.stream(handlerMethodDeclaredAnnotations)
-                .filter(this::isHandleMethod)
-                .anyMatch(annotation -> compareAnnotation(requestPath, handlerMethod, annotation));
+    private boolean isMatchHandlerMethod(Method handlerMethod) {
+        Annotation[] annotationDeclaredOnHandlerMethod = handlerMethod.getDeclaredAnnotations();
+        return Arrays.stream(annotationDeclaredOnHandlerMethod)
+                .filter(this::isHandleAnnotation)
+                .anyMatch(annotation -> isMatchedHandlerMethod(handlerMethod, annotation));
     }
 
     /**
@@ -134,8 +130,8 @@ public class HandlerFinder {
      * @param handlerClass 핸들러 클래스
      * */
     private void classifyHandler(Class<?> handlerClass) {
-        Method[] handlerClassDeclaredMethods = handlerClass.getDeclaredMethods();
-        for (Method handlerMethod : handlerClassDeclaredMethods) {
+        Method[] handlerMethodInHandlerClass = handlerClass.getDeclaredMethods();
+        for (Method handlerMethod : handlerMethodInHandlerClass) {
             classifyHandlerMethod(handlerMethod);
         }
     }
@@ -147,7 +143,7 @@ public class HandlerFinder {
      * */
     private void classifyHandlerMethod(Method handlerMethod) {
         for (Annotation annotation : handlerMethod.getDeclaredAnnotations()) {
-            if (!isHandleMethod(annotation)) continue;
+            if (!isHandleAnnotation(annotation)) continue;
             classifyHandler(handlerMethod, annotation);
         }
     }
@@ -156,12 +152,12 @@ public class HandlerFinder {
      * 일반 핸들러 메서드와 url 내에 파라미터가 있는 핸들러를 분류합니다.
      *
      * @param handlerMethod 핸들러 메서드
-     * @param annotation 핸들러 메서드의 어노테이션
+     * @param handlerAnnotation 핸들러 메서드의 어노테이션
      * */
-    private void classifyHandler(Method handlerMethod, Annotation annotation) {
+    private void classifyHandler(Method handlerMethod, Annotation handlerAnnotation) {
         try {
-            Method value = annotation.annotationType().getMethod("value");
-            String path = String.valueOf(value.invoke(annotation));
+            Method value = handlerAnnotation.annotationType().getMethod("value");
+            String path = String.valueOf(value.invoke(handlerAnnotation));
             if (isUrlContainsParameter(path)) {
                 pathValueHandlerMethods.add(handlerMethod);
                 return;
@@ -175,26 +171,25 @@ public class HandlerFinder {
     /**
      * 요청 정보와 핸들러 메서드의 정보가 일치하는지 비교합니다.
      *
-     * @param requestPath 요청 URL
      * @param handlerMethod 핸들러 메서드
-     * @param handlerMethodDeclaredAnnotation 핸들러 메서드에 선언된 어노테이션
+     * @param annotation 핸들러 메서드에 선언된 어노테이션
      * @return 일치 여부
      * */
-    private boolean compareAnnotation(String requestPath, Method handlerMethod, Annotation handlerMethodDeclaredAnnotation) {
-        Class<? extends Annotation> handlerAnnotationType = handlerMethodDeclaredAnnotation.annotationType();
+    private boolean isMatchedHandlerMethod(Method handlerMethod, Annotation annotation) {
+        Class<? extends Annotation> handlerAnnotationType = annotation.annotationType();
         try {
-            Method methodPropertyInAnnotation = handlerAnnotationType.getDeclaredMethod("method");
-            Method pathPropertyInAnnotation = handlerAnnotationType.getDeclaredMethod("value");
-            String path = pathPropertyInAnnotation.invoke(handlerMethodDeclaredAnnotation).toString();
-            if (!path.startsWith("/")) {
-                path = "/" + path;
-            }
+            String requestPath = getRequestPathWithoutHandlerPath();
+            String handlerMethodPath = getHandlerMethodPath(annotation);
+
             if (requestPath.equals(request.getPath())) {
-                path = this.handlerClassPath + path;
+                handlerMethodPath = this.handlerClassPath + handlerMethodPath;
             }
-            String method = methodPropertyInAnnotation.invoke(handlerMethodDeclaredAnnotation).toString();
-            boolean isMatchMethod = compareMethodAndPath(requestPath, handlerMethod, path, method);
-            if (isMatchMethod) return true;
+
+            Method methodPropertyInAnnotation = handlerAnnotationType.getDeclaredMethod("method");
+            String method = methodPropertyInAnnotation.invoke(annotation).toString();
+            if (isMatchedHandlerMethod(handlerMethod, handlerMethodPath, method)) {
+                return true;
+            }
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
@@ -202,34 +197,63 @@ public class HandlerFinder {
     }
 
     /**
+     * 핸들러 메서드의 url을 가져옵니다.
+     *
+     * @param annotation 핸들러 메서드의 어노테이션
+     * @return url
+     * */
+    private String getHandlerMethodPath(Annotation annotation) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+        Method pathPropertyInAnnotation = annotation.annotationType().getDeclaredMethod("value");
+        String handlerMethodPath = pathPropertyInAnnotation.invoke(annotation).toString();
+        if (!handlerMethodPath.startsWith("/")) {
+            handlerMethodPath = "/" + handlerMethodPath;
+        }
+        return handlerMethodPath;
+    }
+
+    /**
      * URL과 HTTP Method가 일치하는지 비교합니다.
      *
-     * @param requestPath 요청 URL
      * @param handlerMethod 핸들러 메서드
-     * @param path 핸들러 메서드의 URL
+     * @param handlerMethodPath 핸들러 메서드의 URL
      * @param method 헨들러 메서드의 HTTP Method
      * @return 일치 여부
      * */
-    private boolean compareMethodAndPath(String requestPath, Method handlerMethod, String path, String method) {
+    private boolean isMatchedHandlerMethod(Method handlerMethod, String handlerMethodPath, String method) {
         HttpMethod httpMethod = request.getMethod();
-        boolean containPathValue = isExistsPathValueAnnotation(handlerMethod);
-        boolean isSamePath = requestPath.equals(path);
-        if (isSamePath) {
-            this.isExistsPath = true;
-        }
-        if (containPathValue) {
-            isSamePath = findPathValueHandler(requestPath, path, isSamePath);
-        }
-        boolean isOptionsRequest = httpMethod.equals(HttpMethod.OPTIONS);
-        if (isSamePath && isOptionsRequest) {
-            response.addAllowedMethod(HttpMethod.get(method));
-        }
-        boolean isHeadRequest = httpMethod.equals(HttpMethod.HEAD) && HttpMethod.GET.toString().equals(method);
-        if (!isOptionsRequest && isSamePath && httpMethod.equals(HttpMethod.get(method)) || isHeadRequest) {
-            if (handlerMethod.getDeclaredAnnotation(RestApi.class) != null) {
-                this.response.setContentMimeType(ContentType.APPLICATION_JSON);
+
+        if (isMatchedPath(handlerMethod, handlerMethodPath)) {
+            if (httpMethod.equals(HttpMethod.OPTIONS)) {
+                response.addAllowedMethod(HttpMethod.get(method));
             }
-            return true;
+
+            boolean isHeadRequest = httpMethod.equals(HttpMethod.HEAD) && HttpMethod.GET.toString().equals(method);
+            if (!httpMethod.equals(HttpMethod.OPTIONS) && httpMethod.equals(HttpMethod.get(method)) || isHeadRequest) {
+                if (handlerMethod.getDeclaredAnnotation(RestApi.class) != null) {
+                    this.response.setContentMimeType(ContentType.APPLICATION_JSON);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 핸들러 메서드의 url과 요청 url이 같은지에 대한 여부를 반환합니다.
+     *
+     * @param handlerMethod 핸들러 메서드
+     * @param handlerMethodPath 핸들러 메서드의 url
+     * */
+    private boolean isMatchedPath(Method handlerMethod, String handlerMethodPath) {
+        String requestPath = getRequestPathWithoutHandlerPath();
+
+        if (isExistsPathValueAnnotation(handlerMethod)) {
+            return isMatchedPath(requestPath, handlerMethodPath);
+        } else {
+            if (requestPath.equals(handlerMethodPath)) {
+                this.isExistsPath = true;
+                return true;
+            }
         }
         return false;
     }
@@ -239,19 +263,18 @@ public class HandlerFinder {
      *
      * @param requestPath 요청 URL
      * @param path 핸들러 메서드의 URL
-     * @param isSamePath 기존 일치 여부
      * @return 일치 여부
      * */
-    private boolean findPathValueHandler(String requestPath, String path, boolean isSamePath) {
+    private boolean isMatchedPath(String requestPath, String path) {
         Matcher matcher = PATH_VALUE_PATTERN.matcher(path);
         Queue<String> paramNames = new ArrayDeque<>();
         while (matcher.find()) {
             paramNames.add(matcher.group(1));
         }
         if (!paramNames.isEmpty()) {
-            isSamePath = matchPath(requestPath, path, paramNames);
+            return isMatchPath(requestPath, path, paramNames);
         }
-        return isSamePath;
+        return false;
     }
 
     /**
@@ -274,7 +297,7 @@ public class HandlerFinder {
      * @param paramNames 핸들러 메서드 파라미터
      * @return 일치 여부
      * */
-    private boolean matchPath(String requestPath, String path, Queue<String> paramNames) {
+    private boolean isMatchPath(String requestPath, String path, Queue<String> paramNames) {
         if (!isUrlContainsParameter(path)) return false;
         String[] requestPathArr = requestPath.split("/");
         String[] pathArr = path.split("/");
@@ -300,16 +323,16 @@ public class HandlerFinder {
      *
      * @return 수정된 요청 URL
      * */
-    private String getRequestPath() {
+    private String getRequestPathWithoutHandlerPath() {
         String requestPath = request.getPath();
-        String rootRequestPath = "/";
+        String handlerClassPath = "/";
         if (!requestPath.equals("/")) {
-            rootRequestPath += requestPath.split("/")[1];
+            handlerClassPath += requestPath.split("/")[1];
         }
         if (!this.handlerClassPath.startsWith("/")) {
             this.handlerClassPath = "/" + this.handlerClassPath;
         }
-        if (rootRequestPath.equals(this.handlerClassPath)) {
+        if (handlerClassPath.equals(this.handlerClassPath)) {
             requestPath = replaceRequestPath(requestPath);
         }
         if (!requestPath.equals("/") && requestPath.endsWith("/")) {
@@ -337,7 +360,7 @@ public class HandlerFinder {
      * @param annotation 홴들러 메서드의 어노테이션
      * @return 핸들러 메서드인지 여부
      * */
-    private boolean isHandleMethod(Annotation annotation) {
+    private boolean isHandleAnnotation(Annotation annotation) {
         return annotation.annotationType().getDeclaredAnnotation(Handle.class) != null;
     }
 

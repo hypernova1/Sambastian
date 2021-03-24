@@ -26,6 +26,14 @@ class HandlerFinderTest {
         String path = "/board/test";
         String[] split = path.split("/");
         System.out.println(Arrays.toString(split));
+        String hello = getString();
+        hello = "/" + hello;
+        System.out.println(hello);
+        System.out.println(getString());
+    }
+
+    String getString() {
+        return "hello";
     }
 
 }

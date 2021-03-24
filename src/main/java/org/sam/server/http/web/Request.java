@@ -385,7 +385,7 @@ public interface Request {
                     }
 
                     if (line.contains(boundary)) {
-                        if (!filename.equals("")) {
+                        if (!filename.isEmpty()) {
                             createMultipartFile(name, filename, mimeType, fileData);
                         } else {
                             this.parameters.put(name, value);

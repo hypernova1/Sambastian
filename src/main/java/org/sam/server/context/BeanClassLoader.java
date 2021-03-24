@@ -172,16 +172,16 @@ public class BeanClassLoader {
         for (File file : files) {
             StringBuilder packageNameBuilder = new StringBuilder(packageName);
             if (file.isDirectory()) {
-                if (!packageNameBuilder.toString().equals("")) packageNameBuilder.append(".");
+                if (packageNameBuilder.length() > 0) packageNameBuilder.append(".");
                 loadRootPackageName(file, packageNameBuilder + file.getName());
             } else if (isClassFile(file)) {
                 String fileName = packageNameBuilder + "." + file.getName();
                 try {
                     Class<?> clazz = Class.forName(getClassName(fileName));
-                    if (isComponentScanClass(clazz)) {
-                        rootPackageName = packageName;
-                        return true;
-                    }
+                    if (!isComponentScanClass(clazz)) continue;
+
+                    rootPackageName = packageName;
+                    return true;
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
                 }
