@@ -5,6 +5,7 @@ import org.sam.server.annotation.ComponentScan;
 import org.sam.server.annotation.component.Repository;
 import org.sam.server.annotation.component.Service;
 import org.sam.server.annotation.component.Handler;
+import org.sam.server.annotation.handle.RequestMapping;
 import org.sam.server.exception.ComponentScanNotFoundException;
 import org.sam.server.http.Interceptor;
 
@@ -22,6 +23,8 @@ import java.util.stream.Collectors;
  */
 public class BeanClassLoader {
 
+    private static final List<Class<?>> componentTypes = Arrays.asList(Service.class, Component.class, Repository.class);
+
     private static String rootPackageName;
 
     private static final List<Class<?>> handlerClasses = new ArrayList<>();
@@ -31,7 +34,7 @@ public class BeanClassLoader {
     private static final List<Class<?>> interceptorClasses = new ArrayList<>();
 
     static {
-        loadRootPackageName();
+        findRootPackageName();
         loadClasses();
     }
 
@@ -61,7 +64,7 @@ public class BeanClassLoader {
      * 핸들러 클래스를 저장합니다.
      *
      * @param classes 클래스 목록
-     * @see org.sam.server.annotation.handle.Handle
+     * @see RequestMapping
      * */
     private static void loadHandlerClasses(List<Class<?>> classes) {
         handlerClasses.addAll(classes.stream()
@@ -76,13 +79,16 @@ public class BeanClassLoader {
      * @see org.sam.server.annotation.component.Component
      * */
     private static void loadComponentClasses(List<Class<?>> classes) {
-        List<Class<?>> componentTypes = Arrays.asList(Service.class, Component.class, Repository.class);
         for (Class<?> clazz : classes) {
             Annotation[] declaredAnnotations = clazz.getDeclaredAnnotations();
-            for (Annotation declaredAnnotation : declaredAnnotations) {
-                if (!componentTypes.contains(declaredAnnotation.annotationType())) continue;
-                componentClasses.add(clazz);
-            }
+            addComponentClass(clazz, declaredAnnotations);
+        }
+    }
+
+    private static void addComponentClass(Class<?> clazz, Annotation[] declaredAnnotations) {
+        for (Annotation declaredAnnotation : declaredAnnotations) {
+            if (!isComponentClass(declaredAnnotation)) continue;
+            componentClasses.add(clazz);
         }
     }
 
@@ -134,7 +140,8 @@ public class BeanClassLoader {
     private static Class<?> createClass(String packageName, File file) {
         if (!isClassFile(file)) return null;
         try {
-            return Class.forName(getClassName(packageName, file));
+            String fullClassName = getClassName(packageName, file);
+            return Class.forName(fullClassName);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -144,13 +151,13 @@ public class BeanClassLoader {
     /**
      * 루트 패키지를 찾습니다.
      * */
-    private static void loadRootPackageName() {
+    private static void findRootPackageName() {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         try {
             Enumeration<URL> resources = classLoader.getResources("");
             while (resources.hasMoreElements()) {
                 URL resource = resources.nextElement();
-                boolean existComponentScan = loadRootPackageName(new File(resource.getFile()), "");
+                boolean existComponentScan = findRootPackageName(new File(resource.getFile()), "");
                 if (existComponentScan) break;
             }
         } catch (IOException e) {
@@ -165,7 +172,7 @@ public class BeanClassLoader {
      * @param packageName 패키지 이름
      * @return  찾았는 지에 대한 여부
      * */
-    private static boolean loadRootPackageName(File directory, String packageName) {
+    private static boolean findRootPackageName(File directory, String packageName) {
         if (!directory.exists()) return false;
         File[] files = directory.listFiles();
         if (files == null) return false;
@@ -173,7 +180,7 @@ public class BeanClassLoader {
             StringBuilder packageNameBuilder = new StringBuilder(packageName);
             if (file.isDirectory()) {
                 if (packageNameBuilder.length() > 0) packageNameBuilder.append(".");
-                loadRootPackageName(file, packageNameBuilder + file.getName());
+                findRootPackageName(file, packageNameBuilder + file.getName());
             } else if (isClassFile(file)) {
                 String fileName = packageNameBuilder + "." + file.getName();
                 try {
@@ -218,6 +225,27 @@ public class BeanClassLoader {
     }
 
     /**
+     * 클래스의 이름을 반환합니다.
+     *
+     * @param packageName 패키지명
+     * @param file 클래스 파일
+     * @return 클래스 이름
+     * */
+    private static String getClassName(String packageName, File file) {
+        return packageName + "." + getClassName(file.getName());
+    }
+
+    /**
+     * 클래스의 이름을 반환합니다.
+     *
+     * @param fileName 패키지명
+     * @return 클래스 이름
+     * */
+    private static String getClassName(String fileName) {
+        return fileName.substring(0, fileName.length() - 6);
+    }
+
+    /**
      * 해당 클래스가 핸들러 클래스인지 확인합니다.
      *
      * @param clazz 클래스 타입
@@ -249,27 +277,6 @@ public class BeanClassLoader {
     }
 
     /**
-     * 클래스의 이름을 반환합니다.
-     *
-     * @param packageName 패키지명
-     * @param file 클래스 파일
-     * @return 클래스 이름
-     * */
-    private static String getClassName(String packageName, File file) {
-        return packageName + "." + getClassName(file.getName());
-    }
-
-    /**
-     * 클래스의 이름을 반환합니다.
-     *
-     * @param fileName 패키지명
-     * @return 클래스 이름
-     * */
-    private static String getClassName(String fileName) {
-        return fileName.substring(0, fileName.length() - 6);
-    }
-
-    /**
      * Interceptor를 구현한 클래스인지 확인합니다.
      *
      * @param clazz 클래스 타입
@@ -278,6 +285,16 @@ public class BeanClassLoader {
     private static boolean isInterceptorClass(Class<?> clazz) {
         Class<?>[] interfaces = clazz.getInterfaces();
         return Arrays.asList(interfaces).contains(Interceptor.class);
+    }
+
+    /**
+     * Component 관련 어노테이션인지 확인합니다.
+     *
+     * @param annotation 어노테이션
+     * @return Component 어노테이션 여부
+     * */
+    private static boolean isComponentClass(Annotation annotation) {
+        return annotation.annotationType().getDeclaredAnnotation(Component.class) != null || annotation.annotationType().equals(Component.class);
     }
 
 }

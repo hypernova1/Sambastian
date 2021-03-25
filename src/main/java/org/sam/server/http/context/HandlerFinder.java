@@ -1,8 +1,8 @@
 package org.sam.server.http.context;
 
 import org.sam.server.annotation.component.Handler;
-import org.sam.server.annotation.handle.Handle;
 import org.sam.server.annotation.handle.PathValue;
+import org.sam.server.annotation.handle.RequestMapping;
 import org.sam.server.annotation.handle.RestApi;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
@@ -118,9 +118,9 @@ public class HandlerFinder {
      * @return 일치여부
      * */
     private boolean isMatchHandlerMethod(Method handlerMethod) {
-        Annotation[] annotationDeclaredOnHandlerMethod = handlerMethod.getDeclaredAnnotations();
-        return Arrays.stream(annotationDeclaredOnHandlerMethod)
-                .filter(this::isHandleAnnotation)
+        Annotation[] annotationsDeclaredOnHandlerMethod = handlerMethod.getDeclaredAnnotations();
+        return Arrays.stream(annotationsDeclaredOnHandlerMethod)
+                .filter(this::isHandlerAnnotation)
                 .anyMatch(annotation -> isMatchedHandlerMethod(handlerMethod, annotation));
     }
 
@@ -130,8 +130,8 @@ public class HandlerFinder {
      * @param handlerClass 핸들러 클래스
      * */
     private void classifyHandler(Class<?> handlerClass) {
-        Method[] handlerMethodInHandlerClass = handlerClass.getDeclaredMethods();
-        for (Method handlerMethod : handlerMethodInHandlerClass) {
+        Method[] handlerMethods = handlerClass.getDeclaredMethods();
+        for (Method handlerMethod : handlerMethods) {
             classifyHandlerMethod(handlerMethod);
         }
     }
@@ -143,7 +143,7 @@ public class HandlerFinder {
      * */
     private void classifyHandlerMethod(Method handlerMethod) {
         for (Annotation annotation : handlerMethod.getDeclaredAnnotations()) {
-            if (!isHandleAnnotation(annotation)) continue;
+            if (!isHandlerAnnotation(annotation)) continue;
             classifyHandler(handlerMethod, annotation);
         }
     }
@@ -358,8 +358,8 @@ public class HandlerFinder {
      * @param annotation 홴들러 메서드의 어노테이션
      * @return 핸들러 메서드인지 여부
      * */
-    private boolean isHandleAnnotation(Annotation annotation) {
-        return annotation.annotationType().getDeclaredAnnotation(Handle.class) != null;
+    private boolean isHandlerAnnotation(Annotation annotation) {
+        return annotation.annotationType().getDeclaredAnnotation(RequestMapping.class) != null;
     }
 
     /**

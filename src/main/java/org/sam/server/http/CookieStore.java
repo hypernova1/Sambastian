@@ -11,7 +11,7 @@ import java.util.Set;
  */
 public class CookieStore {
 
-    private static Set<Cookie> cookies = new HashSet<>();
+    private static final Set<Cookie> cookies = new HashSet<>();
 
     /**
      * 쿠키의 목록을 반환합니다.

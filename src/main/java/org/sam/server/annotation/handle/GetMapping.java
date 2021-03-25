@@ -9,15 +9,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 핸들러 클래스의 메소드에 선언하여 HTTP Method 중 POST 요청을 처리합니다.
+ * 핸들러 클래스의 메소드에 선언하여 HTTP Method 중 GET 요청을 처리합니다.
  *
  * @author hypernova1
- * @see org.sam.server.annotation.handle.Handle
+ * @see RequestMapping
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-@Handle
-public @interface PostHandle {
+@RequestMapping
+public @interface GetMapping {
 
     /*
      * 받을 수 있는 URL입니다.
@@ -36,6 +36,5 @@ public @interface PostHandle {
      *
      * @return 받을 수 있는 HTTP Method
      * */
-    HttpMethod method() default HttpMethod.POST
-            ;
+    HttpMethod method() default HttpMethod.GET;
 }
