@@ -15,11 +15,9 @@ public class HttpMultipartRequest extends HttpRequest {
 
     private final Map<String, Object> files;
 
-    protected HttpMultipartRequest(
-            String protocol, String path, HttpMethod method, Map<String, String> headers,
-            Map<String, String> parameterMap, String json, Set<Cookie> cookies, Map<String, Object> files) {
-        super(protocol, path, method, headers, parameterMap, json, cookies);
-        this.files = files;
+    protected HttpMultipartRequest(RequestParser requestParser) {
+        super(requestParser);
+        this.files = requestParser.files;
     }
 
     /**
@@ -59,4 +57,5 @@ public class HttpMultipartRequest extends HttpRequest {
 
         return (ArrayList<MultipartFile>) files.get(name);
     }
+
 }

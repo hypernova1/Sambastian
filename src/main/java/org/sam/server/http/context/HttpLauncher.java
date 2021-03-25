@@ -26,11 +26,11 @@ public class HttpLauncher {
      * */
     public static void execute(Socket connect) {
         try {
-            Request request = Request.of(connect.getInputStream());
-            if (isEmptyRequest(request)) {
+            Request request = Request.from(connect.getInputStream());
+            if (request == null) {
                 return;
             }
-            Response response = HttpResponse.of(connect.getOutputStream(), request.getPath(), request.getMethod());
+            Response response = HttpResponse.of(connect.getOutputStream(), request.getUrl(), request.getMethod());
             findHandler(request, response);
         } catch (IOException e) {
             e.printStackTrace();
@@ -73,22 +73,42 @@ public class HttpLauncher {
         }
     }
 
+    /**
+     * 인덱스 페이지 요청인지에 대한 여부를 반환한다.
+     *
+     * @param request 요청 정보
+     * @return 인덱스 페이지 여부
+     * */
     private static boolean isIndexRequest(Request request) {
-        return request.getPath().equals("/") && request.getMethod().equals(HttpMethod.GET);
+        return request.getUrl().equals("/") && request.getMethod().equals(HttpMethod.GET);
     }
 
+    /**
+     * 파비콘 요청인지에 대한 여부를 반환한다.
+     *
+     * @param request 요청 정보
+     * @return 파비콘 요청 여부
+     * */
     private static boolean isFaviconRequest(Request request) {
-        return request.getPath().equals("/favicon.ico");
+        return request.getUrl().equals("/favicon.ico");
     }
 
+    /**
+     * 정적 자원 요청인지에 대한 여부를 반환한다.
+     *
+     * @param request 요청 정보
+     * @return 정적 자원 요청 여부
+     * */
     private static boolean isResourceRequest(Request request) {
-        return request.getPath().startsWith("/resources");
+        return request.getUrl().startsWith("/resources");
     }
 
-    private static boolean isEmptyRequest(Request request) {
-        return request == null;
-    }
-
+    /**
+     * OPTION 요청인지에 대한 여부를 반환한다.
+     *
+     * @param request 요청 정보
+     * @return OPTION 요청 여부
+     * */
     private static boolean isOptionsRequest(Request request) {
         return request.getMethod().equals(HttpMethod.OPTIONS);
     }

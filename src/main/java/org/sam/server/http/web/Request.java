@@ -22,14 +22,20 @@ import java.util.*;
  */
 public interface Request {
 
-    static Request of(InputStream in) {
-        UrlParser urlParser = new UrlParser();
-        urlParser.parse(in);
-        return urlParser.createRequest();
+    /**
+     * Http 요청을 분석하여 Request 인스턴스를 반환한다.
+     *
+     * @param in HTTP 요청을 담은 InputStream
+     * @return Request 인스턴스
+     * */
+    static Request from(InputStream in) {
+        RequestParser requestParser = new RequestParser();
+        requestParser.parse(in);
+        return requestParser.createRequest();
     }
 
     /**
-     * HTTP/HTTPS를 반환합니다.
+     * 프로토콜을 반환합니다.
      * 
      * @return HTTP 프로토콜
      * */
@@ -40,7 +46,7 @@ public interface Request {
      *
      * @return 요청 URL
      * */
-    String getPath();
+    String getUrl();
 
     /**
      * HTTP Method를 반환합니다.
@@ -115,14 +121,11 @@ public interface Request {
      * @see HttpRequest
      * @see HttpMultipartRequest
      * */
-    class UrlParser {
-
-        private static final char CR = (char) 0x0D;
-        private static final char LF = (char) 0x0A;
+    class RequestParser {
 
         protected String protocol;
 
-        protected String path;
+        protected String url;
 
         protected HttpMethod httpMethod;
 
@@ -140,7 +143,7 @@ public interface Request {
 
         protected Map<String, Object> files = new HashMap<>();
 
-        private UrlParser() {}
+        private RequestParser() {}
 
         /**
          * InputStream에서 HTTP 본문을 읽은 후 파싱합니다.
@@ -149,28 +152,28 @@ public interface Request {
          * */
         private void parse(InputStream in) {
             BufferedInputStream inputStream = new BufferedInputStream(in);
-            String headersPart = readHeader(inputStream);
+            String headersPart = parseHeaderPart(inputStream);
 
             if (isNonHttpRequest(headersPart)) return;
 
             String[] headers = headersPart.split("\r\n");
             StringTokenizer tokenizer = new StringTokenizer(headers[0]);
             String httpMethodPart = tokenizer.nextToken().toUpperCase();
-            String requestPath = tokenizer.nextToken().toLowerCase();
+            String requestUrl = tokenizer.nextToken().toLowerCase();
 
             this.protocol = tokenizer.nextToken().toUpperCase();
             this.headers = parseHeaders(headers);
             this.httpMethod = HttpMethod.valueOf(httpMethodPart);
             this.contentType = parseContentType();
 
-            String query = parseRequestPath(requestPath);
+            String query = parseRequestUrl(requestUrl);
 
             if (StringUtils.isNotEmpty(query)) {
                 this.parameters = parseQuery(query);
             }
 
             if (isExistsHttpBody()) {
-                parseBodyText(inputStream);
+                parseBody(inputStream);
             }
         }
 
@@ -189,7 +192,7 @@ public interface Request {
          *
          * @param inputStream 인풋 스트림
          * */
-        private void parseBodyText(BufferedInputStream inputStream) {
+        private void parseBody(BufferedInputStream inputStream) {
             if (this.boundary != null) {
                 parseMultipartBody(inputStream);
                 return;
@@ -203,7 +206,7 @@ public interface Request {
          * @param inputStream 인풋 스트림
          * @return HTTP 헤더 내용
          * */
-        private String readHeader(BufferedInputStream inputStream) {
+        private String parseHeaderPart(BufferedInputStream inputStream) {
             int i;
             String headersPart = "";
             StringBuilder sb = new StringBuilder();
@@ -280,17 +283,17 @@ public interface Request {
         /**
          * 요청 URL을 파싱하여 저장하고 쿼리 스트링을 반환합니다.
          *
-         * @param requestPath 요청 URL
+         * @param url 요청 URL
          * @return 쿼리 스트링
          * */
-        private String parseRequestPath(String requestPath) {
-            int index = requestPath.indexOf("?");
+        private String parseRequestUrl(String url) {
+            int index = url.indexOf("?");
             if (index == -1) {
-                this.path = requestPath;
+                this.url = url;
                 return "";
             }
-            this.path = requestPath.substring(0, index);
-            return requestPath.substring(index + 1);
+            this.url = url.substring(0, index);
+            return url.substring(index + 1);
         }
 
         /**
@@ -420,7 +423,7 @@ public interface Request {
                 return;
             }
             Object file = this.files.get(name);
-            addMultipartFileToList(name, multipartFile, file);
+            addMultipartFile(name, multipartFile, file);
         }
 
         /**
@@ -431,7 +434,7 @@ public interface Request {
          * @param file MultipartFile 목록 또는 MultipartFile
          * */
         @SuppressWarnings("unchecked")
-        private void addMultipartFileToList(String name, MultipartFile multipartFile, Object file) {
+        private void addMultipartFile(String name, MultipartFile multipartFile, Object file) {
             if (file.getClass().equals(ArrayList.class)) {
                 ((ArrayList<MultipartFile>) file).add(multipartFile);
                 return;
@@ -456,7 +459,7 @@ public interface Request {
                 int i;
                 while ((i = inputStream.read()) != -1) {
                     if (isFullCapacity(data, fileLength)) {
-                        data = doubleArray(data);
+                        data = getDoubleArray(data);
                     }
                     data[fileLength] = (byte) i;
                     if (isEndOfLine(data, fileLength)) {
@@ -480,9 +483,9 @@ public interface Request {
         public Request createRequest() {
             if (headers.isEmpty()) return null;
             if (contentType == ContentType.MULTIPART_FORM_DATA) {
-                return new HttpMultipartRequest(protocol, path, httpMethod, headers, parameters, json, cookies, files);
+                return new HttpMultipartRequest(this);
             }
-            return new HttpRequest(protocol, path, httpMethod, headers, parameters, json, cookies);
+            return new HttpRequest(this);
         }
 
         /**
@@ -562,7 +565,7 @@ public interface Request {
             return content.trim().equals(this.boundary);
         }
 
-        private byte[] doubleArray(byte[] data) {
+        private byte[] getDoubleArray(byte[] data) {
             byte[] arr = new byte[data.length * 2];
             System.arraycopy(data, 0, arr, 0, data.length);
             return arr;

@@ -30,16 +30,14 @@ public class HttpRequest implements Request {
 
     private final Set<Cookie> cookies;
 
-    protected HttpRequest(
-            String protocol, String path, HttpMethod method, Map<String, String> headers, Map<String, String> parameterMap,
-            String json, Set<Cookie> cookies) {
-        this.protocol = protocol;
-        this.path = path;
-        this.method = method;
-        this.headers = headers;
-        this.parameterMap = parameterMap;
-        this.json = json;
-        this.cookies = cookies;
+    protected HttpRequest(RequestParser requestParser) {
+        this.protocol = requestParser.protocol;
+        this.path = requestParser.url;
+        this.method = requestParser.httpMethod;
+        this.headers = requestParser.headers;
+        this.parameterMap = requestParser.parameters;
+        this.json = requestParser.json;
+        this.cookies = requestParser.cookies;
     }
 
     @Override
@@ -48,7 +46,7 @@ public class HttpRequest implements Request {
     }
 
     @Override
-    public String getPath() {
+    public String getUrl() {
         return this.path;
     }
 

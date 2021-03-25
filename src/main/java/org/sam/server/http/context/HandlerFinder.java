@@ -176,18 +176,17 @@ public class HandlerFinder {
      * @return 일치 여부
      * */
     private boolean isMatchedHandlerMethod(Method handlerMethod, Annotation annotation) {
-        Class<? extends Annotation> handlerAnnotationType = annotation.annotationType();
+
         try {
-            String requestPath = getRequestPathWithoutHandlerPath();
+            String requestUrl = getRequestUrlWithoutHandlerPath();
             String handlerMethodPath = getHandlerMethodPath(annotation);
 
-            if (requestPath.equals(request.getPath())) {
+            if (requestUrl.equals(request.getUrl())) {
                 handlerMethodPath = this.handlerClassPath + handlerMethodPath;
             }
 
-            Method methodPropertyInAnnotation = handlerAnnotationType.getDeclaredMethod("method");
-            String method = methodPropertyInAnnotation.invoke(annotation).toString();
-            if (isMatchedHandlerMethod(handlerMethod, handlerMethodPath, method)) {
+            HttpMethod handlerHttpMethod = getHandlerHttpMethod(annotation);
+            if (isMatchedHandlerMethod(handlerMethod, handlerMethodPath, handlerHttpMethod)) {
                 return true;
             }
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
@@ -216,19 +215,18 @@ public class HandlerFinder {
      *
      * @param handlerMethod 핸들러 메서드
      * @param handlerMethodPath 핸들러 메서드의 URL
-     * @param method 헨들러 메서드의 HTTP Method
+     * @param handlerHttpMethod 헨들러 메서드의 HTTP Method
      * @return 일치 여부
      * */
-    private boolean isMatchedHandlerMethod(Method handlerMethod, String handlerMethodPath, String method) {
+    private boolean isMatchedHandlerMethod(Method handlerMethod, String handlerMethodPath, HttpMethod handlerHttpMethod) {
         HttpMethod httpMethod = request.getMethod();
 
         if (isMatchedPath(handlerMethod, handlerMethodPath)) {
             if (httpMethod.equals(HttpMethod.OPTIONS)) {
-                response.addAllowedMethod(HttpMethod.get(method));
+                response.addAllowedMethod(handlerHttpMethod);
             }
 
-            boolean isHeadRequest = httpMethod.equals(HttpMethod.HEAD) && HttpMethod.GET.toString().equals(method);
-            if (!httpMethod.equals(HttpMethod.OPTIONS) && httpMethod.equals(HttpMethod.get(method)) || isHeadRequest) {
+            if (!httpMethod.equals(HttpMethod.OPTIONS) && httpMethod.equals(handlerHttpMethod) || isHeadRequest(handlerHttpMethod)) {
                 if (handlerMethod.getDeclaredAnnotation(RestApi.class) != null) {
                     this.response.setContentMimeType(ContentType.APPLICATION_JSON);
                 }
@@ -245,7 +243,7 @@ public class HandlerFinder {
      * @param handlerMethodPath 핸들러 메서드의 url
      * */
     private boolean isMatchedPath(Method handlerMethod, String handlerMethodPath) {
-        String requestPath = getRequestPathWithoutHandlerPath();
+        String requestPath = getRequestUrlWithoutHandlerPath();
 
         if (isExistsPathValueAnnotation(handlerMethod)) {
             return isMatchedPath(requestPath, handlerMethodPath);
@@ -323,8 +321,8 @@ public class HandlerFinder {
      *
      * @return 수정된 요청 URL
      * */
-    private String getRequestPathWithoutHandlerPath() {
-        String requestPath = request.getPath();
+    private String getRequestUrlWithoutHandlerPath() {
+        String requestPath = request.getUrl();
         String handlerClassPath = "/";
         if (!requestPath.equals("/")) {
             handlerClassPath += requestPath.split("/")[1];
@@ -382,6 +380,28 @@ public class HandlerFinder {
      * */
     private boolean isDeclaredPathValueAnnotation(Parameter parameter) {
         return parameter.getDeclaredAnnotation(PathValue.class) != null;
+    }
+
+    /**
+     * 핸들러 메서드의 Http Method를 확인합니다.
+     *
+     * @param annotation 핸들러 메서드
+     * @return 핸들러 메서드의 Http Method
+     * */
+    private HttpMethod getHandlerHttpMethod(Annotation annotation) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        Class<? extends Annotation> handlerAnnotationType = annotation.annotationType();
+        Method methodPropertyInAnnotation = handlerAnnotationType.getDeclaredMethod("method");
+        return (HttpMethod) methodPropertyInAnnotation.invoke(annotation);
+    }
+
+    /**
+     * 요청 메서드가 HEAD인지 여부를 반환합니다.
+     *
+     * @param handlerHttpMethod 핸들러 메서드의 Method
+     * @return HEAD 메서드인지 여부
+     * */
+    private boolean isHeadRequest(HttpMethod handlerHttpMethod) {
+        return request.getMethod().equals(HttpMethod.HEAD) && HttpMethod.GET.equals(handlerHttpMethod);
     }
 
 }
