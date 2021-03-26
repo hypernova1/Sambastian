@@ -53,6 +53,7 @@ public class HandlerExecutor {
      * */
     public void execute() {
         setCrossOriginConfig();
+        HttpServer.SessionManager.checkExpiredSession();
         try {
             Map<String, String> requestData = request.getParameters();
             List<Interceptor> interceptors = BeanContainer.getInterceptors();

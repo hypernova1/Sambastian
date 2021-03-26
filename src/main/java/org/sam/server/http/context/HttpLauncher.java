@@ -3,6 +3,7 @@ package org.sam.server.http.context;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.context.HandlerInfo;
 import org.sam.server.exception.HandlerNotFoundException;
+import org.sam.server.http.web.HttpRequest;
 import org.sam.server.http.web.HttpResponse;
 import org.sam.server.http.web.Request;
 import org.sam.server.http.web.Response;
@@ -26,7 +27,7 @@ public class HttpLauncher {
      * */
     public static void execute(Socket connect) {
         try {
-            Request request = Request.from(connect.getInputStream());
+            Request request = HttpRequest.from(connect.getInputStream());
             if (request == null) {
                 return;
             }

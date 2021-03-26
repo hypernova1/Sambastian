@@ -45,7 +45,6 @@ public class HttpServer implements Runnable {
             logger.info("server started..");
             logger.info("server port: " + serverSocket.getLocalPort());
             BeanContainer.loadBeans();
-            SessionManager.checkEnableSessions();
 
             ThreadPoolExecutor threadPool = new ThreadPoolExecutor(
                     5,
@@ -75,11 +74,11 @@ public class HttpServer implements Runnable {
     }
 
     /**
-     * 세션을 관리하는 클래스입니다. 세션을 생성 및 삭제합니다. TimerTask를 상속 받아서 30분마다 유효한지 확인합니다.
+     * 세션을 관리하는 클래스입니다. 세션의 생명주기를 관리합니다.
      *
      * @see org.sam.server.http.Session
      * */
-    public static class SessionManager extends TimerTask {
+    public static class SessionManager {
 
         private static final Logger logger = LoggerFactory.getLogger(SessionManager.class);
         private static final Set<Session> sessionList = new HashSet<>();
@@ -117,14 +116,9 @@ public class HttpServer implements Runnable {
         }
 
         /**
-         * 세션의 유효성을 확인합니다. 30분마다 현재 시간과 만료 시간을 비교하여 판단합니다.
+         * 세션의 만료 시간을 확인 후 만료된 세션을 삭제합니다.
          * */
-        static void checkEnableSessions() {
-            new Timer().schedule(new SessionManager(), 0, 30 * 60 * 1000);
-        }
-
-        @Override
-        public void run() {
+        public static void checkExpiredSession() {
             Iterator<Session> iterator = sessionList.iterator();
             while (iterator.hasNext()) {
                 Session session = iterator.next();
@@ -140,7 +134,7 @@ public class HttpServer implements Runnable {
          * @param session 세션
          * @return 만료 여부
          * */
-        private boolean isExpiredSession(Session session) {
+        private static boolean isExpiredSession(Session session) {
             long accessTime = session.getAccessTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
             long now = System.currentTimeMillis();
             int timeout = session.getTimeout() * 1000 * 1800;

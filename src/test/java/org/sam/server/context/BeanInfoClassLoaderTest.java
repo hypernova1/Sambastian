@@ -1,6 +1,8 @@
 package org.sam.server.context;
 
 import org.junit.jupiter.api.Test;
+import org.sam.server.annotation.handle.GetMapping;
+import org.sam.server.annotation.handle.RequestMapping;
 import org.sam.server.http.context.HttpServer;
 
 import java.lang.reflect.Constructor;
@@ -39,15 +41,6 @@ class BeanInfoClassLoaderTest {
         System.out.println(testBean);
 
         System.out.println(TestBean.class.getSimpleName());
-    }
-
-    @Test
-    void test2() {
-        Package[] packages = Package.getPackages();
-        for (Package p : packages) {
-            if (p.getName().equals("org.sam.server.context")) {
-            }
-        }
     }
 
 }

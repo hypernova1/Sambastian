@@ -15,7 +15,7 @@ public class HttpMultipartRequest extends HttpRequest {
 
     private final Map<String, Object> files;
 
-    protected HttpMultipartRequest(RequestParser requestParser) {
+    protected HttpMultipartRequest(HttpRequest.RequestParser requestParser) {
         super(requestParser);
         this.files = requestParser.files;
     }
