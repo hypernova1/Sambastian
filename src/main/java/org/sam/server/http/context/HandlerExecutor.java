@@ -28,12 +28,9 @@ public class HandlerExecutor {
 
     private final Response response;
 
-    private final HandlerInfo handlerInfo;
-
-    private HandlerExecutor(Request request, Response response, HandlerInfo handlerInfo) {
+    private HandlerExecutor(Request request, Response response) {
         this.request = request;
         this.response = response;
-        this.handlerInfo = handlerInfo;
     }
 
     /**
@@ -41,30 +38,21 @@ public class HandlerExecutor {
      * 
      * @param request 요청 인스턴스
      * @param response 응답 인스턴스
-     * @param handlerInfo 핸들러 정보
      * @return 인스턴스
      * */
-    public static HandlerExecutor of(Request request, Response response, HandlerInfo handlerInfo) {
-        return new HandlerExecutor(request, response, handlerInfo);
+    public static HandlerExecutor of(Request request, Response response) {
+        return new HandlerExecutor(request, response);
     }
 
     /**
      * 핸들러를 실행합니다.
      * */
-    public void execute() {
-        setCrossOriginConfig();
-        HttpServer.SessionManager.checkExpiredSession();
+    public void execute(HandlerInfo handlerInfo) {
+        setCrossOriginConfig(handlerInfo);
+        SessionManager.checkExpiredSession();
         try {
-            Map<String, String> requestData = request.getParameters();
-            List<Interceptor> interceptors = BeanContainer.getInterceptors();
-
-            Object returnValue;
+            Object returnValue = executeHandler(handlerInfo);
             HttpStatus httpStatus;
-            if (interceptors.isEmpty()) {
-                returnValue = executeHandler(requestData);
-            } else {
-                returnValue = executeInterceptors(interceptors, requestData);
-            }
             if (returnValue != null && returnValue.getClass().equals(ResponseEntity.class)) {
                 ResponseEntity<?> responseEntity = (ResponseEntity<?>) returnValue;
                 httpStatus = responseEntity.getHttpStatus();
@@ -82,25 +70,33 @@ public class HandlerExecutor {
     }
 
     /**
-     * CORS를 설정합니다.
+     * 핸들러를 실행시킨 후 리턴 값을 받아옵니다. interceptor가 구현되어 있다면 interceptor 실행 후 리턴 값을 받아옵니다.
+     *
+     * @param handlerInfo 핸들러 정보
+     * @return 핸들러의 리턴 값
      * */
-    private void setCrossOriginConfig() {
-        Class<?> handlerClass = this.handlerInfo.getInstance().getClass();
-        String origin = request.getHeader("origin");
-
-        if (origin == null) return;
-
-        setAccessControlAllowOriginHeader(handlerClass, origin);
+    private Object executeHandler(HandlerInfo handlerInfo) {
+        Map<String, String> requestData = request.getParameters();
+        List<Interceptor> interceptors = BeanContainer.getInterceptors();
+        if (interceptors.isEmpty()) {
+            return executeHandler(handlerInfo, requestData);
+        }
+        return executeInterceptorAndHandler(interceptors, handlerInfo, requestData);
     }
 
     /**
      * 핸들러 클래스의 CrossOrigin 어노테이션을 확인하고 CORS를 설정 합니다.
      *
-     * @param handlerClass 핸들러 클래스의 정보
-     * @param origin 허용 URL
-     * */
-    private void setAccessControlAllowOriginHeader(Class<?> handlerClass, String origin) {
+     * @param handlerInfo 핸들러 정보
+     **/
+    private void setCrossOriginConfig(HandlerInfo handlerInfo) {
+        Class<?> handlerClass = handlerInfo.getInstance().getClass();
+        String origin = request.getHeader("origin");
+
+        if (origin == null) return;
+
         CrossOrigin crossOrigin = handlerClass.getDeclaredAnnotation(CrossOrigin.class);
+
         if (crossOrigin == null) return;
 
         String[] value = crossOrigin.value();
@@ -119,11 +115,15 @@ public class HandlerExecutor {
      * @param requestData 요청 데이터
      * @return 핸들러의 반환 값
      * */
-    private Object executeInterceptors(List<Interceptor> interceptors, Map<String, String> requestData) {
-        Object returnValue = null;
+    private Object executeInterceptorAndHandler(List<Interceptor> interceptors, HandlerInfo handlerInfo, Map<String, String> requestData) {
         for (Interceptor interceptor : interceptors) {
             interceptor.preHandler(request, response);
-            returnValue = executeHandler(requestData);
+        }
+
+        Object returnValue = executeHandler(handlerInfo, requestData);
+
+        Collections.reverse(interceptors);
+        for (Interceptor interceptor : interceptors) {
             interceptor.postHandler(request, response);
         }
         return returnValue;
@@ -132,10 +132,11 @@ public class HandlerExecutor {
     /**
      * 핸들러를 실행하고 반환 값을 반환합니다.
      *
+     * @param handlerInfo 핸들러 정보
      * @param requestData 요청 파라미터 목록
      * @return 핸들러의 반환 값
      * */
-    private Object executeHandler(Map<String, String> requestData) {
+    private Object executeHandler(HandlerInfo handlerInfo, Map<String, String> requestData) {
         Method handlerMethod = handlerInfo.getMethod();
         Object[] parameters = createParameters(handlerMethod.getParameters(), requestData);
         try {

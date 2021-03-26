@@ -30,7 +30,7 @@ public final class Session {
         this.creationTime = LocalDateTime.now();
         this.accessTime = LocalDateTime.now();
         this.timeout = 30;
-        HttpServer.SessionManager.addSession(this);
+        SessionManager.addSession(this);
         CookieStore.addSession(this.id);
     }
 
@@ -38,7 +38,7 @@ public final class Session {
      * 세션을 무효화합니다.
      * */
     public void invalidate() {
-        HttpServer.SessionManager.removeSession(this.id);
+        SessionManager.removeSession(this.id);
     }
 
     /**

@@ -67,8 +67,8 @@ public class HttpLauncher {
         try {
             HandlerFinder handlerFinder = HandlerFinder.of(request, response);
             HandlerInfo handlerInfo = handlerFinder.createHandlerInfo();
-            HandlerExecutor handlerExecutor = HandlerExecutor.of(request, response, handlerInfo);
-            handlerExecutor.execute();
+            HandlerExecutor handlerExecutor = HandlerExecutor.of(request, response);
+            handlerExecutor.execute(handlerInfo);
         } catch (HandlerNotFoundException e) {
             response.notFound();
         }

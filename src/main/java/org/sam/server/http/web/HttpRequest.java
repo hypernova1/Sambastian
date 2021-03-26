@@ -4,6 +4,7 @@ import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.http.Cookie;
 import org.sam.server.http.CookieStore;
+import org.sam.server.http.SessionManager;
 import org.sam.server.http.context.HttpServer;
 import org.sam.server.http.Session;
 import org.sam.server.util.StringUtils;
@@ -112,7 +113,7 @@ public class HttpRequest implements Request {
     public Session getSession() {
         for (Cookie cookie : cookies) {
             if (!cookie.getName().equals("sessionId")) continue;
-            return HttpServer.SessionManager.getSession(cookie.getValue());
+            return SessionManager.getSession(cookie.getValue());
         }
         return new Session();
     }
