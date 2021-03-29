@@ -40,7 +40,6 @@ public class HttpServer implements Runnable {
             ServerSocket serverSocket = ServerSocketFactory.createServerSocket();
             logger.info("server started..");
             logger.info("server port: " + serverSocket.getLocalPort());
-            BeanContainer.loadBeans();
 
             ThreadPoolExecutor threadPool = new ThreadPoolExecutor(
                     5,

@@ -30,55 +30,19 @@ public class BeanContainer {
 
     private static final List<Interceptor> interceptors = new ArrayList<>();
 
-    private static final List<Class<?>> componentClasses = BeanClassLoader.getComponentClasses();
-
-    /**
-     * 모든 포넌트 클래스 및 인터페이스 구현체를 인스턴스로 만들어 저컴장합니다.
-     * */
-    public static void loadBeans() {
+    static {
         loadComponentBeans();
         loadHandlerBeans();
         loadInterceptor();
     }
 
     /**
-     * 핸들러 빈 목록을 반환합니다.
-     *
-     * @return 핸들러 빈 목록
-     * */
-    public static List<Object> getHandlerBeans() {
-        return handlerBeans;
-    }
-
-    /**
-     * 인터셉터 구현체 인스턴스 목록을 반환합니다.
-     *
-     * @return 인터셉터 구현체 인스턴스
-     * */
-    public static List<Interceptor> getInterceptors() {
-        return interceptors;
-    }
-
-    /**
-     * 빈 목록을 반환합니다.
-     *
-     * @return 빈 목록
-     * */
-    public static Map<Class<?>, List<BeanInfo>> getBeanInfoMap() {
-        return beanMap;
-    }
-
-    public static List<BeanInfo> getBeanInfoList(Class<?> type) {
-        return beanMap.get(type);
-    }
-
-    /**
      * 컴포넌트 클래스의 인스턴스를 생성하고 저장합니다.
      * */
     private static void loadComponentBeans() {
-        for (Class<?> componentClass : componentClasses) {
+        for (Class<?> componentClass : BeanClassLoader.getComponentClasses()) {
             String beanName = getBeanName(componentClass);
-            if (isExistDuplicatedBean(componentClass)) continue;
+            if (isExistBean(componentClass)) continue;
             Object componentInstance = createComponentInstance(componentClass);
             Method[] declaredMethods = componentInstance.getClass().getDeclaredMethods();
             loadMethodBean(componentInstance, declaredMethods);
@@ -140,13 +104,13 @@ public class BeanContainer {
      * 인터셉터 구현체 클래스의 인스턴스를 생성하고 저장합니다.
      * */
     private static void loadInterceptor() {
-        for (Class<?> interceptorClass : BeanClassLoader.getInterceptorClasses()) {
-            try {
+        try {
+            for (Class<?> interceptorClass : BeanClassLoader.getInterceptorClasses()) {
                 Interceptor interceptor = (Interceptor) interceptorClass.getDeclaredConstructor().newInstance();
                 interceptors.add(interceptor);
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                e.printStackTrace();
             }
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            e.printStackTrace();
         }
     }
 
@@ -161,32 +125,23 @@ public class BeanContainer {
         try {
             Constructor<?> constructor = getDefaultConstructor(clazz, constructors);
             Parameter[] constructorParameters = constructor.getParameters();
-            List<Object> createdParameters = createParameters(constructorParameters);
-            int differenceNumber = constructorParameters.length - createdParameters.size();
-            if (differenceNumber < 0) {
+            List<Object> parameters = createParameters(constructorParameters);
+            int differenceParameterNumber = constructorParameters.length - parameters.size();
+            if (differenceParameterNumber < 0) {
                 throw new BeanCreationException(clazz);
             }
-            if (differenceNumber != 0) {
-                injectNull(createdParameters, differenceNumber);
+
+            if (differenceParameterNumber > 0) {
+                for (int i = 0; i < differenceParameterNumber; i++) {
+                    parameters.add(null);
+                }
             }
-            return constructor.newInstance(createdParameters.toArray());
+            return constructor.newInstance(parameters.toArray());
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
 
         throw new BeanCreationException(clazz);
-    }
-
-    /**
-     * 모자란 파라미터 개수만큼 null을 주입합니다.
-     *
-     * @param createdParameters 주입할 파라미터
-     * @param differenceNumber 모자란 파라미터 개수
-     * */
-    private static void injectNull(List<Object> createdParameters, int differenceNumber) {
-        for (int i = 0; i < differenceNumber; i++) {
-            createdParameters.add(null);
-        }
     }
 
     /**
@@ -198,25 +153,35 @@ public class BeanContainer {
     private static List<Object> createParameters(Parameter[] parameters) {
         List<Object> parameterList = new ArrayList<>();
         for (Parameter parameter : parameters) {
-            String parameterName = parameter.getName();
             try {
-                BeanInfo beanInfo = findBeanInfo(parameter.getType(), parameterName);
-                if (beanInfo == null) {
-                    int index = componentClasses.indexOf(parameter.getType());
-                    if (index == -1) continue;
-                    Class<?> beanClass = componentClasses.get(index);
-                    String beanName;
-                    beanName = getBeanName(beanClass);
-                    Object beanInstance = createComponentInstance(beanClass);
-                    beanInfo = new BeanInfo(beanName, beanInstance);
-                    addBeanMap(parameter.getType(), beanInstance, parameterName);
-                }
+                BeanInfo beanInfo = getBeanInfo(parameter);
+                if (beanInfo == null) continue;
                 parameterList.add(beanInfo.getInstance());
             } catch (BeanNotFoundException e) {
                 e.printStackTrace();
             }
         }
         return parameterList;
+    }
+
+    /**
+     * BeanInfo 인스턴스를 찾은 후 없다면 생성 후 반환합니다.
+     *
+     * @param parameter 파라미터
+     * @return BeanInfo 인스턴스
+     * */
+    private static BeanInfo getBeanInfo(Parameter parameter) {
+        String parameterName = parameter.getName();
+        BeanInfo beanInfo = findBeanInfo(parameter.getType(), parameterName);
+        if (beanInfo != null) return beanInfo;
+        int index = BeanClassLoader.getComponentClasses().indexOf(parameter.getType());
+        if (index == -1) return null;
+        Class<?> beanClass = BeanClassLoader.getComponentClasses().get(index);
+        String beanName = getBeanName(beanClass);
+        Object beanInstance = createComponentInstance(beanClass);
+        beanInfo = BeanInfo.of(beanName, beanInstance);
+        addBeanMap(parameter.getType(), beanInstance, parameterName);
+        return beanInfo;
     }
 
     /**
@@ -240,13 +205,14 @@ public class BeanContainer {
      * @param componentType 컴포넌트 타입
      * @return 중복 유무
      * */
-    private static boolean isExistDuplicatedBean(Class<?> componentType) {
+    private static boolean isExistBean(Class<?> componentType) {
         String beanName = getBeanName(componentType);
         List<BeanInfo> beanInfos = beanMap.get(componentType);
         if (beanInfos == null) return false;
         for (BeanInfo beanInfo : beanInfos) {
-            if (!beanInfo.getName().equals(beanName)) continue;
-            return true;
+            if (beanInfo.getName().equals(beanName)) {
+                return true;
+            }
         }
         return false;
     }
@@ -259,7 +225,7 @@ public class BeanContainer {
      * @return 빈 정보
      * */
     private static BeanInfo findBeanInfo(Class<?> componentType, String parameterName) {
-        if (!componentClasses.contains(componentType)) {
+        if (!BeanClassLoader.getComponentClasses().contains(componentType)) {
             componentType = findSuperClass(componentType);
         }
         List<BeanInfo> beanInfos = beanMap.get(componentType);
@@ -304,6 +270,37 @@ public class BeanContainer {
             }
         }
         return constructors[0];
+    }
+
+    /**
+     * 핸들러 빈 목록을 반환합니다.
+     *
+     * @return 핸들러 빈 목록
+     * */
+    public static List<Object> getHandlerBeans() {
+        return handlerBeans;
+    }
+
+    /**
+     * 인터셉터 구현체 인스턴스 목록을 반환합니다.
+     *
+     * @return 인터셉터 구현체 인스턴스
+     * */
+    public static List<Interceptor> getInterceptors() {
+        return interceptors;
+    }
+
+    /**
+     * 빈 목록을 반환합니다.
+     *
+     * @return 빈 목록
+     * */
+    public static Map<Class<?>, List<BeanInfo>> getBeanInfoMap() {
+        return beanMap;
+    }
+
+    public static List<BeanInfo> getBeanInfoList(Class<?> type) {
+        return beanMap.get(type);
     }
 
 }

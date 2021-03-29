@@ -16,6 +16,10 @@ public class BeanInfo {
         this.instance = instance;
     }
 
+    protected static BeanInfo of(String name, Object instance) {
+        return new BeanInfo(name, instance);
+    }
+
     /**
      * 빈의 이름을 반환합니다.
      *

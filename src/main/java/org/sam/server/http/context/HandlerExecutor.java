@@ -49,7 +49,7 @@ public class HandlerExecutor {
      * */
     public void execute(HandlerInfo handlerInfo) {
         setCrossOriginConfig(handlerInfo);
-        SessionManager.checkExpiredSession();
+        SessionManager.removeExpiredSession();
         try {
             Object returnValue = executeHandler(handlerInfo);
             HttpStatus httpStatus;
@@ -78,10 +78,19 @@ public class HandlerExecutor {
     private Object executeHandler(HandlerInfo handlerInfo) {
         Map<String, String> requestData = request.getParameters();
         List<Interceptor> interceptors = BeanContainer.getInterceptors();
-        if (interceptors.isEmpty()) {
-            return executeHandler(handlerInfo, requestData);
+
+        for (Interceptor interceptor : interceptors) {
+            interceptor.preHandler(request, response);
         }
-        return executeInterceptorAndHandler(interceptors, handlerInfo, requestData);
+
+        Object returnValue = executeHandler(handlerInfo, requestData);
+
+        if (interceptors.size() > 0) {
+            for (int i = interceptors.size() - 1; i >= 0; i--) {
+                interceptors.get(i).postHandler(request, response);
+            }
+        }
+        return returnValue;
     }
 
     /**
@@ -109,27 +118,6 @@ public class HandlerExecutor {
     }
 
     /**
-     * 인터셉터를 실행하고 핸들러를 실행하여 핸들러의 반환 값을 반환합니다.
-     *
-     * @param interceptors 인터셉터 목록
-     * @param requestData 요청 데이터
-     * @return 핸들러의 반환 값
-     * */
-    private Object executeInterceptorAndHandler(List<Interceptor> interceptors, HandlerInfo handlerInfo, Map<String, String> requestData) {
-        for (Interceptor interceptor : interceptors) {
-            interceptor.preHandler(request, response);
-        }
-
-        Object returnValue = executeHandler(handlerInfo, requestData);
-
-        Collections.reverse(interceptors);
-        for (Interceptor interceptor : interceptors) {
-            interceptor.postHandler(request, response);
-        }
-        return returnValue;
-    }
-
-    /**
      * 핸들러를 실행하고 반환 값을 반환합니다.
      *
      * @param handlerInfo 핸들러 정보
@@ -138,7 +126,7 @@ public class HandlerExecutor {
      * */
     private Object executeHandler(HandlerInfo handlerInfo, Map<String, String> requestData) {
         Method handlerMethod = handlerInfo.getMethod();
-        Object[] parameters = createParameters(handlerMethod.getParameters(), requestData);
+        Object[] parameters = createParametersFromRequestData(handlerMethod.getParameters(), requestData);
         try {
             return handlerMethod.invoke(handlerInfo.getInstance(), parameters);
         } catch (IllegalAccessException | InvocationTargetException e) {
@@ -154,40 +142,40 @@ public class HandlerExecutor {
      * @param requestData 요청 파라미터 목록
      * @return 핸들러의 파라미터 목록
      * */
-    private Object[] createParameters(Parameter[] handlerParameters, Map<String, String> requestData) {
-        List<Object> inputParameter = new ArrayList<>();
+    private Object[] createParametersFromRequestData(Parameter[] handlerParameters, Map<String, String> requestData) {
+        List<Object> inputParameters = new ArrayList<>();
         for (Parameter handlerParameter : handlerParameters) {
-            setParameter(requestData, inputParameter, handlerParameter);
+            setParameter(inputParameters, requestData, handlerParameter);
         }
-        return inputParameter.toArray();
+        return inputParameters.toArray();
     }
 
     /**
      * 핸들러 파라미터를 생성하고 파라미터 리스트에 추가합니다.
      *
+     * @param inputParameters 핸들러 파라미터의 인스턴스를 담을 리스트
      * @param requestData 요청 파라미터
-     * @param inputParameter 핸들러 파라미터의 인스턴스를 담을 리스트
      * @param handlerParameter 핸들러 파라미터 정보
      * */
-    private void setParameter(Map<String, String> requestData, List<Object> inputParameter, Parameter handlerParameter) {
+    private void setParameter(List<Object> inputParameters, Map<String, String> requestData, Parameter handlerParameter) {
         String name = handlerParameter.getName();
         Object value = requestData.get(name);
         Class<?> type = handlerParameter.getType();
         if (HttpRequest.class.isAssignableFrom(type)) {
-            inputParameter.add(request);
+            inputParameters.add(request);
             return;
         }
         if (HttpResponse.class.equals(type)) {
-            inputParameter.add(response);
+            inputParameters.add(response);
             return;
         }
         if (Session.class.equals(type)) {
-            addSession(inputParameter);
+            addSession(inputParameters);
             return;
         }
         if (handlerParameter.getDeclaredAnnotation(JsonRequest.class) != null) {
             Object object = Converter.jsonToObject(request.getJson(), type);
-            inputParameter.add(object);
+            inputParameters.add(object);
             return;
         }
         Object object;
@@ -196,7 +184,7 @@ public class HandlerExecutor {
         } else {
             object = Converter.parameterToObject(request.getParameters(), type);
         }
-        inputParameter.add(object);
+        inputParameters.add(object);
     }
 
     /**

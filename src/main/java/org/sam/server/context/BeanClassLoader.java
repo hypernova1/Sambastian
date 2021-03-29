@@ -23,8 +23,6 @@ import java.util.stream.Collectors;
  */
 public class BeanClassLoader {
 
-    private static final List<Class<?>> componentTypes = Arrays.asList(Service.class, Component.class, Repository.class);
-
     private static String rootPackageName;
 
     private static final List<Class<?>> handlerClasses = new ArrayList<>();

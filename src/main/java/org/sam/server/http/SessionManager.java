@@ -49,7 +49,7 @@ public class SessionManager {
     /**
      * 세션의 만료 시간을 확인 후 만료된 세션을 삭제합니다.
      * */
-    public static void checkExpiredSession() {
+    public static void removeExpiredSession() {
         Iterator<Session> iterator = sessionList.iterator();
         while (iterator.hasNext()) {
             Session session = iterator.next();
