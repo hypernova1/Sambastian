@@ -25,21 +25,9 @@ public class HttpResponse implements Response {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpResponse.class);
 
-    private static final String DEFAULT_FILE_PAGE = "static/index.html";
-
-    private static final String BAD_REQUEST_PAGE = "static/400.html";
-
-    private static final String NOT_FOUND_PAGE = "static/404.html";
-
-    private static final String FAVICON = "favicon.ico";
-
-    private static final String METHOD_NOT_ALLOWED_PAGE = "static/method_not_allowed.html";
-
-    private final static String BUFFER_SIZE_PROPERTY = ServerProperties.get("file-buffer-size");
-
     private final PrintWriter writer;
 
-    private  final BufferedOutputStream outputStream;
+    private final BufferedOutputStream outputStream;
 
     private final Map<String, Object> headers = new HashMap<>();
 
@@ -58,12 +46,6 @@ public class HttpResponse implements Response {
     private String contentMimeType;
 
     private long fileLength;
-
-    {
-        headers.put("Accept-Ranges", "bytes");
-        headers.put("Connection", "Keep-Alive");
-        headers.put("Keep-Alive", "timeout=60");
-    }
 
     private HttpResponse(OutputStream os, String path, HttpMethod requestMethod) {
         int bufferSize = BUFFER_SIZE_PROPERTY != null ? Integer.parseInt(BUFFER_SIZE_PROPERTY) : 8192;
@@ -90,14 +72,13 @@ public class HttpResponse implements Response {
     public void execute(String pathOrJson, HttpStatus status) {
         this.httpStatus = status;
         try {
-            if (getContentMimeType() == ContentType.APPLICATION_JSON) {
-                if (!requestMethod.equals(HttpMethod.OPTIONS)) {
-                    this.fileLength = readJson(pathOrJson);
-                }
+            if (getContentMimeType().equals(ContentType.APPLICATION_JSON) && !requestMethod.equals(HttpMethod.OPTIONS)) {
+                this.fileLength = readJson(pathOrJson);
             } else if (allowedMethods.isEmpty()) {
                 this.fileLength = readStaticResource(pathOrJson);
             }
-            printHeader();
+            setHeaders();
+            printHeaders();
             CookieStore.vacateList();
         } catch (IOException e) {
             e.printStackTrace();
@@ -110,6 +91,183 @@ public class HttpResponse implements Response {
                 e.printStackTrace();
             }
             writer.close();
+        }
+    }
+
+    /**
+     * 정적 자원의 경로를 받아 파일을 읽습니다. 파일이 존재하지 않으면 notFound 메서드를 호출합니다.
+     *
+     * @param filePath 파일 경로
+     * @return 파일의 길이
+     * @see #notFound()
+     * @see #readFileData(File)
+     * @see #readStaticResources(InputStream)
+     * */
+    private long readStaticResource(String filePath) {
+        InputStream fis = Thread.currentThread().getContextClassLoader().getResourceAsStream(filePath);
+        File staticFile = new File("src/main" + filePath);
+        if (fis == null && !staticFile.exists()) {
+            notFound();
+            return 0;
+        }
+        if (!filePath.equals(NOT_FOUND_PAGE) && requestMethod.equals(HttpMethod.OPTIONS)) {
+            allowedMethods.add(HttpMethod.GET);
+            return 0;
+        }
+        long fileLength = 0;
+        try {
+            if (staticFile.exists()) {
+                fileLength = readFileData(staticFile);
+            } else {
+                assert fis != null;
+                fileLength = readStaticResources(fis);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return fileLength;
+    }
+
+    /**
+     * 정적 파일을 읽은 후 OutputStream에 쓰고 파일의 길이를 반환합니다.
+     *
+     * @param fis 파일을 읽은 스트림
+     * @return 파일의 길이
+     * @throws IOException 파일을 읽다가 오류 발생시
+     * */
+    private long readStaticResources(InputStream fis) throws IOException {
+        long fileLength = 0;
+        int i;
+        while ((i = fis.read()) != -1) {
+            if (!this.requestMethod.equals(HttpMethod.HEAD)) {
+                outputStream.write(i);
+            }
+            fileLength++;
+        }
+        return fileLength;
+    }
+
+    /**
+     * 정적 파일을 읽은 후 OutputStream에 쓰고 파일의 길이를 반환합니.
+     *
+     * @param file 정적 파일
+     * @return 파일의 길이
+     * @throws IOException 파일을 읽다가 문제 발생시
+     * */
+    private long readFileData(File file) throws IOException {
+        FileInputStream fis = new FileInputStream(file);
+        if (!this.requestMethod.equals(HttpMethod.HEAD)) {
+            int len;
+            byte[] buf = new byte[fis.available()];
+            while ((len = fis.read(buf)) > 0) {
+                outputStream.write(buf, 0, len);
+            }
+        }
+        fis.close();
+
+        return file.length();
+    }
+
+    /**
+     * JSON 문자열을 OutputStream에 쓰고 바이트 길이를 반환합니다.
+     *
+     * @param json JSON 문자열
+     * @return JSON 문자열의 바이트 길이
+     * @throws IOException 문자열을 읽다가 오류 발생시
+     * */
+    private int readJson(String json) throws IOException {
+        if (httpStatus.equals(HttpStatus.NOT_FOUND) || httpStatus.equals(HttpStatus.BAD_REQUEST)) {
+            return 0;
+        }
+
+        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+
+        if (!this.requestMethod.equals(HttpMethod.HEAD)) {
+            outputStream.write(bytes);
+        }
+
+        return bytes.length;
+    }
+
+    /**
+     * 응답 헤더를 OutputStream에 씁니다.
+     * */
+    private void printHeaders() {
+
+
+        writer.print("HTTP/1.1 " + httpStatus.getCode() + " " + httpStatus.getMessage() + "\r\n");
+        for (String key : headers.keySet()) {
+            writer.print(key + ": " + headers.get(key) + "\r\n");
+        }
+        printCookies();
+        writer.print("\r\n");
+    }
+
+    /**
+     * 응답할 헤더 리스트를 세팅합니다.
+     * */
+    private void setHeaders() {
+        headers.put("Server", "Java HTTP Server from sam : 1.0");
+        headers.put("Date", LocalDateTime.now());
+        headers.put("Content-Type", getContentMimeType().getValue());
+        headers.put("Content-length", this.fileLength);
+        headers.put("Accept-Ranges", "bytes");
+        headers.put("Connection", "Keep-Alive");
+        headers.put("Keep-Alive", "timeout=60");
+
+        if (requestPath.startsWith("/resources")) {
+            headers.put("Cache-Control", "max-age=86400");
+        } else {
+            headers.put("Cache-Control", "no-cache, no-store, must-revalidate");
+        }
+
+        if (requestMethod.equals(HttpMethod.OPTIONS) && allowedMethods.size() > 0) {
+            StringJoiner stringJoiner = new StringJoiner(", ");
+            for (HttpMethod allowedMethod : allowedMethods) {
+                stringJoiner.add(allowedMethod.toString());
+            }
+            headers.put("Allow", stringJoiner.toString());
+        }
+    }
+
+    /**
+     * 조건에 따라 미디어타입을 반환합니다.
+     *
+     * @return 미디어 타입
+     * @see org.sam.server.constant.ContentType
+     * @see org.sam.server.constant.HttpStatus
+     * */
+    private ContentType getContentMimeType() {
+        if (contentMimeType != null) return ContentType.get(contentMimeType);
+        if (isHtmlResponse()) return ContentType.TEXT_HTML;
+        if (requestPath.endsWith(".css")) return ContentType.CSS;
+        if (requestPath.endsWith(".js")) return ContentType.JAVASCRIPT;
+
+        return ContentType.TEXT_PLAIN;
+    }
+
+    /**
+     * 쿠키에 대한 정보를 OutputStream에 씁니다.
+     *
+     * @see org.sam.server.http.Cookie
+     * */
+    private void printCookies() {
+        for (Cookie cookie : cookies) {
+            StringBuilder line = new StringBuilder();
+            line.append("Set-Cookie: ");
+            line.append(cookie.getName()).append("=").append(cookie.getValue());
+            if (cookie.getMaxAge() != 0) {
+                line.append("; Expires=").append(cookie.getExpires());
+                line.append("; Max-Age=").append(cookie.getMaxAge());
+            }
+            if (ServerProperties.isSSL()) {
+                line.append("; Secure");
+            }
+            if (cookie.isHttpOnly()) {
+                line.append("; HttpOnly");
+            }
+            line.append("; Path=").append(cookie.getPath());
+            writer.print(line.toString() + "\r\n");
         }
     }
 
@@ -189,173 +347,6 @@ public class HttpResponse implements Response {
             return;
         }
         this.execute(null, HttpStatus.OK);
-    }
-
-    /**
-     * 정적 자원의 경로를 받아 파일을 읽습니다. 파일이 존재하지 않으면 notFound 메서드를 호출합니다.
-     *
-     * @param filePath 파일 경로
-     * @return 파일의 길이
-     * @see #notFound()
-     * @see #readFileData(File)
-     * @see #readStaticResources(InputStream)
-     * */
-    private long readStaticResource(String filePath) {
-        InputStream fis = Thread.currentThread().getContextClassLoader().getResourceAsStream(filePath);
-        File staticFile = new File("src/main" + filePath);
-        if (fis == null && !staticFile.exists()) {
-            notFound();
-            return 0;
-        }
-        if (!filePath.equals(NOT_FOUND_PAGE) && requestMethod.equals(HttpMethod.OPTIONS)) {
-            allowedMethods.add(HttpMethod.GET);
-            return 0;
-        }
-        long fileLength = 0;
-        try {
-            if (staticFile.exists()) {
-                fileLength = readFileData(staticFile);
-            } else {
-                assert fis != null;
-                fileLength = readStaticResources(fis);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return fileLength;
-    }
-
-    /**
-     * 정적 파일을 읽은 후 OutputStream에 쓰고 파일의 길이를 반환합니다.
-     *
-     * @param fis 파일을 읽은 스트림
-     * @return 파일의 길이
-     * @throws IOException 파일을 읽다가 오류 발생시
-     * */
-    private long readStaticResources(InputStream fis) throws IOException {
-        long fileLength = 0;
-        int i;
-        while ((i = fis.read()) != -1) {
-            if (!this.requestMethod.equals(HttpMethod.HEAD)) {
-                outputStream.write(i);
-            }
-            fileLength++;
-        }
-        return fileLength;
-    }
-
-    /**
-     * 정적 파일을 읽은 후 OutputStream에 쓰고 파일의 길이를 반환합니.
-     *
-     * @param file 정적 파일
-     * @return 파일의 길이
-     * @throws IOException 파일을 읽다가 문제 발생시
-     * */
-    private long readFileData(File file) throws IOException {
-        FileInputStream fis = new FileInputStream(file);
-        int len;
-        if (!this.requestMethod.equals(HttpMethod.HEAD)) {
-            byte[] buf = new byte[fis.available()];
-            while ((len = fis.read(buf)) > 0) {
-                outputStream.write(buf, 0, len);
-            }
-        }
-        fis.close();
-
-        return file.length();
-    }
-
-    /**
-     * JSON 문자열을 OutputStream에 쓰고 바이트 길이를 반환합니다.
-     *
-     * @param json JSON 문자열
-     * @return JSON 문자열의 바이트 길이
-     * @throws IOException 문자열을 읽다가 오류 발생시
-     * */
-    private int readJson(String json) throws IOException {
-        if (httpStatus.equals(HttpStatus.NOT_FOUND) || httpStatus.equals(HttpStatus.BAD_REQUEST)) {
-            return 0;
-        }
-
-        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-
-        if (!this.requestMethod.equals(HttpMethod.HEAD)) {
-            outputStream.write(bytes);
-        }
-
-        return bytes.length;
-    }
-
-    /**
-     * 응답 헤더를 OutputStream에 씁니다.
-     * */
-    private void printHeader() {
-        headers.put("Server", "Java HTTP Server from sam : 1.0");
-        headers.put("Date", LocalDateTime.now());
-        headers.put("Content-Type", getContentMimeType().getValue());
-        headers.put("Content-length", this.fileLength);
-
-        if (requestPath.startsWith("/resources")) {
-            headers.put("Cache-Control", "max-age=86400");
-        } else {
-            headers.put("Cache-Control", "no-cache, no-store, must-revalidate");
-        }
-
-        if (requestMethod.equals(HttpMethod.OPTIONS) && allowedMethods.size() > 0) {
-            StringJoiner stringJoiner = new StringJoiner(", ");
-            for (HttpMethod allowedMethod : allowedMethods) {
-                stringJoiner.add(allowedMethod.toString());
-            }
-            headers.put("Allow", stringJoiner.toString());
-        }
-
-        writer.print("HTTP/1.1 " + httpStatus.getCode() + " " + httpStatus.getMessage() + "\r\n");
-        for (String key : headers.keySet()) {
-            writer.print(key + ": " + headers.get(key) + "\r\n");
-        }
-        printCookies();
-        writer.print("\r\n");
-    }
-
-    /**
-     * 조건에 따라 미디어타입을 반환합니다.
-     *
-     * @return 미디어 타입
-     * @see org.sam.server.constant.ContentType
-     * @see org.sam.server.constant.HttpStatus
-     * */
-    private ContentType getContentMimeType() {
-        if (contentMimeType != null) return ContentType.get(contentMimeType);
-        if (isHtmlResponse()) return ContentType.TEXT_HTML;
-        if (requestPath.endsWith(".css")) return ContentType.CSS;
-        if (requestPath.endsWith(".js")) return ContentType.JAVASCRIPT;
-
-        return ContentType.TEXT_PLAIN;
-    }
-
-    /**
-     * 쿠키에 대한 정보를 OutputStream에 씁니다.
-     *
-     * @see org.sam.server.http.Cookie
-     * */
-    private void printCookies() {
-        for (Cookie cookie : cookies) {
-            StringBuilder line = new StringBuilder();
-            line.append("Set-Cookie: ");
-            line.append(cookie.getName()).append("=").append(cookie.getValue());
-            if (cookie.getMaxAge() != 0) {
-                line.append("; Expires=").append(cookie.getExpires());
-                line.append("; Max-Age=").append(cookie.getMaxAge());
-            }
-            if (ServerProperties.isSSL()) {
-                line.append("; Secure");
-            }
-            if (cookie.isHttpOnly()) {
-                line.append("; HttpOnly");
-            }
-            line.append("; Path=").append(cookie.getPath());
-            writer.print(line.toString() + "\r\n");
-        }
     }
 
     /**

@@ -51,7 +51,7 @@ public class HandlerExecutor {
         setCrossOriginConfig(handlerInfo);
         SessionManager.removeExpiredSession();
         try {
-            Object returnValue = executeHandler(handlerInfo);
+            Object returnValue = executeHandlerWithInterceptor(handlerInfo);
             HttpStatus httpStatus;
             if (returnValue != null && returnValue.getClass().equals(ResponseEntity.class)) {
                 ResponseEntity<?> responseEntity = (ResponseEntity<?>) returnValue;
@@ -75,15 +75,14 @@ public class HandlerExecutor {
      * @param handlerInfo 핸들러 정보
      * @return 핸들러의 리턴 값
      * */
-    private Object executeHandler(HandlerInfo handlerInfo) {
-        Map<String, String> requestData = request.getParameters();
+    private Object executeHandlerWithInterceptor(HandlerInfo handlerInfo) {
         List<Interceptor> interceptors = BeanContainer.getInterceptors();
 
         for (Interceptor interceptor : interceptors) {
             interceptor.preHandler(request, response);
         }
 
-        Object returnValue = executeHandler(handlerInfo, requestData);
+        Object returnValue = executeHandler(handlerInfo);
 
         if (interceptors.size() > 0) {
             for (int i = interceptors.size() - 1; i >= 0; i--) {
@@ -121,12 +120,11 @@ public class HandlerExecutor {
      * 핸들러를 실행하고 반환 값을 반환합니다.
      *
      * @param handlerInfo 핸들러 정보
-     * @param requestData 요청 파라미터 목록
      * @return 핸들러의 반환 값
      * */
-    private Object executeHandler(HandlerInfo handlerInfo, Map<String, String> requestData) {
+    private Object executeHandler(HandlerInfo handlerInfo) {
         Method handlerMethod = handlerInfo.getMethod();
-        Object[] parameters = createParametersFromRequestData(handlerMethod.getParameters(), requestData);
+        Object[] parameters = getParameters(handlerMethod.getParameters());
         try {
             return handlerMethod.invoke(handlerInfo.getInstance(), parameters);
         } catch (IllegalAccessException | InvocationTargetException e) {
@@ -139,13 +137,12 @@ public class HandlerExecutor {
      * 핸들러 실행시 필요한 파라미터 목록을 생성합니다.
      * 
      * @param handlerParameters 핸들러 클래스의 파라미터 정보
-     * @param requestData 요청 파라미터 목록
      * @return 핸들러의 파라미터 목록
      * */
-    private Object[] createParametersFromRequestData(Parameter[] handlerParameters, Map<String, String> requestData) {
+    private Object[] getParameters(Parameter[] handlerParameters) {
         List<Object> inputParameters = new ArrayList<>();
         for (Parameter handlerParameter : handlerParameters) {
-            Object parameter = getParameter(requestData, handlerParameter);
+            Object parameter = getParameter(handlerParameter);
             inputParameters.add(parameter);
         }
         return inputParameters.toArray();
@@ -154,13 +151,12 @@ public class HandlerExecutor {
     /**
      * 핸들러 파라미터를 생성 후 반환합니다.
      *
-     * @param requestData 요청 파라미터
      * @param handlerParameter 핸들러 파라미터 정보
      * @return 생성된 파라미터 인스턴스
      * */
-    private Object getParameter(Map<String, String> requestData, Parameter handlerParameter) {
-        String name = handlerParameter.getName();
-        Object value = requestData.get(name);
+    private Object getParameter(Parameter handlerParameter) {
+        Map<String, String> requestData = request.getParameters();
+        String parameterName = handlerParameter.getName();
         Class<?> type = handlerParameter.getType();
         if (HttpRequest.class.isAssignableFrom(type)) {
             return request;
@@ -174,8 +170,10 @@ public class HandlerExecutor {
         if (handlerParameter.getDeclaredAnnotation(JsonRequest.class) != null) {
             return Converter.jsonToObject(request.getJson(), type);
         }
+
+        Object value = requestData.get(parameterName);
         if (value != null) {
-            return getParameter(value, type);
+            return createParameter(value, type);
         }
         return Converter.parameterToObject(request.getParameters(), type);
     }
@@ -187,7 +185,7 @@ public class HandlerExecutor {
      * @param type 타입
      * @return 핸들러 파라미터
      * */
-    private Object getParameter(Object value, Class<?> type) {
+    private Object createParameter(Object value, Class<?> type) {
         if (type.isPrimitive()) {
             return PrimitiveWrapper.wrapPrimitiveValue(type, value.toString());
         } else if (type.getSuperclass().equals(Number.class))  {

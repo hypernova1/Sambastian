@@ -1,9 +1,12 @@
 package org.sam.server.http.web;
 
+import org.sam.server.common.ServerProperties;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.constant.HttpStatus;
 import org.sam.server.http.Cookie;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
@@ -14,6 +17,18 @@ import java.util.Set;
  * @see HttpResponse
  * */
 public interface Response {
+
+    String DEFAULT_FILE_PAGE = "static/index.html";
+
+    String BAD_REQUEST_PAGE = "static/400.html";
+
+    String NOT_FOUND_PAGE = "static/404.html";
+
+    String FAVICON = "favicon.ico";
+
+    String METHOD_NOT_ALLOWED_PAGE = "static/method_not_allowed.html";
+
+    String BUFFER_SIZE_PROPERTY = ServerProperties.get("file-buffer-size");
 
     /**
      * HTTP 응답 메시지를 만듭니다.
