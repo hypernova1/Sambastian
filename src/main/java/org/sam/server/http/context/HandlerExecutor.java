@@ -145,46 +145,39 @@ public class HandlerExecutor {
     private Object[] createParametersFromRequestData(Parameter[] handlerParameters, Map<String, String> requestData) {
         List<Object> inputParameters = new ArrayList<>();
         for (Parameter handlerParameter : handlerParameters) {
-            setParameter(inputParameters, requestData, handlerParameter);
+            Object parameter = getParameter(requestData, handlerParameter);
+            inputParameters.add(parameter);
         }
         return inputParameters.toArray();
     }
 
     /**
-     * 핸들러 파라미터를 생성하고 파라미터 리스트에 추가합니다.
+     * 핸들러 파라미터를 생성 후 반환합니다.
      *
-     * @param inputParameters 핸들러 파라미터의 인스턴스를 담을 리스트
      * @param requestData 요청 파라미터
      * @param handlerParameter 핸들러 파라미터 정보
+     * @return 생성된 파라미터 인스턴스
      * */
-    private void setParameter(List<Object> inputParameters, Map<String, String> requestData, Parameter handlerParameter) {
+    private Object getParameter(Map<String, String> requestData, Parameter handlerParameter) {
         String name = handlerParameter.getName();
         Object value = requestData.get(name);
         Class<?> type = handlerParameter.getType();
         if (HttpRequest.class.isAssignableFrom(type)) {
-            inputParameters.add(request);
-            return;
+            return request;
         }
         if (HttpResponse.class.equals(type)) {
-            inputParameters.add(response);
-            return;
+            return response;
         }
         if (Session.class.equals(type)) {
-            addSession(inputParameters);
-            return;
+            return SessionManager.getSessionFromRequest(request);
         }
         if (handlerParameter.getDeclaredAnnotation(JsonRequest.class) != null) {
-            Object object = Converter.jsonToObject(request.getJson(), type);
-            inputParameters.add(object);
-            return;
+            return Converter.jsonToObject(request.getJson(), type);
         }
-        Object object;
         if (value != null) {
-            object = setParameter(value, type);
-        } else {
-            object = Converter.parameterToObject(request.getParameters(), type);
+            return getParameter(value, type);
         }
-        inputParameters.add(object);
+        return Converter.parameterToObject(request.getParameters(), type);
     }
 
     /**
@@ -194,7 +187,7 @@ public class HandlerExecutor {
      * @param type 타입
      * @return 핸들러 파라미터
      * */
-    private Object setParameter(Object value, Class<?> type) {
+    private Object getParameter(Object value, Class<?> type) {
         if (type.isPrimitive()) {
             return PrimitiveWrapper.wrapPrimitiveValue(type, value.toString());
         } else if (type.getSuperclass().equals(Number.class))  {
@@ -207,27 +200,4 @@ public class HandlerExecutor {
         return value;
     }
 
-    /**
-     * 핸들러 실행시 필요한 세션을 파라미터에 추가합니다.
-     *
-     * @param params 핸들러의 파라미터 목록
-     * */
-    private void addSession(List<Object> params) {
-        Set<Cookie> cookies = request.getCookies();
-        Iterator<Cookie> iterator = cookies.iterator();
-        while (iterator.hasNext()) {
-            Cookie cookie = iterator.next();
-            if (!cookie.getName().equals("sessionId")) continue;
-
-            Session session = request.getSession();
-            if (session != null) {
-                session.renewAccessTime();
-                params.add(session);
-                return;
-            }
-            iterator.remove();
-        }
-        Session session = new Session();
-        params.add(session);
-    }
 }

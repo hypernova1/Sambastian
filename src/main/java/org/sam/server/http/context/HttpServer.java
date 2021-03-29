@@ -1,19 +1,17 @@
 package org.sam.server.http.context;
 
-import org.sam.server.context.BeanContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
  * HTTP 서버의 시작점으로써, 서버 소켓을 생성하고 쓰헤드 풀을 생성하여 요청을 HttpLauncher로 위임합니다.
- * 서버가 준비 되기 전에 Bean을 관리하는 BeanContainer를 실행합니다.
  *
  * @author hypernova1
  * @see org.sam.server.context.BeanContainer
@@ -41,17 +39,17 @@ public class HttpServer implements Runnable {
             logger.info("server started..");
             logger.info("server port: " + serverSocket.getLocalPort());
 
-            ThreadPoolExecutor threadPool = new ThreadPoolExecutor(
-                    5,
+            ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+                    Runtime.getRuntime().availableProcessors(),
                     200,
                     150L,
                     TimeUnit.SECONDS,
-                    new SynchronousQueue<>()
+                    new LinkedBlockingDeque<>()
             );
             while (!Thread.currentThread().isInterrupted()) {
                 Socket clientSocket = serverSocket.accept();
                 HttpServer httpServer = new HttpServer(clientSocket);
-                threadPool.execute(httpServer);
+                threadPoolExecutor.execute(httpServer);
             }
         } catch (IOException e) {
             e.printStackTrace();

@@ -1,5 +1,7 @@
 package org.sam.server.http;
 
+import org.sam.server.http.web.Request;
+
 import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -69,5 +71,28 @@ public class SessionManager {
         long now = System.currentTimeMillis();
         int timeout = session.getTimeout() * 1000 * 1800;
         return now - accessTime > timeout;
+    }
+
+    /**
+     * 핸들러 실행시 필요한 세션을 가져옵니다.
+     *
+     * @param request 요청 인스턴스
+     * @return 세션
+     * */
+    public static Session getSessionFromRequest(Request request) {
+        Set<Cookie> cookies = request.getCookies();
+        Iterator<Cookie> iterator = cookies.iterator();
+        while (iterator.hasNext()) {
+            Cookie cookie = iterator.next();
+            if (!cookie.getName().equals("sessionId")) continue;
+
+            Session session = request.getSession();
+            if (session != null) {
+                session.renewAccessTime();
+                return session;
+            }
+            iterator.remove();
+        }
+        return new Session();
     }
 }
