@@ -1,5 +1,6 @@
 package org.sam.server.http.context;
 
+import org.sam.server.context.BeanContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

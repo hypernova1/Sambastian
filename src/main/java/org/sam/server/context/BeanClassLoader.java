@@ -2,8 +2,6 @@ package org.sam.server.context;
 
 import org.sam.server.annotation.component.Component;
 import org.sam.server.annotation.ComponentScan;
-import org.sam.server.annotation.component.Repository;
-import org.sam.server.annotation.component.Service;
 import org.sam.server.annotation.component.Handler;
 import org.sam.server.annotation.handle.RequestMapping;
 import org.sam.server.exception.ComponentScanNotFoundException;
@@ -39,8 +37,7 @@ public class BeanClassLoader {
     /**
      * 루트 패키지부터 경로를 탐색하며 핸들러, 컴포넌트, 인터셉터 클래스를 저장합니다.
      * */
-    private static void loadClasses() throws ComponentScanNotFoundException {
-        if (rootPackageName == null) throw new ComponentScanNotFoundException();
+    private static void loadClasses() {
         String path = rootPackageName.replace(".", "/");
         try {
             Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources(path);
@@ -138,7 +135,7 @@ public class BeanClassLoader {
     private static Class<?> createClass(String packageName, File file) {
         if (!isClassFile(file)) return null;
         try {
-            String fullClassName = getClassName(packageName, file);
+            String fullClassName = getFullClassName(packageName, file);
             return Class.forName(fullClassName);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
@@ -155,12 +152,13 @@ public class BeanClassLoader {
             Enumeration<URL> resources = classLoader.getResources("");
             while (resources.hasMoreElements()) {
                 URL resource = resources.nextElement();
-                boolean existComponentScan = findRootPackageName(new File(resource.getFile()), "");
-                if (existComponentScan) break;
+                retrieveFile(new File(resource.getFile()), "");
+                if (rootPackageName != null) return;
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+        throw new ComponentScanNotFoundException();
     }
 
     /**
@@ -168,31 +166,40 @@ public class BeanClassLoader {
      *
      * @param directory 디렉토리
      * @param packageName 패키지 이름
-     * @return  찾았는 지에 대한 여부
      * */
-    private static boolean findRootPackageName(File directory, String packageName) {
-        if (!directory.exists()) return false;
+    private static void retrieveFile(File directory, String packageName) {
+        if (!directory.exists()) return;
         File[] files = directory.listFiles();
-        if (files == null) return false;
+        if (files == null) return;
         for (File file : files) {
-            StringBuilder packageNameBuilder = new StringBuilder(packageName);
-            if (file.isDirectory()) {
-                if (packageNameBuilder.length() > 0) packageNameBuilder.append(".");
-                findRootPackageName(file, packageNameBuilder + file.getName());
-            } else if (isClassFile(file)) {
-                String fileName = packageNameBuilder + "." + file.getName();
-                try {
-                    Class<?> clazz = Class.forName(getClassName(fileName));
-                    if (!isComponentScanClass(clazz)) continue;
+            appendPackageName(file, packageName);
+        }
+    }
 
-                    rootPackageName = packageName;
-                    return true;
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                }
+    /**
+     * 패키지 이름을 세팅합니다.
+     *
+     * @param file 파일
+     * @param packageName 현재까지 만들어진 패키지명
+     * */
+    private static void appendPackageName(File file, String packageName) {
+        StringBuilder packageNameBuilder = new StringBuilder(packageName);
+
+        if (!packageNameBuilder.toString().isEmpty()) {
+            packageNameBuilder.append(".");
+        }
+
+        if (isClassFile(file)) {
+            try {
+                Class<?> clazz = Class.forName(getClassName(packageNameBuilder.toString() + file.getName()));
+                if (!isComponentScanClass(clazz)) return;
+                rootPackageName = packageName;
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
             }
         }
-        return false;
+
+        retrieveFile(file, packageNameBuilder + file.getName());
     }
 
     /**
@@ -229,7 +236,7 @@ public class BeanClassLoader {
      * @param file 클래스 파일
      * @return 클래스 이름
      * */
-    private static String getClassName(String packageName, File file) {
+    private static String getFullClassName(String packageName, File file) {
         return packageName + "." + getClassName(file.getName());
     }
 

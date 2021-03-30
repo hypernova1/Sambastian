@@ -33,7 +33,7 @@ public class BeanContainer {
     static {
         loadComponentBeans();
         loadHandlerBeans();
-        loadInterceptor();
+        loadInterceptors();
     }
 
     /**
@@ -103,7 +103,7 @@ public class BeanContainer {
     /**
      * 인터셉터 구현체 클래스의 인스턴스를 생성하고 저장합니다.
      * */
-    private static void loadInterceptor() {
+    private static void loadInterceptors() {
         try {
             for (Class<?> interceptorClass : BeanClassLoader.getInterceptorClasses()) {
                 Interceptor interceptor = (Interceptor) interceptorClass.getDeclaredConstructor().newInstance();
