@@ -1,6 +1,5 @@
 package org.sam.server.http.context;
 
-import org.sam.server.context.BeanContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +39,8 @@ public class HttpServer implements Runnable {
             logger.info("server started..");
             logger.info("server port: " + serverSocket.getLocalPort());
 
+            Class.forName("org.sam.server.context.BeanContainer");
+
             ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
                     Runtime.getRuntime().availableProcessors(),
                     200,
@@ -52,7 +53,7 @@ public class HttpServer implements Runnable {
                 HttpServer httpServer = new HttpServer(clientSocket);
                 threadPoolExecutor.execute(httpServer);
             }
-        } catch (IOException e) {
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
