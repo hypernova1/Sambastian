@@ -1,5 +1,6 @@
 package org.sam.server.common;
 
+import org.sam.server.exception.ResourcesNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,16 +21,9 @@ public class ServerProperties {
     private static boolean isSSL;
 
     static {
-        load();
-    }
-
-    /**
-     * 서버 설정을 담은 프로퍼티 파일을 읽습니다.
-     * */
-    private static void load() {
         InputStream resourceAsStream = Thread.currentThread().getContextClassLoader()
                 .getResourceAsStream("config/application.properties");
-        if (resourceAsStream == null) return;
+        if (resourceAsStream == null) throw new ResourcesNotFoundException("application.properties");
         try {
             properties.load(resourceAsStream);
         } catch (IOException e) {

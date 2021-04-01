@@ -5,7 +5,6 @@ import org.sam.server.constant.HttpMethod;
 import org.sam.server.http.Cookie;
 import org.sam.server.http.CookieStore;
 import org.sam.server.http.SessionManager;
-import org.sam.server.http.context.HttpServer;
 import org.sam.server.http.Session;
 import org.sam.server.util.StringUtils;
 
@@ -331,7 +330,7 @@ public class HttpRequest implements Request {
                 int i;
                 while ((i = inputStream.read()) != -1) {
                     sb.append((char) i);
-                    if (isStartBoundaryLine(sb.toString())) {
+                    if (isBoundaryLine(sb.toString())) {
                         parseMultipartLine(inputStream);
                         return;
                     }
@@ -553,27 +552,58 @@ public class HttpRequest implements Request {
             return this.contentType == ContentType.APPLICATION_JSON && this.parameters.isEmpty();
         }
 
-        private boolean isStartBoundaryLine(String line) {
+        /**
+         * boundary 라인인지 확인합니다.
+         *
+         * @param line multipart 본문 라인
+         * @return boundary 라인 여부
+         * */
+        private boolean isBoundaryLine(String line) {
             return line.contains(this.boundary + "\r\n");
         }
 
-        private boolean isFullCapacity(byte[] data, int fileLength) {
-            return data.length == fileLength;
-        }
-
+        /**
+         * boundary 라인이 끝났는지 확인합니다.
+         *
+         * @param content multipart 본문 라인
+         * @return boundary 라인이 끝났는지 여부
+         */
         private boolean isEndOfBoundaryLine(String content) {
             String boundary = new String(this.boundary.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
             return content.contains(boundary);
         }
 
+        /**
+         * boundary 라인이 존재하는 지 확인합니다.
+         *
+         * @param content multipart 본문 라인
+         * @return boundary 라인 존재 여부
+         * */
         private boolean isEmptyBoundaryContent(String content) {
             return content.trim().equals(this.boundary);
         }
 
+        /**
+         * 입력받은 배열의 길이의 두배인 배열을 생성하고 카피 후 반환합니다.
+         *
+         * @param data 배열
+         * @return 2배 길이의 배열
+         * */
         private byte[] getDoubleArray(byte[] data) {
             byte[] arr = new byte[data.length * 2];
             System.arraycopy(data, 0, arr, 0, data.length);
             return arr;
+        }
+
+        /**
+         * 배열의 길이가 최대인지 확인합니다.
+         *
+         * @param data 확인할 배열
+         * @param fileLength 파일 길이
+         * @return 배열의 길이가 최대인지 여부
+         * */
+        private boolean isFullCapacity(byte[] data, int fileLength) {
+            return data.length == fileLength;
         }
 
     }
