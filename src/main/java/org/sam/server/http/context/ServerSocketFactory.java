@@ -11,7 +11,6 @@ public class ServerSocketFactory {
     /**
      * 서버 소켓을 생성합니다.
      *
-     * @author hypernova1
      * @return 서버 소켓
      * @throws IOException SSL 소켓 생성시에 네트워크 오류가 발생시
      * @see java.net.ServerSocket

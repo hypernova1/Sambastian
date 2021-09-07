@@ -30,7 +30,6 @@ public class HttpServer implements Runnable {
     /**
      * 애플리케이션을 시작합니다. 서버가 종료될 때 까지 무한 루프를 돌며 쓰레드를 생성하고 요청을 HttpLauncher에 위임합니다.
      *
-     * @author hypernova1
      * @see HttpLauncher
      * */
     public static void start() {

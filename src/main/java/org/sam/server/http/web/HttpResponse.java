@@ -58,7 +58,6 @@ public class HttpResponse implements Response {
     /**
      * 인스턴스를 생성합니다.
      *
-     * @author hypernova1
      * @param os 응답을 출력할 스트림
      * @param requestPath 요청 URL
      * @param requestMethod 요청 HTTP Method
