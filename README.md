@@ -1,4 +1,4 @@
-# Java HTTP Server Framework
+# Sambastian
 Implementing HTTP Server Framework using java socket.
 
 #### [document](https://hypernova1.github.io/java-http-server-doc/)
@@ -6,11 +6,7 @@ Implementing HTTP Server Framework using java socket.
 
 ### How to use
 ##### 0. install jdk 1.8++
-##### 1. deploy local repository
-~~~
-$ mvn install
-~~~
-##### 2. create maven project
+##### 1. create maven project
 project structure
 ~~~
 src/
@@ -23,15 +19,15 @@ src/
          +- static/
             +- <static files>
 ~~~
-##### 3. add dependency
+##### 2. add dependency
 ~~~xml
 <dependency>
-    <groupId>org.sam.server</groupId>
-    <artifactId>sam-server</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <groupId>io.github.hypernova1</groupId>
+    <artifactId>sambastian</artifactId>
+    <version>1.0</version>
 </dependency>
 ~~~
-##### 4. initial setting
+##### 3. initial setting
 filename: resources/static/resource/application.properties
 ~~~properties
 server.port=[port number]
@@ -40,7 +36,7 @@ file-buffer-size=[file buffer size]
 key-store=[keyStore name]
 key-store.password=[keyStore password]
 ~~~
-##### 5. write main class
+##### 4. write main class
 ~~~java
 @ComponentScan
 public class Application {
@@ -50,7 +46,7 @@ public class Application {
 }
 ~~~
 
-##### 6. execute program
+##### 5. execute program
 ~~~
 22:26:34.015 [main] INFO  org.sam.server.HttpServer - server started..
 22:26:34.019 [main] INFO  org.sam.server.HttpServer - server port: 8081
