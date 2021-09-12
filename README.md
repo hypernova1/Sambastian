@@ -3,6 +3,7 @@ Implementing HTTP Server Framework using java socket.
 
 #### [document](https://hypernova1.github.io/java-http-server-doc/)
 #### [Sample Project](https://github.com/hypernova1/Java-Http-Server-Sample)
+#### [Template](https://github.com/hypernova1/sambastian-template)
 
 ### How to use
 ##### 0. install jdk 1.8++
