@@ -16,7 +16,6 @@ import java.util.Properties;
 public class ServerProperties {
 
     private static final Logger logger = LoggerFactory.getLogger(ServerProperties.class);
-
     private static final Properties properties = new Properties();
     private static boolean isSSL;
 

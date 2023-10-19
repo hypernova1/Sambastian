@@ -19,15 +19,10 @@ import java.util.Set;
 public interface Response {
 
     String DEFAULT_FILE_PAGE = "static/index.html";
-
     String BAD_REQUEST_PAGE = "static/400.html";
-
     String NOT_FOUND_PAGE = "static/404.html";
-
     String FAVICON = "favicon.ico";
-
     String METHOD_NOT_ALLOWED_PAGE = "static/method_not_allowed.html";
-
     String BUFFER_SIZE_PROPERTY = ServerProperties.get("file-buffer-size");
 
     /**

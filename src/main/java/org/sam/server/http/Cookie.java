@@ -16,19 +16,12 @@ import java.util.TimeZone;
 public class Cookie {
 
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss zzz", Locale.US);
-
     private String name;
-
     private String value;
-
     private String expires;
-
     private int maxAge;
-
     private String domain;
-
     private String path;
-
     private boolean httpOnly;
 
     public Cookie(String name, String value) {

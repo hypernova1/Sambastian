@@ -23,17 +23,11 @@ import java.util.*;
 public class HttpRequest implements Request {
 
     private final String protocol;
-
     private final String path;
-
     private final HttpMethod method;
-
     private final Map<String, String> headers;
-
     private final Map<String, String> parameterMap;
-
     private final String json;
-
     private final Set<Cookie> cookies;
 
     protected HttpRequest(RequestParser requestParser) {
@@ -126,25 +120,15 @@ public class HttpRequest implements Request {
      * @see HttpMultipartRequest
      * */
     protected static class RequestParser {
-
         protected String protocol;
-
         protected String url;
-
         protected HttpMethod httpMethod;
-
         protected Map<String, String> headers = new HashMap<>();
-
         protected ContentType contentType;
-
         protected String boundary;
-
         protected Map<String, String> parameters = new HashMap<>();
-
         protected String json;
-
         protected Set<Cookie> cookies = new HashSet<>();
-
         protected Map<String, Object> files = new HashMap<>();
 
         /**
@@ -174,7 +158,7 @@ public class HttpRequest implements Request {
                 this.parameters = parseQuery(query);
             }
 
-            if (isExistsHttpBody()) {
+            if (existsHttpBody()) {
                 parseBody(inputStream);
             }
         }
@@ -311,7 +295,7 @@ public class HttpRequest implements Request {
                 String[] parameterPair = rawParameter.split("=");
                 String name = parameterPair[0];
                 String value = "";
-                if (isExistsParameterValue(parameterPair)) {
+                if (existsParameterValue(parameterPair)) {
                     value = parameterPair[1];
                 }
                 map.put(name, value);
@@ -520,7 +504,7 @@ public class HttpRequest implements Request {
          * @param parameterPair 파라미터 쌍
          * @return 파라미터 값 존재 여부
          * */
-        private boolean isExistsParameterValue(String[] parameterPair) {
+        private boolean existsParameterValue(String[] parameterPair) {
             return parameterPair.length == 2;
         }
 
@@ -539,7 +523,7 @@ public class HttpRequest implements Request {
          *
          * @return HTTP 바디에 메시지가 존재하는지 여부
          * */
-        private boolean isExistsHttpBody() {
+        private boolean existsHttpBody() {
             return this.httpMethod == HttpMethod.POST ||
                     this.httpMethod == HttpMethod.PUT ||
                     this.contentType == ContentType.APPLICATION_JSON;

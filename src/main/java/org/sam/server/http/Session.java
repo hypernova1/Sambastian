@@ -16,11 +16,8 @@ import java.util.UUID;
 public final class Session {
 
     private final String id;
-
     private LocalDateTime creationTime;
-
     private LocalDateTime accessTime;
-
     private int timeout;
 
     private final Map<String, Object> attribute = new Hashtable<>();

@@ -25,7 +25,6 @@ import java.util.*;
 public class HandlerExecutor {
 
     private final Request request;
-
     private final Response response;
 
     private HandlerExecutor(Request request, Response response) {

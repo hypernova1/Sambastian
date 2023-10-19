@@ -20,7 +20,6 @@ import java.util.concurrent.TimeUnit;
 public class HttpServer implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
-
     private final Socket connect;
 
     private HttpServer(Socket connect) {

@@ -84,9 +84,9 @@ public class BeanFactory {
         List<BeanInfo> list = Optional
                 .ofNullable(BeanContainer.getBeanInfoList(instance.getClass()))
                 .orElseGet(ArrayList::new);
-        boolean isExist = list.stream()
+        boolean exists = list.stream()
                 .anyMatch(beanInfo -> beanInfo.getName().equals(name));
-        if (isExist) return;
+        if (exists) return;
         BeanInfo beanInfo = new BeanInfo(name, instance);
         list.add(beanInfo);
     }

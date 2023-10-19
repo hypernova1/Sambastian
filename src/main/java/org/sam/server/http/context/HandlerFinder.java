@@ -40,7 +40,7 @@ public class HandlerFinder {
 
     private String handlerClassPath;
 
-    private boolean isExistsPath;
+    private boolean existsPath;
 
     private HandlerFinder(Request request, Response response) {
         this.request = request;
@@ -76,7 +76,7 @@ public class HandlerFinder {
             return HandlerInfo.of(handlerInstance, handlerMethod);
         }
 
-        if (isExistsPath) {
+        if (existsPath) {
             response.methodNotAllowed();
         }
         throw new HandlerNotFoundException();
@@ -245,11 +245,11 @@ public class HandlerFinder {
     private boolean isMatchedPath(Method handlerMethod, String handlerMethodPath) {
         String requestPath = getRequestUrlWithoutHandlerPath();
 
-        if (isExistsPathValueAnnotation(handlerMethod)) {
+        if (existsPathValueAnnotation(handlerMethod)) {
             return isMatchedPath(requestPath, handlerMethodPath);
         } else {
             if (requestPath.equals(handlerMethodPath)) {
-                this.isExistsPath = true;
+                this.existsPath = true;
                 return true;
             }
         }
@@ -281,7 +281,7 @@ public class HandlerFinder {
      * @param handlerMethod 핸들러 메서드
      * @return PathValue 선언 여부
      * */
-    private boolean isExistsPathValueAnnotation(Method handlerMethod) {
+    private boolean existsPathValueAnnotation(Method handlerMethod) {
         Parameter[] parameters = handlerMethod.getParameters();
         return Arrays.stream(parameters)
                 .anyMatch(this::isDeclaredPathValueAnnotation);

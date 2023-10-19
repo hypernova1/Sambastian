@@ -10,7 +10,6 @@ import org.sam.server.constant.HttpStatus;
 public class ResponseEntity<T> {
 
     private final HttpStatus httpStatus;
-
     private T value;
 
     public ResponseEntity(HttpStatus httpStatus, T value) {

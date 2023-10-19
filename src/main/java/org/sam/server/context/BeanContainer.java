@@ -42,7 +42,7 @@ public class BeanContainer {
     private static void loadComponentBeans() {
         for (Class<?> componentClass : BeanClassLoader.getComponentClasses()) {
             String beanName = getBeanName(componentClass);
-            if (isExistBean(componentClass)) continue;
+            if (existsBean(componentClass)) continue;
             Object componentInstance = createComponentInstance(componentClass);
             Method[] declaredMethods = componentInstance.getClass().getDeclaredMethods();
             loadMethodBean(componentInstance, declaredMethods);
@@ -205,7 +205,7 @@ public class BeanContainer {
      * @param componentType 컴포넌트 타입
      * @return 중복 유무
      * */
-    private static boolean isExistBean(Class<?> componentType) {
+    private static boolean existsBean(Class<?> componentType) {
         String beanName = getBeanName(componentType);
         List<BeanInfo> beanInfos = beanMap.get(componentType);
         if (beanInfos == null) return false;
