@@ -4,8 +4,8 @@ import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.http.Cookie;
 import org.sam.server.http.CookieStore;
-import org.sam.server.http.SessionManager;
 import org.sam.server.http.Session;
+import org.sam.server.http.SessionManager;
 import org.sam.server.util.StringUtils;
 
 import java.io.BufferedInputStream;
@@ -45,7 +45,7 @@ public class HttpRequest implements Request {
      *
      * @param in HTTP 요청을 담은 InputStream
      * @return Request 인스턴스
-     * */
+     */
     public static Request from(InputStream in) {
         RequestParser requestParser = new RequestParser();
         requestParser.parse(in);
@@ -104,11 +104,40 @@ public class HttpRequest implements Request {
 
     @Override
     public Session getSession() {
-        for (Cookie cookie : cookies) {
+        Set<Cookie> cookies = this.getCookies();
+        Iterator<Cookie> iterator = cookies.iterator();
+        while (iterator.hasNext()) {
+            Cookie cookie = iterator.next();
             if (!cookie.getName().equals("sessionId")) continue;
-            return SessionManager.getSession(cookie.getValue());
+
+            Session session = SessionManager.getSession(cookie.getValue());
+            if (session != null) {
+                session.renewAccessTime();
+                return session;
+            }
+            iterator.remove();
         }
         return new Session();
+    }
+
+    @Override
+    public boolean isFaviconRequest() {
+        return this.getUrl().equals("/favicon.ico");
+    }
+
+    @Override
+    public boolean isResourceRequest() {
+        return this.getUrl().startsWith("/resources");
+    }
+
+    @Override
+    public boolean isIndexRequest() {
+        return this.getUrl().equals("/") && this.getMethod().equals(HttpMethod.GET);
+    }
+
+    @Override
+    public boolean isOptionsRequest() {
+        return this.getMethod().equals(HttpMethod.OPTIONS);
     }
 
     /**
@@ -118,7 +147,7 @@ public class HttpRequest implements Request {
      * @see Request
      * @see HttpRequest
      * @see HttpMultipartRequest
-     * */
+     */
     protected static class RequestParser {
         protected String protocol;
         protected String url;
@@ -135,7 +164,7 @@ public class HttpRequest implements Request {
          * InputStream에서 HTTP 본문을 읽은 후 파싱합니다.
          *
          * @param in 소켓의 InputStream
-         * */
+         */
         private void parse(InputStream in) {
             BufferedInputStream inputStream = new BufferedInputStream(in);
             String headersPart = parseHeaderPart(inputStream);
@@ -177,7 +206,7 @@ public class HttpRequest implements Request {
          * HTTP 바디에 있는 데이터를 파싱합니다.
          *
          * @param inputStream 인풋 스트림
-         * */
+         */
         private void parseBody(BufferedInputStream inputStream) {
             if (this.boundary != null) {
                 parseMultipartBody(inputStream);
@@ -191,7 +220,7 @@ public class HttpRequest implements Request {
          *
          * @param inputStream 인풋 스트림
          * @return HTTP 헤더 내용
-         * */
+         */
         private String parseHeaderPart(BufferedInputStream inputStream) {
             int i;
             String headersPart = "";
@@ -206,7 +235,7 @@ public class HttpRequest implements Request {
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
             return headersPart;
         }
@@ -215,7 +244,7 @@ public class HttpRequest implements Request {
          * HTTP 바디를 파싱합니다.
          *
          * @param inputStream 소켓의 InputSteam
-         * */
+         */
         private void parseRequestBody(InputStream inputStream) {
             StringBuilder sb = new StringBuilder();
             try {
@@ -241,16 +270,17 @@ public class HttpRequest implements Request {
                 }
                 this.parameters = parseQuery(sb.toString());
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
 
         }
 
         /**
          * HTTP 헤더를 파싱합니다.
-         *  @param headers 헤더 본문
-         *  @return 헤더 목록
-         * */
+         *
+         * @param headers 헤더 본문
+         * @return 헤더 목록
+         */
         private Map<String, String> parseHeaders(String[] headers) {
             Map<String, String> result = new HashMap<>();
             for (int i = 1; i < headers.length; i++) {
@@ -271,7 +301,7 @@ public class HttpRequest implements Request {
          *
          * @param url 요청 URL
          * @return 쿼리 스트링
-         * */
+         */
         private String parseRequestUrl(String url) {
             int index = url.indexOf("?");
             if (index == -1) {
@@ -285,9 +315,9 @@ public class HttpRequest implements Request {
         /**
          * 쿼리 스트링을 파싱합니다.
          *
-         * @param  parameters 쿼리 스트링
+         * @param parameters 쿼리 스트링
          * @return 파라미터 목록
-         * */
+         */
         private Map<String, String> parseQuery(String parameters) {
             Map<String, String> map = new HashMap<>();
             String[] rawParameters = parameters.split("&");
@@ -307,7 +337,7 @@ public class HttpRequest implements Request {
          * multipart/form-data 요청을 파싱합니다.
          *
          * @param inputStream 소켓의 InputStream
-         * */
+         */
         private void parseMultipartBody(InputStream inputStream) {
             try {
                 StringBuilder sb = new StringBuilder();
@@ -320,7 +350,7 @@ public class HttpRequest implements Request {
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
 
@@ -329,7 +359,7 @@ public class HttpRequest implements Request {
          *
          * @param inputStream 소켓의 InputStream
          * @throws IOException InputStream을 읽다가 오류 발생시
-         * */
+         */
         private void parseMultipartLine(InputStream inputStream) throws IOException {
             int i = 0;
             int loopCnt = 0;
@@ -396,12 +426,12 @@ public class HttpRequest implements Request {
         /**
          * multipart/form-data로 받은 파일을 인스턴스로 만듭니다.
          *
-         * @param name 파일 이름
+         * @param name     파일 이름
          * @param filename 파일 전체 이름
          * @param mimeType 미디어 타입
          * @param fileData 파일의 데이터
          * @see MultipartFile
-         * */
+         */
         private void createMultipartFile(String name, String filename, String mimeType, byte[] fileData) {
             MultipartFile multipartFile = new MultipartFile(filename, mimeType, fileData);
             if (this.files.get(name) == null) {
@@ -415,10 +445,10 @@ public class HttpRequest implements Request {
         /**
          * MultipartFile을 추가합니다.
          *
-         * @param name MultipartFile의 이름
+         * @param name          MultipartFile의 이름
          * @param multipartFile MultipartFile 인스턴스
-         * @param file MultipartFile 목록 또는 MultipartFile
-         * */
+         * @param file          MultipartFile 목록 또는 MultipartFile
+         */
         @SuppressWarnings("unchecked")
         private void addMultipartFile(String name, MultipartFile multipartFile, Object file) {
             if (file.getClass().equals(ArrayList.class)) {
@@ -437,7 +467,7 @@ public class HttpRequest implements Request {
          *
          * @param inputStream 소켓의 InputStream
          * @return 파일의 바이트 배열
-         * */
+         */
         private byte[] parseFile(InputStream inputStream) {
             byte[] data = new byte[1024 * 8];
             int fileLength = 0;
@@ -456,7 +486,7 @@ public class HttpRequest implements Request {
                     fileLength++;
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
             return Arrays.copyOfRange(data, 2, fileLength - boundary.getBytes(StandardCharsets.UTF_8).length);
         }
@@ -467,7 +497,7 @@ public class HttpRequest implements Request {
          * @return 요청 인스턴스
          * @see org.sam.server.http.web.HttpRequest
          * @see org.sam.server.http.web.HttpMultipartRequest
-         * */
+         */
         public Request createRequest() {
             if (headers.isEmpty()) return null;
             if (contentType == ContentType.MULTIPART_FORM_DATA) {
@@ -477,22 +507,22 @@ public class HttpRequest implements Request {
         }
 
         /**
-         *  한 줄의 마지막인지 확인합니다.
+         * 한 줄의 마지막인지 확인합니다.
          *
-         * @param data 데이터
+         * @param data  데이터
          * @param index 인덱스
          * @return 한 줄의 마지막인지 여부
-         * */
+         */
         private boolean isEndOfLine(byte[] data, int index) {
             return index != 0 && data[index - 1] == '\r' && data[index] == '\n';
         }
 
         /**
-         *  헤더의 끝 부분인지 확인합니다.
+         * 헤더의 끝 부분인지 확인합니다.
          *
          * @param data 데이터
          * @return 헤더의 끝인지 여부
-         * */
+         */
         private static boolean isEndOfHeader(String data) {
             String CR = "\r";
             return data.endsWith(CR + "\n\r\n");
@@ -503,7 +533,7 @@ public class HttpRequest implements Request {
          *
          * @param parameterPair 파라미터 쌍
          * @return 파라미터 값 존재 여부
-         * */
+         */
         private boolean existsParameterValue(String[] parameterPair) {
             return parameterPair.length == 2;
         }
@@ -513,7 +543,7 @@ public class HttpRequest implements Request {
          *
          * @param headersPart 헤더
          * @return HTTP 요청이 아닌지에 대한 여부
-         * */
+         */
         private boolean isNonHttpRequest(String headersPart) {
             return headersPart.trim().isEmpty();
         }
@@ -522,7 +552,7 @@ public class HttpRequest implements Request {
          * HTTP 바디에 메시지가 존재하는 지 확인합니다.
          *
          * @return HTTP 바디에 메시지가 존재하는지 여부
-         * */
+         */
         private boolean existsHttpBody() {
             return this.httpMethod == HttpMethod.POST ||
                     this.httpMethod == HttpMethod.PUT ||
@@ -531,7 +561,7 @@ public class HttpRequest implements Request {
 
         /**
          * HTTP 요청 본문이 JSON인지 확인합니다.
-         * */
+         */
         private boolean isJsonRequest() {
             return this.contentType == ContentType.APPLICATION_JSON && this.parameters.isEmpty();
         }
@@ -541,7 +571,7 @@ public class HttpRequest implements Request {
          *
          * @param line multipart 본문 라인
          * @return boundary 라인 여부
-         * */
+         */
         private boolean isBoundaryLine(String line) {
             return line.contains(this.boundary + "\r\n");
         }
@@ -562,7 +592,7 @@ public class HttpRequest implements Request {
          *
          * @param content multipart 본문 라인
          * @return boundary 라인 존재 여부
-         * */
+         */
         private boolean isEmptyBoundaryContent(String content) {
             return content.trim().equals(this.boundary);
         }
@@ -572,7 +602,7 @@ public class HttpRequest implements Request {
          *
          * @param data 배열
          * @return 2배 길이의 배열
-         * */
+         */
         private byte[] getDoubleArray(byte[] data) {
             byte[] arr = new byte[data.length * 2];
             System.arraycopy(data, 0, arr, 0, data.length);
@@ -582,10 +612,10 @@ public class HttpRequest implements Request {
         /**
          * 배열의 길이가 최대인지 확인합니다.
          *
-         * @param data 확인할 배열
+         * @param data       확인할 배열
          * @param fileLength 파일 길이
          * @return 배열의 길이가 최대인지 여부
-         * */
+         */
         private boolean isFullCapacity(byte[] data, int fileLength) {
             return data.length == fileLength;
         }

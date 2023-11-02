@@ -168,10 +168,12 @@ public class Cookie {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
+        if (this == o) {
             return true;
-        if (!(o instanceof Cookie))
+        }
+        if (!(o instanceof Cookie)) {
             return false;
+        }
         Cookie cookie = (Cookie) o;
         return this.name.equals(cookie.name);
     }

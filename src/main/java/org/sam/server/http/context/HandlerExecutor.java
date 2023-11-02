@@ -83,7 +83,7 @@ public class HandlerExecutor {
 
         Object returnValue = executeHandler(handlerInfo);
 
-        if (interceptors.size() > 0) {
+        if (!interceptors.isEmpty()) {
             for (int i = interceptors.size() - 1; i >= 0; i--) {
                 interceptors.get(i).postHandler(request, response);
             }
@@ -164,7 +164,7 @@ public class HandlerExecutor {
             return response;
         }
         if (Session.class.equals(type)) {
-            return SessionManager.getSessionFromRequest(request);
+            return request.getSession();
         }
         if (handlerParameter.getDeclaredAnnotation(JsonRequest.class) != null) {
             return Converter.jsonToObject(request.getJson(), type);
@@ -191,7 +191,7 @@ public class HandlerExecutor {
             try {
                 return type.getMethod("valueOf", String.class).invoke(null, value.toString());
             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
         return value;

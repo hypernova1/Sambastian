@@ -101,4 +101,32 @@ public interface Request {
      * */
     Session getSession();
 
+    /**
+     * 파비콘 요청인지에 대한 여부를 반환한다.
+     *
+     * @return 파비콘 요청 여부
+     * */
+    boolean isFaviconRequest();
+
+    /**
+     * 정적 자원 요청인지에 대한 여부를 반환한다.
+     *
+     * @return 정적 자원 요청 여부
+     * */
+    boolean isResourceRequest();
+
+    /**
+     * OPTION 요청인지에 대한 여부를 반환한다.
+     *
+     * @return OPTION 요청 여부
+     * */
+    boolean isOptionsRequest();
+
+    /**
+     * 인덱스 페이지 요청인지에 대한 여부를 반환한다.
+     *
+     * @return 인덱스 페이지 여부
+     * */
+    boolean isIndexRequest();
+
 }

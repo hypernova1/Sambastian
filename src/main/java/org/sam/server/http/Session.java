@@ -3,6 +3,7 @@ package org.sam.server.http;
 import org.sam.server.http.context.HttpServer;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Objects;
@@ -145,6 +146,20 @@ public final class Session {
      * */
     public void renewAccessTime() {
         this.accessTime = LocalDateTime.now();
+    }
+
+
+    /**
+     * 만료된 세션인지 확인 합니다.
+     *
+     * @param session 세션
+     * @return 만료 여부
+     * */
+    public boolean isExpired() {
+        long accessTime = this.getAccessTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        long now = System.currentTimeMillis();
+        int timeout = this.getTimeout() * 1000 * 1800;
+        return now - accessTime > timeout;
     }
 
     @Override

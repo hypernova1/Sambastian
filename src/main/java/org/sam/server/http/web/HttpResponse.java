@@ -321,8 +321,9 @@ public class HttpResponse implements Response {
 
     @Override
     public void indexFile() {
-        if (this.requestPath.endsWith("/"))
+        if (this.requestPath.endsWith("/")) {
             filePath = DEFAULT_FILE_PAGE;
+        }
         this.contentMimeType = ContentType.TEXT_HTML.getValue();
         execute(filePath, HttpStatus.OK);
     }

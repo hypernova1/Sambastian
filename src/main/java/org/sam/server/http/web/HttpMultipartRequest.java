@@ -1,8 +1,5 @@
 package org.sam.server.http.web;
 
-import org.sam.server.constant.HttpMethod;
-import org.sam.server.http.Cookie;
-
 import java.util.*;
 
 /**
@@ -46,7 +43,7 @@ public class HttpMultipartRequest extends HttpRequest {
      * @return MultipartFile 목록
      * */
     @SuppressWarnings("unchecked")
-    public List<MultipartFile> getMultipartFileList(String name) {
+    public List<MultipartFile> getMultipartFiles(String name) {
         Object obj = files.get(name);
         if (obj == null) {
             return null;

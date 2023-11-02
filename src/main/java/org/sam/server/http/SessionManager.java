@@ -1,8 +1,5 @@
 package org.sam.server.http;
 
-import org.sam.server.http.web.Request;
-
-import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -55,44 +52,8 @@ public class SessionManager {
         Iterator<Session> iterator = sessionList.iterator();
         while (iterator.hasNext()) {
             Session session = iterator.next();
-            if (!isExpiredSession(session)) continue;
+            if (!session.isExpired()) continue;
             iterator.remove();
         }
-    }
-
-    /**
-     * 만료된 세션인지 확인 합니다.
-     *
-     * @param session 세션
-     * @return 만료 여부
-     * */
-    private static boolean isExpiredSession(Session session) {
-        long accessTime = session.getAccessTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-        long now = System.currentTimeMillis();
-        int timeout = session.getTimeout() * 1000 * 1800;
-        return now - accessTime > timeout;
-    }
-
-    /**
-     * 핸들러 실행시 필요한 세션을 가져옵니다.
-     *
-     * @param request 요청 인스턴스
-     * @return 세션
-     * */
-    public static Session getSessionFromRequest(Request request) {
-        Set<Cookie> cookies = request.getCookies();
-        Iterator<Cookie> iterator = cookies.iterator();
-        while (iterator.hasNext()) {
-            Cookie cookie = iterator.next();
-            if (!cookie.getName().equals("sessionId")) continue;
-
-            Session session = request.getSession();
-            if (session != null) {
-                session.renewAccessTime();
-                return session;
-            }
-            iterator.remove();
-        }
-        return new Session();
     }
 }

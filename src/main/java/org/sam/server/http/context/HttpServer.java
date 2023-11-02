@@ -52,7 +52,7 @@ public class HttpServer implements Runnable {
                 threadPoolExecutor.execute(httpServer);
             }
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -62,7 +62,7 @@ public class HttpServer implements Runnable {
         try {
             connect.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 }

@@ -158,7 +158,7 @@ public class HandlerFinder {
         try {
             Method value = handlerAnnotation.annotationType().getMethod("value");
             String path = String.valueOf(value.invoke(handlerAnnotation));
-            if (isUrlContainsParameter(path)) {
+            if (containsUrlParameter(path)) {
                 pathValueHandlerMethods.add(handlerMethod);
                 return;
             }
@@ -296,7 +296,7 @@ public class HandlerFinder {
      * @return 일치 여부
      * */
     private boolean isMatchPath(String requestPath, String path, Queue<String> paramNames) {
-        if (!isUrlContainsParameter(path)) return false;
+        if (!containsUrlParameter(path)) return false;
         String[] requestPathArr = requestPath.split("/");
         String[] pathArr = path.split("/");
         Map<String, String> param = new HashMap<>();
@@ -304,7 +304,7 @@ public class HandlerFinder {
             return false;
         }
         for (int i = 0; i < pathArr.length; i++) {
-            if (isUrlContainsParameter(pathArr[i])) {
+            if (containsUrlParameter(pathArr[i])) {
                 param.put(paramNames.poll(), requestPathArr[i]);
                 continue;
             }
@@ -368,7 +368,7 @@ public class HandlerFinder {
      * @param url URL
      * @return 파라미터 포함 여부
      * */
-    private boolean isUrlContainsParameter(String url) {
+    private boolean containsUrlParameter(String url) {
         return url.contains("{") && url.contains("}");
     }
 

@@ -113,7 +113,7 @@ public interface Response {
      * @param cookie 추가할 쿠키
      * @see org.sam.server.http.Cookie
      * */
-    public void addCookies(Cookie cookie);
+    void addCookies(Cookie cookie);
 
     /**
      * 헤더 정보를 반환합니다.
@@ -122,7 +122,7 @@ public interface Response {
      * @return 헤더
      * @see org.sam.server.constant.HttpHeader
      * */
-    public Object getHeader(String key);
+    Object getHeader(String key);
 
     /**
      * 모든 헤더의 이름을 반환합니다.
@@ -130,6 +130,6 @@ public interface Response {
      * @return 헤더 이름 리스트
      * @see org.sam.server.constant.HttpHeader
      * */
-    public Set<String> getHeaderNames();
+    Set<String> getHeaderNames();
 
 }
