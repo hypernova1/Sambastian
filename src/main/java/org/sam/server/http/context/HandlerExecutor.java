@@ -26,6 +26,7 @@ public class HandlerExecutor {
 
     private final Request request;
     private final Response response;
+    private final BeanContainer beanContainer = BeanContainer.getInstance();
 
     private HandlerExecutor(Request request, Response response) {
         this.request = request;
@@ -75,7 +76,7 @@ public class HandlerExecutor {
      * @return 핸들러의 리턴 값
      * */
     private Object executeHandlerWithInterceptor(HandlerInfo handlerInfo) {
-        List<Interceptor> interceptors = BeanContainer.getInterceptors();
+        List<Interceptor> interceptors = beanContainer.getInterceptors();
 
         for (Interceptor interceptor : interceptors) {
             interceptor.preHandler(request, response);

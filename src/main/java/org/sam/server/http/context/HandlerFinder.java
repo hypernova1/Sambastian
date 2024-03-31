@@ -30,6 +30,8 @@ public class HandlerFinder {
 
     private static final Pattern PATH_VALUE_PATTERN = Pattern.compile("[{](.*?)[}]");
 
+    private BeanContainer beanContainer = BeanContainer.getInstance();
+
     private final Request request;
 
     private final Response response;
@@ -66,7 +68,7 @@ public class HandlerFinder {
      * @see org.sam.server.context.HandlerInfo
      * */
     public HandlerInfo createHandlerInfo() throws HandlerNotFoundException {
-        List<Object> handlerInstances = BeanContainer.getHandlerBeans();
+        List<Object> handlerInstances = beanContainer.getHandlerBeans();
         for (Object handlerInstance : handlerInstances) {
             Class<?> handlerType = handlerInstance.getClass();
             classifyHandler(handlerType);
