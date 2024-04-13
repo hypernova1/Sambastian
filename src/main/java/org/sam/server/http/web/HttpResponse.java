@@ -220,7 +220,7 @@ public class HttpResponse implements Response {
             headers.put("Cache-Control", "no-cache, no-store, must-revalidate");
         }
 
-        if (requestMethod.equals(HttpMethod.OPTIONS) && allowedMethods.size() > 0) {
+        if (requestMethod.equals(HttpMethod.OPTIONS) && !allowedMethods.isEmpty()) {
             StringJoiner stringJoiner = new StringJoiner(", ");
             for (HttpMethod allowedMethod : allowedMethods) {
                 stringJoiner.add(allowedMethod.toString());

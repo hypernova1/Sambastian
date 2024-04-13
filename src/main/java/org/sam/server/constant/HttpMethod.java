@@ -7,12 +7,31 @@ package org.sam.server.constant;
  */
 public enum HttpMethod {
     GET,
-    POST,
-    PUT,
+    POST {
+        @Override
+        boolean hasBody() {
+            return true;
+        }
+    },
+    PUT {
+        @Override
+        boolean hasBody() {
+            return true;
+        }
+    },
+    PATCH {
+        @Override
+        boolean hasBody() {
+            return true;
+        }
+    },
     DELETE,
     HEAD,
     OPTIONS,
     TRACE,
-    CONNECT,
-    PATCH;
+    CONNECT;
+
+    boolean hasBody() {
+        return false;
+    }
 }
