@@ -25,18 +25,6 @@ public class BeanFactory {
     }
 
     /**
-     * 인스턴스를 반환합니다.
-     *
-     * @return 인스턴스
-     * */
-    public static BeanFactory getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = new BeanFactory();
-        }
-        return INSTANCE;
-    }
-
-    /**
      * 인자로 받은 이름과, 타입에 해당하는 빈을 반환합니다.
      *
      * @param <T> 빈 클래스 타입
@@ -108,6 +96,14 @@ public class BeanFactory {
             }
         }
         return null;
+    }
+
+    private static class BeanFactoryHolder {
+        public static final BeanFactory INSTANCE = new BeanFactory();
+    }
+
+    public static BeanFactory getInstance() {
+        return BeanFactoryHolder.INSTANCE;
     }
 
 }

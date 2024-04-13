@@ -7,19 +7,19 @@ import java.lang.reflect.Method;
  *
  * @author hypernova1
  */
-public class HandlerInfo {
+public class Handler {
 
-    private Object instance;
+    private Object handleInstance;
 
     private Method handlerMethod;
 
-    private HandlerInfo() {}
+    private Handler() {}
 
-    public static HandlerInfo of(Object instance, Method handlerMethod) {
-        HandlerInfo handlerInfo = new HandlerInfo();
-        handlerInfo.instance = instance;
-        handlerInfo.handlerMethod = handlerMethod;
-        return handlerInfo;
+    public static Handler of(Object instance, Method handlerMethod) {
+        Handler handler = new Handler();
+        handler.handleInstance = instance;
+        handler.handlerMethod = handlerMethod;
+        return handler;
     }
 
     /**
@@ -27,8 +27,8 @@ public class HandlerInfo {
      *
      * @return 핸들러 인스턴스
      * */
-    public Object getInstance() {
-        return instance;
+    public Object getHandleInstance() {
+        return handleInstance;
     }
 
     /**

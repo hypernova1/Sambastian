@@ -35,13 +35,6 @@ public class BeanClassLoader {
         loadClasses();
     }
 
-    public static BeanClassLoader getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = new BeanClassLoader();
-        }
-        return INSTANCE;
-    }
-
     /**
      * 루트 패키지부터 경로를 탐색하며 핸들러, 컴포넌트, 인터셉터 클래스를 저장합니다.
      * */
@@ -308,6 +301,14 @@ public class BeanClassLoader {
      * */
     private boolean isComponentClass(Annotation annotation) {
         return annotation.annotationType().getDeclaredAnnotation(Component.class) != null || annotation.annotationType().equals(Component.class);
+    }
+
+    private static class BeanClassLoaderHolder {
+        public static final BeanClassLoader INSTANCE = new BeanClassLoader();
+    }
+
+    public static BeanClassLoader getInstance() {
+        return BeanClassLoaderHolder.INSTANCE;
     }
 
 }

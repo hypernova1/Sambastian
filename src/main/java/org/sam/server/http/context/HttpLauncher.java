@@ -1,6 +1,6 @@
 package org.sam.server.http.context;
 
-import org.sam.server.context.HandlerInfo;
+import org.sam.server.context.Handler;
 import org.sam.server.exception.HandlerNotFoundException;
 import org.sam.server.http.web.HttpRequest;
 import org.sam.server.http.web.HttpResponse;
@@ -65,7 +65,7 @@ public class HttpLauncher {
 
         try {
             HandlerFinder handlerFinder = HandlerFinder.of(request, response);
-            HandlerInfo handlerInfo = handlerFinder.createHandlerInfo();
+            Handler handlerInfo = handlerFinder.createHandlerInfo();
             HandlerExecutor handlerExecutor = HandlerExecutor.of(request, response);
             handlerExecutor.execute(handlerInfo);
         } catch (HandlerNotFoundException e) {

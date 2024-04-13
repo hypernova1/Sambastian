@@ -136,7 +136,7 @@ extends java.lang.Object</pre>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>private <a href="../../../../../org/sam/server/context/HandlerInfo.html" title="class in org.sam.server.context">HandlerInfo</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../org/sam/server/http/context/HandlerExecutor.html#handlerInfo">handlerInfo</a></span></code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../org/sam/server/http/context/HandlerExecutor.html#handler">handler</a></span></code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>private <a href="../../../../../org/sam/server/http/web/Request.html" title="interface in org.sam.server.http.web">Request</a></code></td>
@@ -165,7 +165,7 @@ extends java.lang.Object</pre>
 <td class="colFirst"><code>private </code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../org/sam/server/http/context/HandlerExecutor.html#HandlerExecutor-org.sam.server.http.web.Request-org.sam.server.http.web.Response-org.sam.server.context.HandlerInfo-">HandlerExecutor</a></span>(<a href="../../../../../org/sam/server/http/web/Request.html" title="interface in org.sam.server.http.web">Request</a>&nbsp;request,
                <a href="../../../../../org/sam/server/http/web/Response.html" title="interface in org.sam.server.http.web">Response</a>&nbsp;response,
-               <a href="../../../../../org/sam/server/context/HandlerInfo.html" title="class in org.sam.server.context">HandlerInfo</a>&nbsp;handlerInfo)</code>&nbsp;</td>
+               <a href="../../../../../org/sam/server/context/HandlerInfo.html" title="class in org.sam.server.context">HandlerInfo</a>&nbsp;handler)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -192,7 +192,7 @@ extends java.lang.Object</pre>
 <td class="colFirst"><code>static <a href="../../../../../org/sam/server/http/context/HandlerExecutor.html" title="class in org.sam.server.http.context">HandlerExecutor</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../org/sam/server/http/context/HandlerExecutor.html#create-org.sam.server.http.web.Request-org.sam.server.http.web.Response-org.sam.server.context.HandlerInfo-">create</a></span>(<a href="../../../../../org/sam/server/http/web/Request.html" title="interface in org.sam.server.http.web">Request</a>&nbsp;request,
       <a href="../../../../../org/sam/server/http/web/Response.html" title="interface in org.sam.server.http.web">Response</a>&nbsp;response,
-      <a href="../../../../../org/sam/server/context/HandlerInfo.html" title="class in org.sam.server.context">HandlerInfo</a>&nbsp;handlerInfo)</code>
+      <a href="../../../../../org/sam/server/context/HandlerInfo.html" title="class in org.sam.server.context">HandlerInfo</a>&nbsp;handler)</code>
 <div class="block">인스턴스를 생성합니다.</div>
 </td>
 </tr>
@@ -290,13 +290,13 @@ extends java.lang.Object</pre>
 <pre>private final&nbsp;<a href="../../../../../org/sam/server/http/web/Response.html" title="interface in org.sam.server.http.web">Response</a> response</pre>
 </li>
 </ul>
-<a name="handlerInfo">
+<a name="handler">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>handlerInfo</h4>
-<pre>private final&nbsp;<a href="../../../../../org/sam/server/context/HandlerInfo.html" title="class in org.sam.server.context">HandlerInfo</a> handlerInfo</pre>
+<h4>handler</h4>
+<pre>private final&nbsp;<a href="../../../../../org/sam/server/context/HandlerInfo.html" title="class in org.sam.server.context">HandlerInfo</a> handler</pre>
 </li>
 </ul>
 </li>
@@ -315,7 +315,7 @@ extends java.lang.Object</pre>
 <h4>HandlerExecutor</h4>
 <pre>private&nbsp;HandlerExecutor(<a href="../../../../../org/sam/server/http/web/Request.html" title="interface in org.sam.server.http.web">Request</a>&nbsp;request,
                         <a href="../../../../../org/sam/server/http/web/Response.html" title="interface in org.sam.server.http.web">Response</a>&nbsp;response,
-                        <a href="../../../../../org/sam/server/context/HandlerInfo.html" title="class in org.sam.server.context">HandlerInfo</a>&nbsp;handlerInfo)</pre>
+                        <a href="../../../../../org/sam/server/context/HandlerInfo.html" title="class in org.sam.server.context">HandlerInfo</a>&nbsp;handler)</pre>
 </li>
 </ul>
 </li>
@@ -334,13 +334,13 @@ extends java.lang.Object</pre>
 <h4>create</h4>
 <pre>public static&nbsp;<a href="../../../../../org/sam/server/http/context/HandlerExecutor.html" title="class in org.sam.server.http.context">HandlerExecutor</a>&nbsp;create(<a href="../../../../../org/sam/server/http/web/Request.html" title="interface in org.sam.server.http.web">Request</a>&nbsp;request,
                                      <a href="../../../../../org/sam/server/http/web/Response.html" title="interface in org.sam.server.http.web">Response</a>&nbsp;response,
-                                     <a href="../../../../../org/sam/server/context/HandlerInfo.html" title="class in org.sam.server.context">HandlerInfo</a>&nbsp;handlerInfo)</pre>
+                                     <a href="../../../../../org/sam/server/context/HandlerInfo.html" title="class in org.sam.server.context">HandlerInfo</a>&nbsp;handler)</pre>
 <div class="block">인스턴스를 생성합니다.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>request</code> - 요청 인스턴스</dd>
 <dd><code>response</code> - 응답 인스턴스</dd>
-<dd><code>handlerInfo</code> - 핸들러 정보</dd>
+<dd><code>handler</code> - 핸들러 정보</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>인스턴스</dd>
 </dl>

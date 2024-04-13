@@ -39,13 +39,6 @@ public class BeanContainer {
         loadInterceptors();
     }
 
-    public static BeanContainer getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = new BeanContainer();
-        }
-        return INSTANCE;
-    }
-
     /**
      * 컴포넌트 클래스의 인스턴스를 생성하고 저장합니다.
      * */
@@ -313,4 +306,12 @@ public class BeanContainer {
         return beanMap.get(type);
     }
 
+    private static class BeanContainerHolder {
+        public static final BeanContainer INSTANCE = new BeanContainer();
+
+    }
+
+    public static BeanContainer getInstance() {
+        return BeanContainerHolder.INSTANCE;
+    }
 }

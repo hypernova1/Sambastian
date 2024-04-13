@@ -1,13 +1,12 @@
 package org.sam.server.http.context;
 
-import org.sam.server.annotation.component.Handler;
 import org.sam.server.annotation.handle.PathValue;
 import org.sam.server.annotation.handle.RequestMapping;
 import org.sam.server.annotation.handle.RestApi;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.context.BeanContainer;
-import org.sam.server.context.HandlerInfo;
+import org.sam.server.context.Handler;
 import org.sam.server.exception.HandlerNotFoundException;
 import org.sam.server.http.web.Request;
 import org.sam.server.http.web.Response;
@@ -65,17 +64,17 @@ public class HandlerFinder {
      *
      * @return 핸들러 정보 인스턴스
      * @throws HandlerNotFoundException 홴들러를 찾지 못 했을 시
-     * @see org.sam.server.context.HandlerInfo
+     * @see Handler
      * */
-    public HandlerInfo createHandlerInfo() throws HandlerNotFoundException {
+    public Handler createHandlerInfo() throws HandlerNotFoundException {
         List<Object> handlerInstances = beanContainer.getHandlerBeans();
         for (Object handlerInstance : handlerInstances) {
             Class<?> handlerType = handlerInstance.getClass();
             classifyHandler(handlerType);
-            this.handlerClassPath = handlerType.getDeclaredAnnotation(Handler.class).value();
+            this.handlerClassPath = handlerType.getDeclaredAnnotation(org.sam.server.annotation.component.Handler.class).value();
             Method handlerMethod = findHandlerMethod();
             if (handlerMethod == null) continue;
-            return HandlerInfo.of(handlerInstance, handlerMethod);
+            return Handler.of(handlerInstance, handlerMethod);
         }
 
         if (existsPath) {

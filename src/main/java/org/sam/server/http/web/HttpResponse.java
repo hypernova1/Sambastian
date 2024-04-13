@@ -192,8 +192,6 @@ public class HttpResponse implements Response {
      * 응답 헤더를 OutputStream에 씁니다.
      * */
     private void printHeaders() {
-
-
         writer.print("HTTP/1.1 " + httpStatus.getCode() + " " + httpStatus.getMessage() + "\r\n");
         for (String key : headers.keySet()) {
             writer.print(key + ": " + headers.get(key) + "\r\n");

@@ -5,7 +5,7 @@ import org.sam.server.annotation.handle.JsonRequest;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpStatus;
 import org.sam.server.context.BeanContainer;
-import org.sam.server.context.HandlerInfo;
+import org.sam.server.context.Handler;
 import org.sam.server.http.*;
 import org.sam.server.http.web.*;
 import org.sam.server.util.Converter;
@@ -47,7 +47,7 @@ public class HandlerExecutor {
     /**
      * 핸들러를 실행합니다.
      * */
-    public void execute(HandlerInfo handlerInfo) {
+    public void execute(Handler handlerInfo) {
         setCrossOriginConfig(handlerInfo);
         SessionManager.removeExpiredSession();
         try {
@@ -72,17 +72,17 @@ public class HandlerExecutor {
     /**
      * 핸들러를 실행시킨 후 리턴 값을 받아옵니다. interceptor가 구현되어 있다면 interceptor 실행 후 리턴 값을 받아옵니다.
      *
-     * @param handlerInfo 핸들러 정보
+     * @param handler 핸들러 정보
      * @return 핸들러의 리턴 값
      * */
-    private Object executeHandlerWithInterceptor(HandlerInfo handlerInfo) {
+    private Object executeHandlerWithInterceptor(Handler handler) {
         List<Interceptor> interceptors = beanContainer.getInterceptors();
 
         for (Interceptor interceptor : interceptors) {
             interceptor.preHandler(request, response);
         }
 
-        Object returnValue = executeHandler(handlerInfo);
+        Object returnValue = executeHandler(handler);
 
         if (!interceptors.isEmpty()) {
             for (int i = interceptors.size() - 1; i >= 0; i--) {
@@ -95,10 +95,10 @@ public class HandlerExecutor {
     /**
      * 핸들러 클래스의 CrossOrigin 어노테이션을 확인하고 CORS를 설정 합니다.
      *
-     * @param handlerInfo 핸들러 정보
+     * @param handler 핸들러 정보
      **/
-    private void setCrossOriginConfig(HandlerInfo handlerInfo) {
-        Class<?> handlerClass = handlerInfo.getInstance().getClass();
+    private void setCrossOriginConfig(Handler handler) {
+        Class<?> handlerClass = handler.getHandleInstance().getClass();
         String origin = request.getHeader("origin");
 
         if (origin == null) return;
@@ -119,14 +119,14 @@ public class HandlerExecutor {
     /**
      * 핸들러를 실행하고 반환 값을 반환합니다.
      *
-     * @param handlerInfo 핸들러 정보
+     * @param handler 핸들러 정보
      * @return 핸들러의 반환 값
      * */
-    private Object executeHandler(HandlerInfo handlerInfo) {
-        Method handlerMethod = handlerInfo.getMethod();
+    private Object executeHandler(Handler handler) {
+        Method handlerMethod = handler.getMethod();
         Object[] parameters = getParameters(handlerMethod.getParameters());
         try {
-            return handlerMethod.invoke(handlerInfo.getInstance(), parameters);
+            return handlerMethod.invoke(handler.getHandleInstance(), parameters);
         } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
