@@ -1,5 +1,6 @@
 package org.sam.server.http.context;
 
+import org.sam.server.common.ServerProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,23 +38,34 @@ public class HttpServer implements Runnable {
             logger.info("server started..");
             logger.info("server port: " + serverSocket.getLocalPort());
 
-            Class.forName("org.sam.server.context.BeanContainer");
-
-            ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
-                    Runtime.getRuntime().availableProcessors(),
-                    200,
-                    150L,
-                    TimeUnit.SECONDS,
-                    new LinkedBlockingDeque<>()
-            );
+            ThreadPoolExecutor threadPoolExecutor = getThreadPoolExecutor();
             while (!Thread.currentThread().isInterrupted()) {
                 Socket clientSocket = serverSocket.accept();
                 HttpServer httpServer = new HttpServer(clientSocket);
                 threadPoolExecutor.execute(httpServer);
             }
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /*
+    * 스레드 풀을 생성합니다.
+    * **/
+    private static ThreadPoolExecutor getThreadPoolExecutor() {
+        String maximumPoolSizeValue = ServerProperties.get("server.maximum-pool-size");
+        int maximumPoolSize = 200;
+        if (maximumPoolSizeValue != null) {
+            maximumPoolSize = Integer.parseInt(maximumPoolSizeValue);
+        }
+
+        return new ThreadPoolExecutor(
+                Runtime.getRuntime().availableProcessors(),
+                maximumPoolSize,
+                150L,
+                TimeUnit.SECONDS,
+                new LinkedBlockingDeque<>()
+        );
     }
 
     @Override

@@ -30,7 +30,7 @@ public class HandlerFinder {
 
     private static final Pattern PATH_VALUE_PATTERN = Pattern.compile("[{](.*?)[}]");
 
-    private BeanContainer beanContainer = BeanContainer.getInstance();
+    private final BeanContainer beanContainer = BeanContainer.getInstance();
 
     private final Request request;
 

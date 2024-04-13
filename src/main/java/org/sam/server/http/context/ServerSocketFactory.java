@@ -17,7 +17,7 @@ public class ServerSocketFactory {
      * @see javax.net.ssl.SSLServerSocket
      * */
     protected static ServerSocket createServerSocket() throws IOException {
-        String keyStore = ServerProperties.get("key-store");
+        String keyStore = ServerProperties.get("key-store.name");
         String keyStorePassword = ServerProperties.get("key-store.password");
         String propertiesPort = ServerProperties.get("server.port");
         int port = (propertiesPort != null) ? Integer.parseInt(propertiesPort) : 8080;
