@@ -9,19 +9,19 @@ public enum HttpMethod {
     GET,
     POST {
         @Override
-        boolean hasBody() {
+        public boolean hasBody() {
             return true;
         }
     },
     PUT {
         @Override
-        boolean hasBody() {
+        public boolean hasBody() {
             return true;
         }
     },
     PATCH {
         @Override
-        boolean hasBody() {
+        public boolean hasBody() {
             return true;
         }
     },
@@ -31,7 +31,12 @@ public enum HttpMethod {
     TRACE,
     CONNECT;
 
-    boolean hasBody() {
+    /**
+     * HTTP 바디에 메시지가 존재하는 지 확인합니다.
+     *
+     * @return HTTP 바디에 메시지가 존재하는지 여부
+     */
+    public boolean hasBody() {
         return false;
     }
 }

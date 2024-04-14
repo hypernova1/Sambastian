@@ -1,16 +1,9 @@
-package org.sam.server.http.web;
+package org.sam.server.http.web.request;
 
-import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.http.Cookie;
-import org.sam.server.http.CookieStore;
 import org.sam.server.http.Session;
-import org.sam.server.util.StringUtils;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**

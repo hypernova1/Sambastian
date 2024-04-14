@@ -8,8 +8,8 @@ import org.sam.server.constant.HttpMethod;
 import org.sam.server.context.BeanContainer;
 import org.sam.server.context.Handler;
 import org.sam.server.exception.HandlerNotFoundException;
-import org.sam.server.http.web.Request;
-import org.sam.server.http.web.Response;
+import org.sam.server.http.web.request.Request;
+import org.sam.server.http.web.response.Response;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;

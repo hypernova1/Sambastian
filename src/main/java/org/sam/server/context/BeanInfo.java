@@ -8,10 +8,9 @@ package org.sam.server.context;
 public class BeanInfo {
 
     private final String name;
-
     private final Object instance;
 
-    BeanInfo(String name, Object instance) {
+    private BeanInfo(String name, Object instance) {
         this.name = name;
         this.instance = instance;
     }
@@ -25,7 +24,7 @@ public class BeanInfo {
      *
      * @return 빈 이름
      * */
-    public String getName() {
+    public String getBeanName() {
         return name;
     }
 
@@ -34,7 +33,7 @@ public class BeanInfo {
      *
      * @return 빈 인스턴스
      * */
-    public Object getInstance() {
+    public Object getBeanInstance() {
         return instance;
     }
 }

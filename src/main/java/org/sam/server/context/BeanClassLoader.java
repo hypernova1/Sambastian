@@ -20,14 +20,9 @@ import java.util.stream.Collectors;
  * @author hypernova1
  */
 public class BeanClassLoader {
-    private static BeanClassLoader INSTANCE;
-
     private String rootPackageName;
-
     private final List<Class<?>> handlerClasses = new ArrayList<>();
-
     private final List<Class<?>> componentClasses = new ArrayList<>();
-
     private final List<Class<?>> interceptorClasses = new ArrayList<>();
 
     private BeanClassLoader() {
@@ -48,9 +43,9 @@ public class BeanClassLoader {
                 File directory = new File(resource.getFile());
                 classes.addAll(createClasses(directory, rootPackageName));
             }
-            loadHandlerClasses(classes);
-            loadComponentClasses(classes);
-            loadInterceptorClasses(classes);
+            this.loadHandlerClasses(classes);
+            this.loadComponentClasses(classes);
+            this.loadInterceptorClasses(classes);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -63,7 +58,7 @@ public class BeanClassLoader {
      * @see RequestMapping
      * */
     private void loadHandlerClasses(List<Class<?>> classes) {
-        handlerClasses.addAll(classes.stream()
+        this.handlerClasses.addAll(classes.stream()
                 .filter(this::isHandlerClass)
                 .collect(Collectors.toList()));
     }
@@ -77,14 +72,14 @@ public class BeanClassLoader {
     private void loadComponentClasses(List<Class<?>> classes) {
         for (Class<?> clazz : classes) {
             Annotation[] declaredAnnotations = clazz.getDeclaredAnnotations();
-            addComponentClass(clazz, declaredAnnotations);
+            this.addComponentClass(clazz, declaredAnnotations);
         }
     }
 
     private void addComponentClass(Class<?> clazz, Annotation[] declaredAnnotations) {
         for (Annotation declaredAnnotation : declaredAnnotations) {
             if (!isComponentClass(declaredAnnotation)) continue;
-            componentClasses.add(clazz);
+            this.componentClasses.add(clazz);
         }
     }
 
@@ -97,7 +92,7 @@ public class BeanClassLoader {
     private void loadInterceptorClasses(List<Class<?>> classes) {
         for (Class<?> clazz : classes) {
             if (!isInterceptorClass(clazz)) continue;
-            interceptorClasses.add(clazz);
+            this.interceptorClasses.add(clazz);
         }
     }
 
@@ -119,7 +114,7 @@ public class BeanClassLoader {
                 classes.addAll(foundClasses);
                 continue;
             }
-            Class<?> clazz = createClass(packageName, file);
+            Class<?> clazz = this.createClass(packageName, file);
             if (clazz == null) continue;
             classes.add(clazz);
         }
@@ -136,8 +131,8 @@ public class BeanClassLoader {
     private Class<?> createClass(String packageName, File file) {
         if (!isClassFile(file)) return null;
         try {
-            String fullClassName = getFullClassName(packageName, file);
-            return Class.forName(fullClassName);
+            String filePath = this.getFilePath(packageName, file);
+            return Class.forName(filePath);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -154,7 +149,7 @@ public class BeanClassLoader {
             while (resources.hasMoreElements()) {
                 URL resource = resources.nextElement();
                 retrieveFile(new File(resource.getFile()), "");
-                if (rootPackageName != null) return;
+                if (this.rootPackageName != null) return;
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -173,7 +168,7 @@ public class BeanClassLoader {
         File[] files = directory.listFiles();
         if (files == null) return;
         for (File file : files) {
-            appendPackageName(file, packageName);
+            this.appendPackageName(file, packageName);
         }
     }
 
@@ -184,23 +179,23 @@ public class BeanClassLoader {
      * @param packageName 현재까지 만들어진 패키지명
      * */
     private void appendPackageName(File file, String packageName) {
-        StringBuilder packageNameBuilder = new StringBuilder(packageName);
+        StringBuilder sb = new StringBuilder(packageName);
 
-        if (!packageNameBuilder.toString().isEmpty()) {
-            packageNameBuilder.append(".");
+        if (!sb.toString().isEmpty()) {
+            sb.append(".");
         }
 
         if (isClassFile(file)) {
             try {
-                Class<?> clazz = Class.forName(getClassName(packageNameBuilder.toString() + file.getName()));
-                if (!isComponentScanClass(clazz)) return;
-                rootPackageName = packageName;
+                Class<?> clazz = Class.forName(getClassName(sb.toString() + file.getName()));
+                if (!this.isDeclaredComponentScan(clazz)) return;
+                this.rootPackageName = packageName;
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
         }
 
-        retrieveFile(file, packageNameBuilder + file.getName());
+        retrieveFile(file, sb + file.getName());
     }
 
     /**
@@ -209,7 +204,7 @@ public class BeanClassLoader {
      * @return 핸들러 클래스 목록
      * */
     List<Class<?>> getHandlerClasses() {
-        return handlerClasses;
+        return this.handlerClasses;
     }
 
     /**
@@ -218,7 +213,7 @@ public class BeanClassLoader {
      * @return 컴포넌트 클래스 목록
      * */
     List<Class<?>> getComponentClasses() {
-        return componentClasses;
+        return this.componentClasses;
     }
 
     /**
@@ -227,7 +222,7 @@ public class BeanClassLoader {
      * @return 인터셉터 구현 클래스 목록
      * */
     List<Class<?>> getInterceptorClasses() {
-        return interceptorClasses;
+        return this.interceptorClasses;
     }
 
     /**
@@ -237,7 +232,7 @@ public class BeanClassLoader {
      * @param file 클래스 파일
      * @return 클래스 이름
      * */
-    private String getFullClassName(String packageName, File file) {
+    private String getFilePath(String packageName, File file) {
         return packageName + "." + getClassName(file.getName());
     }
 
@@ -262,13 +257,13 @@ public class BeanClassLoader {
     }
 
     /**
-     * 해당 클래스에 ComponentScan 어노테이션이 붙어 있는지 확인합니다.
+     * 해당 클래스에 ComponentScan 어노테이션이 선언되어 있는지 확인합니다.
      *
      * @param clazz 클래스 타입
      * @return ComponentScan 클래스 여부
      * @see org.sam.server.annotation.ComponentScan
      * */
-    private boolean isComponentScanClass(Class<?> clazz) {
+    private boolean isDeclaredComponentScan(Class<?> clazz) {
         return clazz.getDeclaredAnnotation(ComponentScan.class) != null;
     }
 

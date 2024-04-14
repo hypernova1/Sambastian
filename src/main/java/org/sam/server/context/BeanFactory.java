@@ -13,15 +13,13 @@ import java.util.Set;
  * @see org.sam.server.context.BeanContainer
  * */
 public class BeanFactory {
-
-    private static BeanFactory INSTANCE;
     private final BeanContainer beanContainer = BeanContainer.getInstance();
 
     private BeanFactory() {
         List<BeanInfo> list = new ArrayList<>();
-        BeanInfo beanInfo = new BeanInfo("beanFactory", this);
+        BeanInfo beanInfo = BeanInfo.of("beanFactory", this);
         list.add(beanInfo);
-        beanContainer.getBeanInfoMap().put(BeanFactory.class, list);
+        this.beanContainer.getBeanInfoMap().put(BeanFactory.class, list);
     }
 
     /**
@@ -34,9 +32,9 @@ public class BeanFactory {
      * */
     @SuppressWarnings("unchecked")
     public <T> T getBean(String name, Class<?> type) {
-        List<BeanInfo> beanInfos = beanContainer.getBeanInfoList(type);
+        List<BeanInfo> beanInfos = this.beanContainer.getBeanInfoList(type);
         BeanInfo savedBeanInfo = beanInfos.stream()
-                .filter(beanInfo -> beanInfo.getName().equals(name))
+                .filter(beanInfo -> beanInfo.getBeanName().equals(name))
                 .findFirst()
                 .orElse(null);
         return (T) savedBeanInfo;
@@ -49,15 +47,15 @@ public class BeanFactory {
      * @return 빈 목록
      * */
     public List<?> getBeanList(Class<?> type) {
-        Set<Class<?>> classes = beanContainer.getBeanInfoMap().keySet();
+        Set<Class<?>> classes = this.beanContainer.getBeanInfoMap().keySet();
         Class<?> beanType = classes.stream()
                 .filter(savedBeanType -> savedBeanType.isAssignableFrom(type))
                 .findFirst()
-                .orElseGet(() -> getMatchType(classes, type));
-        List<BeanInfo> beanInfos = beanContainer.getBeanInfoList(beanType);
+                .orElseGet(() -> this.getMatchType(classes, type));
+        List<BeanInfo> beanInfos = this.beanContainer.getBeanInfoList(beanType);
         List<Object> result = new ArrayList<>();
         for (BeanInfo beanInfo : beanInfos) {
-            result.add(beanInfo.getInstance());
+            result.add(beanInfo.getBeanInstance());
         }
         return result;
     }
@@ -74,9 +72,9 @@ public class BeanFactory {
                 .ofNullable(beanContainer.getBeanInfoList(instance.getClass()))
                 .orElseGet(ArrayList::new);
         boolean exists = list.stream()
-                .anyMatch(beanInfo -> beanInfo.getName().equals(name));
+                .anyMatch(beanInfo -> beanInfo.getBeanName().equals(name));
         if (exists) return;
-        BeanInfo beanInfo = new BeanInfo(name, instance);
+        BeanInfo beanInfo = BeanInfo.of(name, instance);
         list.add(beanInfo);
     }
 

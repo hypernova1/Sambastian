@@ -1,4 +1,4 @@
-package org.sam.server.http.web;
+package org.sam.server.http.web.request;
 
 import java.util.*;
 
@@ -12,7 +12,7 @@ public class HttpMultipartRequest extends HttpRequest {
 
     private final Map<String, Object> files;
 
-    protected HttpMultipartRequest(HttpRequest.RequestParser requestParser) {
+    protected HttpMultipartRequest(RequestParser requestParser) {
         super(requestParser);
         this.files = requestParser.files;
     }

@@ -2,10 +2,10 @@ package org.sam.server.http.context;
 
 import org.sam.server.context.Handler;
 import org.sam.server.exception.HandlerNotFoundException;
-import org.sam.server.http.web.HttpRequest;
-import org.sam.server.http.web.HttpResponse;
-import org.sam.server.http.web.Request;
-import org.sam.server.http.web.Response;
+import org.sam.server.http.web.request.HttpRequest;
+import org.sam.server.http.web.response.HttpResponse;
+import org.sam.server.http.web.request.Request;
+import org.sam.server.http.web.response.Response;
 
 import java.io.IOException;
 import java.net.Socket;

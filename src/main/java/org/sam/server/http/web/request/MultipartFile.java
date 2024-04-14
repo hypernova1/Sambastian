@@ -1,4 +1,4 @@
-package org.sam.server.http.web;
+package org.sam.server.http.web.request;
 
 import java.io.File;
 import java.io.FileOutputStream;
