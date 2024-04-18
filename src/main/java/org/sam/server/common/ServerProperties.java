@@ -20,10 +20,15 @@ public class ServerProperties {
     private static boolean isSSL;
 
     static {
-        InputStream resourceAsStream = Thread.currentThread().getContextClassLoader()
-                .getResourceAsStream("config/application.properties");
-        if (resourceAsStream == null) throw new ResourcesNotFoundException("application.properties");
-        try {
+        String resourceFileName = "application.properties";
+
+        try (InputStream resourceAsStream = Thread.currentThread().getContextClassLoader()
+                .getResourceAsStream("config/" + resourceFileName);) {
+
+            if (resourceAsStream == null) {
+                throw new ResourcesNotFoundException(resourceFileName);
+            }
+
             properties.load(resourceAsStream);
         } catch (IOException e) {
             logger.error("properties loading error", e);
