@@ -132,9 +132,8 @@ public class HandlerExecutor {
         try {
             return handlerMethod.invoke(handler.getHandleInstance(), parameters);
         } catch (IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        return null;
     }
 
     /**

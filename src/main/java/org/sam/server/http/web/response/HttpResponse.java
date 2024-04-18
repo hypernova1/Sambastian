@@ -19,7 +19,7 @@ import java.util.*;
  * 요청을 해석하고 응답하는 클래스입니다. 정적 자원을 반환합니다.
  *
  * @author hypernova1
- * @see #execute(String, HttpStatus) 
+ * @see #execute(String, HttpStatus)
  */
 public class HttpResponse implements Response {
 
@@ -80,7 +80,7 @@ public class HttpResponse implements Response {
             printHeaders();
             CookieStore.vacateList();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         } finally {
             writer.flush();
             try {
@@ -113,7 +113,7 @@ public class HttpResponse implements Response {
             allowedMethods.add(HttpMethod.GET);
             return 0;
         }
-        long fileLength = 0;
+        long fileLength;
         try {
             if (staticFile.exists()) {
                 fileLength = readFileData(staticFile);
@@ -122,7 +122,7 @@ public class HttpResponse implements Response {
                 fileLength = readStaticResources(fis);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return fileLength;
     }
@@ -264,7 +264,7 @@ public class HttpResponse implements Response {
                 line.append("; HttpOnly");
             }
             line.append("; Path=").append(cookie.getPath());
-            writer.print(line.toString() + "\r\n");
+            writer.print(line + "\r\n");
         }
     }
 

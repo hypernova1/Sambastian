@@ -54,7 +54,7 @@ public class PrimitiveWrapper {
                 try {
                     return constructor.newInstance(value);
                 } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                    e.printStackTrace();
+                    throw new RuntimeException(e);
                 }
             }
         }

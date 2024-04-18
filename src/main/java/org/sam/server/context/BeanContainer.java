@@ -112,7 +112,7 @@ public class BeanContainer {
                 interceptors.add(interceptor);
             }
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -140,10 +140,9 @@ public class BeanContainer {
             }
             return constructor.newInstance(parameters.toArray());
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
+            throw new BeanCreationException(clazz);
         }
 
-        throw new BeanCreationException(clazz);
     }
 
     /**
@@ -160,7 +159,7 @@ public class BeanContainer {
                 if (beanInfo == null) continue;
                 parameterList.add(beanInfo.getBeanInstance());
             } catch (BeanNotFoundException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
         return parameterList;

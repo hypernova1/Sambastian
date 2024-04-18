@@ -1,7 +1,5 @@
 package org.sam.server.http;
 
-import org.sam.server.http.context.HttpServer;
-
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Hashtable;
@@ -152,7 +150,6 @@ public final class Session {
     /**
      * 만료된 세션인지 확인 합니다.
      *
-     * @param session 세션
      * @return 만료 여부
      * */
     public boolean isExpired() {

@@ -22,7 +22,7 @@ class HttpServerTest {
         try {
             resources = classLoader.getResources(path);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
         List<File> dir = new ArrayList<>();

@@ -191,7 +191,7 @@ public class HandlerFinder {
                 return true;
             }
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return false;
     }

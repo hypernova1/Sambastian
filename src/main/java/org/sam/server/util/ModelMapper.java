@@ -23,14 +23,13 @@ public class ModelMapper {
      * @return 변경된 인스턴스
      * */
     public <T, U> U convert(T instance, Class<U> clazz) {
-        U target = null;
         try {
-            target = clazz.getDeclaredConstructor().newInstance();
+            U target = clazz.getDeclaredConstructor().newInstance();
             setValue(instance, target);
+            return target;
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        return target;
     }
 
     /**

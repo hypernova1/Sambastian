@@ -47,7 +47,7 @@ public class BeanClassLoader {
             this.loadComponentClasses(classes);
             this.loadInterceptorClasses(classes);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -134,9 +134,8 @@ public class BeanClassLoader {
             String filePath = this.getFilePath(packageName, file);
             return Class.forName(filePath);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        return null;
     }
 
     /**
@@ -152,9 +151,8 @@ public class BeanClassLoader {
                 if (this.rootPackageName != null) return;
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ComponentScanNotFoundException();
         }
-        throw new ComponentScanNotFoundException();
     }
 
     /**
@@ -187,11 +185,11 @@ public class BeanClassLoader {
 
         if (isClassFile(file)) {
             try {
-                Class<?> clazz = Class.forName(getClassName(sb.toString() + file.getName()));
+                Class<?> clazz = Class.forName(getClassName(sb + file.getName()));
                 if (!this.isDeclaredComponentScan(clazz)) return;
                 this.rootPackageName = packageName;
             } catch (ClassNotFoundException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
 

@@ -26,17 +26,16 @@ public class Converter {
      * @return 파라미턴 인스턴스
      * */
     public static Object parameterToObject(Map<String, String> parameters, Class<?> type) {
-        Object instance = null;
         try {
-            instance = type.getDeclaredConstructor().newInstance();
+            Object instance = type.getDeclaredConstructor().newInstance();
             List<Method> setters = getSetters(type);
             for (Method setter : setters) {
                 invokeSetter(parameters, instance, setter);
             }
+            return instance;
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        return instance;
     }
 
     /**
@@ -77,7 +76,7 @@ public class Converter {
         try {
             method.invoke(instance, parameter);
         } catch (IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
