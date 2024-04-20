@@ -32,6 +32,7 @@ src/
 filename: resources/static/resource/application.properties
 ~~~properties
 server.port=[port number]
+server.maximum-pool-size=[maximum thread pool size]
 file-buffer-size=[file buffer size]
 # activate SSL
 key-store.name=[keyStore name]
