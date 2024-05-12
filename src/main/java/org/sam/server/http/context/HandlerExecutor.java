@@ -130,10 +130,6 @@ public class HandlerExecutor {
         Method handlerMethod = handler.getMethod();
         Object[] parameters = getParameters(handlerMethod.getParameters());
         try {
-            System.out.println(Arrays.toString(parameters));
-            System.out.println(handlerMethod);
-            System.out.println(Arrays.toString(handlerMethod.getParameters()));
-            System.out.println(handler.getHandleInstance());
             return handlerMethod.invoke(handler.getHandleInstance(), parameters);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);

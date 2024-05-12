@@ -58,11 +58,8 @@ public class BeanContainer {
             }
         }
 
-        System.out.println("createNoParameterBeans");
         createNoParameterBeans(noParameterComponents);
-        System.out.println("createParameterBeans");
-        createParameterBeans(parameterComponents);
-        System.out.println("end");
+//        createParameterBeans(parameterComponents);
     }
 
     /**
@@ -79,12 +76,14 @@ public class BeanContainer {
      * 생성자에 파라미터가 있는 컴포넌트의 빈을 생성한다.
      * */
     private void createParameterBeans(List<Class<?>> componentClasses) {
-        Iterator<Class<?>> iterator = this.componentClasses.iterator();
-        while (iterator.hasNext()) {
-            Class<?> componentClass = iterator.next();
-            boolean isCreated = this.createClassBeanWithDeclaredMethodBeans(componentClass);
-            if (isCreated) {
-                iterator.remove();
+        while (!this.componentClasses.isEmpty()) {
+            Iterator<Class<?>> iterator = this.componentClasses.iterator();
+            while (iterator.hasNext()) {
+                Class<?> componentClass = iterator.next();
+                boolean isCreated = this.createClassBeanWithDeclaredMethodBeans(componentClass);
+                if (isCreated) {
+                    iterator.remove();
+                }
             }
         }
     }
@@ -93,8 +92,8 @@ public class BeanContainer {
         boolean isCreated = false;
         Object instance = this.createClassBean(componentClass);
         if (instance != null) {
+            this.createMethodBean(componentClass, componentClass);
             isCreated = true;
-            this.createMethodBean(componentClass);
         }
         return isCreated;
     }
@@ -109,10 +108,10 @@ public class BeanContainer {
         return componentInstance;
     }
 
-    private void createMethodBean(Object componentInstance) {
+    private void createMethodBean(Class<?> clazz, Object componentInstance) {
         assert componentInstance != null;
-        Method[] declaredMethods = componentInstance.getClass().getDeclaredMethods();
-        loadMethodBean(componentInstance, declaredMethods);
+        Method[] methods = clazz.getMethods();
+        loadMethodBean(componentInstance, methods);
     }
 
     /**
@@ -123,11 +122,14 @@ public class BeanContainer {
      * */
     private void loadMethodBean(Object componentInstance, Method[] declaredMethods) {
         for (Method declaredMethod : declaredMethods) {
-            if (declaredMethod.getDeclaredAnnotation(Bean.class) == null) continue;
+            if (declaredMethod.getDeclaredAnnotation(Bean.class) == null) {
+                continue;
+            }
             try {
                 Class<?> beanType = declaredMethod.getReturnType();
                 Object instance = declaredMethod.invoke(componentInstance);
                 String beanName = declaredMethod.getName();
+                System.out.println(beanName);
                 addBeanMap(beanType, instance, beanName);
             } catch (IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
@@ -145,7 +147,7 @@ public class BeanContainer {
      * */
     private void addBeanMap(Class<?> componentType, Object componentInstance, String beanName) {
         BeanInfo beanInfo = BeanInfo.of(beanName, componentInstance);
-        logger.info("create bean: " + beanName + " > " + componentType.getName());
+//        logger.info("create bean: " + beanName + " > " + componentType.getName());
         if (beanMap.get(componentType) != null) {
             beanMap.get(componentType).add(beanInfo);
             return;
@@ -161,7 +163,7 @@ public class BeanContainer {
     private void loadHandler() {
         for (Class<?> handlerClass : beanClassLoader.getHandlerClasses()) {
             Object bean = createComponentInstance(handlerClass);
-            logger.info("create handler bean: " + handlerClass.getName());
+//            logger.info("create handler bean: {}", handlerClass.getName());
             handlerBeans.add(bean);
         }
     }
