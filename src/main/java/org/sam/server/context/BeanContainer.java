@@ -30,9 +30,14 @@ public class BeanContainer {
 
     private final List<Interceptor> interceptors = new ArrayList<>();
 
-    private final BeanClassLoader beanClassLoader = BeanClassLoader.getInstance();
+    private final BeanClassLoader beanClassLoader;
+
+    private final List<Class<?>> componentClasses;
 
     private BeanContainer() {
+        this.beanClassLoader = BeanClassLoader.getInstance();
+        this.componentClasses = beanClassLoader.getComponentClasses();
+
         loadBeans();
         loadHandler();
         loadInterceptors();
@@ -44,7 +49,6 @@ public class BeanContainer {
     private void loadBeans() {
         List<Class<?>> noParameterComponents = new ArrayList<>();
         List<Class<?>> parameterComponents = new ArrayList<>();
-        List<Class<?>> componentClasses = beanClassLoader.getComponentClasses();
         for (Class<?> componentClass : componentClasses) {
             try {
                 componentClass.getConstructor();
@@ -54,40 +58,58 @@ public class BeanContainer {
             }
         }
 
+        System.out.println("createNoParameterBeans");
         createNoParameterBeans(noParameterComponents);
-        createBeans(parameterComponents);
+        System.out.println("createParameterBeans");
+        createParameterBeans(parameterComponents);
+        System.out.println("end");
     }
 
+    /**
+     * 생성자에 파라미터가 없는 메서드 빈과 클래스빈을 생성한다.
+     * */
     private void createNoParameterBeans(List<Class<?>> componentClasses) {
         for (Class<?> componentClass : componentClasses) {
-            createMethodBean(componentClass);
-        }
-
-        for (Class<?> componentClass : componentClasses) {
-            createClassBean(componentClass);
+            this.createClassBeanWithDeclaredMethodBeans(componentClass);
+            this.componentClasses.remove(componentClass);
         }
     }
 
-    private void createBeans(List<Class<?>> componentClasses) {
-        for (Class<?> componentClass : componentClasses) {
-            createMethodBean(componentClass);
-        }
-
-        for (Class<?> componentClass : componentClasses) {
-            createClassBean(componentClass);
+    /**
+     * 생성자에 파라미터가 있는 컴포넌트의 빈을 생성한다.
+     * */
+    private void createParameterBeans(List<Class<?>> componentClasses) {
+        Iterator<Class<?>> iterator = this.componentClasses.iterator();
+        while (iterator.hasNext()) {
+            Class<?> componentClass = iterator.next();
+            boolean isCreated = this.createClassBeanWithDeclaredMethodBeans(componentClass);
+            if (isCreated) {
+                iterator.remove();
+            }
         }
     }
 
-    private void createClassBean(Class<?> componentClass) {
+    private boolean createClassBeanWithDeclaredMethodBeans(Class<?> componentClass) {
+        boolean isCreated = false;
+        Object instance = this.createClassBean(componentClass);
+        if (instance != null) {
+            isCreated = true;
+            this.createMethodBean(componentClass);
+        }
+        return isCreated;
+    }
+
+    private Object createClassBean(Class<?> componentClass) {
         String beanName = getBeanName(componentClass);
-        if (existsBean(componentClass)) return;
+        if (existsBean(componentClass)) {
+            return null;
+        }
         Object componentInstance = createComponentInstance(componentClass);
         addBeanMap(componentClass, componentInstance, beanName);
+        return componentInstance;
     }
 
-    private void createMethodBean(Class<?> componentClass) {
-        if (existsBean(componentClass)) return;
-        Object componentInstance = createComponentInstance(componentClass);
+    private void createMethodBean(Object componentInstance) {
         assert componentInstance != null;
         Method[] declaredMethods = componentInstance.getClass().getDeclaredMethods();
         loadMethodBean(componentInstance, declaredMethods);
@@ -173,6 +195,7 @@ public class BeanContainer {
             if (parameters == null) {
                 return null;
             }
+
             int differenceParameterNumber = constructorParameters.length - parameters.size();
             if (differenceParameterNumber < 0) {
                 throw new BeanCreationException(clazz);
@@ -242,14 +265,12 @@ public class BeanContainer {
         String parameterName = parameter.getName();
         BeanInfo beanInfo = findBeanInfo(parameter.getType(), parameterName);
         if (beanInfo != null) return beanInfo;
-        int index = this.beanClassLoader.getComponentClasses().indexOf(parameter.getType());
+        int index = this.componentClasses.indexOf(parameter.getType());
         if (index == -1) return null;
-        Class<?> beanClass = this.beanClassLoader.getComponentClasses().get(index);
+        Class<?> beanClass = this.componentClasses.get(index);
         String beanName = this.getBeanName(beanClass);
         Object beanInstance = this.createComponentInstance(beanClass);
         beanInfo = BeanInfo.of(beanName, beanInstance);
-        //TODO: 의존성 주입 관련 버그 수정해야 함
-        // 파라미터가 있는 빈의 경우 싱글턴으로 사용되어야 하기 때문에 파라미터를 생성할때 빈을 주입하는데, 이렇게 되면 해당 빈은 생성자 파라미터를 주입할 수 없게 됨
         addBeanMap(parameter.getType(), beanInstance, parameterName);
         return beanInfo;
     }
