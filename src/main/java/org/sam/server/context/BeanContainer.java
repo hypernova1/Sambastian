@@ -33,28 +33,64 @@ public class BeanContainer {
     private final BeanClassLoader beanClassLoader = BeanClassLoader.getInstance();
 
     private BeanContainer() {
-        loadComponentBeans();
-        loadHandlerBeans();
+        loadBeans();
+        loadHandler();
         loadInterceptors();
     }
 
     /**
      * 컴포넌트 클래스의 인스턴스를 생성하고 저장합니다.
      * */
-    private void loadComponentBeans() {
-        for (Class<?> componentClass : beanClassLoader.getComponentClasses()) {
-            if (existsBean(componentClass)) continue;
-            Object componentInstance = createComponentInstance(componentClass);
-            Method[] declaredMethods = componentInstance.getClass().getDeclaredMethods();
-            loadMethodBean(componentInstance, declaredMethods);
+    private void loadBeans() {
+        List<Class<?>> noParameterComponents = new ArrayList<>();
+        List<Class<?>> parameterComponents = new ArrayList<>();
+        List<Class<?>> componentClasses = beanClassLoader.getComponentClasses();
+        for (Class<?> componentClass : componentClasses) {
+            try {
+                componentClass.getConstructor();
+                noParameterComponents.add(componentClass);
+            } catch (NoSuchMethodException e) {
+                parameterComponents.add(componentClass);
+            }
         }
 
-        for (Class<?> componentClass : beanClassLoader.getComponentClasses()) {
-            String beanName = getBeanName(componentClass);
-            if (existsBean(componentClass)) continue;
-            Object componentInstance = createComponentInstance(componentClass);
-            addBeanMap(componentClass, componentInstance, beanName);
+        createNoParameterBeans(noParameterComponents);
+        createBeans(parameterComponents);
+    }
+
+    private void createNoParameterBeans(List<Class<?>> componentClasses) {
+        for (Class<?> componentClass : componentClasses) {
+            createMethodBean(componentClass);
         }
+
+        for (Class<?> componentClass : componentClasses) {
+            createClassBean(componentClass);
+        }
+    }
+
+    private void createBeans(List<Class<?>> componentClasses) {
+        for (Class<?> componentClass : componentClasses) {
+            createMethodBean(componentClass);
+        }
+
+        for (Class<?> componentClass : componentClasses) {
+            createClassBean(componentClass);
+        }
+    }
+
+    private void createClassBean(Class<?> componentClass) {
+        String beanName = getBeanName(componentClass);
+        if (existsBean(componentClass)) return;
+        Object componentInstance = createComponentInstance(componentClass);
+        addBeanMap(componentClass, componentInstance, beanName);
+    }
+
+    private void createMethodBean(Class<?> componentClass) {
+        if (existsBean(componentClass)) return;
+        Object componentInstance = createComponentInstance(componentClass);
+        assert componentInstance != null;
+        Method[] declaredMethods = componentInstance.getClass().getDeclaredMethods();
+        loadMethodBean(componentInstance, declaredMethods);
     }
 
     /**
@@ -100,7 +136,7 @@ public class BeanContainer {
     /**
      * 핸들러 클래스의 인스턴스를 생성하고 저장합니다.
      * */
-    private void loadHandlerBeans() {
+    private void loadHandler() {
         for (Class<?> handlerClass : beanClassLoader.getHandlerClasses()) {
             Object bean = createComponentInstance(handlerClass);
             logger.info("create handler bean: " + handlerClass.getName());
@@ -133,7 +169,10 @@ public class BeanContainer {
         try {
             Constructor<?> constructor = getDefaultConstructor(clazz, constructors);
             Parameter[] constructorParameters = constructor.getParameters();
-            List<Object> parameters = createParameters(constructorParameters);
+            List<Object> parameters = getParameters(constructorParameters);
+            if (parameters == null) {
+                return null;
+            }
             int differenceParameterNumber = constructorParameters.length - parameters.size();
             if (differenceParameterNumber < 0) {
                 throw new BeanCreationException(clazz);
@@ -150,6 +189,22 @@ public class BeanContainer {
             throw new BeanCreationException(clazz);
         }
 
+    }
+
+    private List<Object> getParameters(Parameter[] parameters) {
+        List<Object> parameterList = new ArrayList<>();
+        for (Parameter parameter : parameters) {
+            try {
+                BeanInfo beanInfo = this.getBeanInfo(parameter);
+                if (beanInfo == null) {
+                    return null;
+                }
+                parameterList.add(beanInfo.getBeanInstance());
+            } catch (BeanNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return parameterList;
     }
 
     /**
@@ -172,13 +227,18 @@ public class BeanContainer {
         return parameterList;
     }
 
+    private BeanInfo getBeanInfo(Parameter parameter) {
+        String parameterName = parameter.getName();
+        return findBeanInfo(parameter.getType(), parameterName);
+    }
+
     /**
      * BeanInfo 인스턴스를 찾은 후 없다면 생성 후 반환합니다.
      *
      * @param parameter 파라미터
      * @return BeanInfo 인스턴스
      * */
-    private BeanInfo getBeanInfo(Parameter parameter) {
+    private BeanInfo createBeanInfo(Parameter parameter) {
         String parameterName = parameter.getName();
         BeanInfo beanInfo = findBeanInfo(parameter.getType(), parameterName);
         if (beanInfo != null) return beanInfo;
