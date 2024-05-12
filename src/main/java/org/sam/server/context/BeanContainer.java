@@ -43,11 +43,16 @@ public class BeanContainer {
      * */
     private void loadComponentBeans() {
         for (Class<?> componentClass : beanClassLoader.getComponentClasses()) {
-            String beanName = getBeanName(componentClass);
             if (existsBean(componentClass)) continue;
             Object componentInstance = createComponentInstance(componentClass);
             Method[] declaredMethods = componentInstance.getClass().getDeclaredMethods();
             loadMethodBean(componentInstance, declaredMethods);
+        }
+
+        for (Class<?> componentClass : beanClassLoader.getComponentClasses()) {
+            String beanName = getBeanName(componentClass);
+            if (existsBean(componentClass)) continue;
+            Object componentInstance = createComponentInstance(componentClass);
             addBeanMap(componentClass, componentInstance, beanName);
         }
     }
@@ -67,6 +72,7 @@ public class BeanContainer {
                 String beanName = declaredMethod.getName();
                 addBeanMap(beanType, instance, beanName);
             } catch (IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
                 throw new BeanAccessModifierException();
             }
         }
@@ -138,6 +144,7 @@ public class BeanContainer {
                     parameters.add(null);
                 }
             }
+
             return constructor.newInstance(parameters.toArray());
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new BeanCreationException(clazz);

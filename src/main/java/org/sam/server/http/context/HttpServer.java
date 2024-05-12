@@ -1,6 +1,7 @@
 package org.sam.server.http.context;
 
 import org.sam.server.common.ServerProperties;
+import org.sam.server.context.BeanContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +36,7 @@ public class HttpServer implements Runnable {
     public static void start() {
         try {
             ServerSocket serverSocket = ServerSocketFactory.createServerSocket();
+            BeanContainer.getInstance();
             logger.info("server started..");
             logger.info("server port: " + serverSocket.getLocalPort());
 

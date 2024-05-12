@@ -31,11 +31,11 @@
             <email>hypemova@gmail.com</email>
         </developer>
     </developers>
-    <scm>
-        <connection>scm:git:git://github.com/hypernova1/sambastian.git</connection>
-        <developerConnection>scm:git:ssh://github.com:hypernova1/sambastian.git</developerConnection>
-        <url>http://github.com/hypernova1/sambastian/tree/master</url>
-    </scm>
+<!--    <scm>-->
+<!--        <connection>scm:git:git://github.com/hypernova1/sambastian.git</connection>-->
+<!--        <developerConnection>scm:git:ssh://github.com:hypernova1/sambastian.git</developerConnection>-->
+<!--        <url>http://github.com/hypernova1/sambastian/tree/master</url>-->
+<!--    </scm>-->
     <dependencies>
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -131,20 +131,20 @@
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.6</version>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-gpg-plugin</artifactId>-->
+<!--                <version>1.6</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>sign-artifacts</id>-->
+<!--                        <phase>verify</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>sign</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
         </plugins>
     </build>
     <distributionManagement>
