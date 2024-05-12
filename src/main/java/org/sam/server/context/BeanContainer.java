@@ -59,11 +59,11 @@ public class BeanContainer {
         }
 
         createNoParameterBeans(noParameterComponents);
-//        createParameterBeans(parameterComponents);
+        createParameterBeans(parameterComponents);
     }
 
     /**
-     * 생성자에 파라미터가 없는 메서드 빈과 클래스빈을 생성한다.
+     * 생성자에 파라미터가 클래스빈을 생성한다.
      * */
     private void createNoParameterBeans(List<Class<?>> componentClasses) {
         for (Class<?> componentClass : componentClasses) {
@@ -73,11 +73,11 @@ public class BeanContainer {
     }
 
     /**
-     * 생성자에 파라미터가 있는 컴포넌트의 빈을 생성한다.
+     * 생성자에 파라미터가 있는 클래스 빈을 생성한다.
      * */
-    private void createParameterBeans(List<Class<?>> componentClasses) {
-        while (!this.componentClasses.isEmpty()) {
-            Iterator<Class<?>> iterator = this.componentClasses.iterator();
+    private void createParameterBeans(List<Class<?>> parameterComponentClasses) {
+        while (!parameterComponentClasses.isEmpty()) {
+            Iterator<Class<?>> iterator = parameterComponentClasses.iterator();
             while (iterator.hasNext()) {
                 Class<?> componentClass = iterator.next();
                 boolean isCreated = this.createClassBeanWithDeclaredMethodBeans(componentClass);
@@ -88,34 +88,41 @@ public class BeanContainer {
         }
     }
 
+    /**
+     * 클래스 빈을 생성한다. 내부 메서드에 @Bean 이 선언되어 있으면 해당 메서드의 반환 값을 빈으로 생성한다.
+     * */
     private boolean createClassBeanWithDeclaredMethodBeans(Class<?> componentClass) {
         boolean isCreated = false;
         Object instance = this.createClassBean(componentClass);
         if (instance != null) {
-            this.createMethodBean(componentClass, componentClass);
+            addBeanMap(componentClass, instance, getBeanName(componentClass));
+            this.createMethodBean(instance);
             isCreated = true;
         }
         return isCreated;
     }
 
+    /**
+     * 클래스 빈을 생성한다.
+     * */
     private Object createClassBean(Class<?> componentClass) {
-        String beanName = getBeanName(componentClass);
         if (existsBean(componentClass)) {
             return null;
         }
-        Object componentInstance = createComponentInstance(componentClass);
-        addBeanMap(componentClass, componentInstance, beanName);
-        return componentInstance;
+        return createComponentInstance(componentClass);
     }
 
-    private void createMethodBean(Class<?> clazz, Object componentInstance) {
+    /**
+     * 클래스에 선언되어 있는 메서드 빈을 생성한다.
+     * */
+    private void createMethodBean(Object componentInstance) {
         assert componentInstance != null;
-        Method[] methods = clazz.getMethods();
+        Method[] methods = componentInstance.getClass().getMethods();
         loadMethodBean(componentInstance, methods);
     }
 
     /**
-     * 컴포넌트 클래스 내부의 빈 메서드의 결과값을 받아 컴포넌트 인스턴스 목록에 추가합니다.
+     * 컴포넌트 클래스 내부의 빈 메서드의 결과값을 받아 컴포넌트 인스턴스 목록에 추가한다.
      *
      * @param componentInstance 컴포넌트 인스턴스
      * @param declaredMethods 컴포넌트 클래스에 선언 된 메서드 목록
@@ -129,7 +136,6 @@ public class BeanContainer {
                 Class<?> beanType = declaredMethod.getReturnType();
                 Object instance = declaredMethod.invoke(componentInstance);
                 String beanName = declaredMethod.getName();
-                System.out.println(beanName);
                 addBeanMap(beanType, instance, beanName);
             } catch (IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
@@ -139,7 +145,7 @@ public class BeanContainer {
     }
 
     /**
-     * 생성된 빈을 저장합니다.
+     * 생성된 빈을 저장한다.
      *
      * @param componentType 컴포넌트 타입
      * @param componentInstance 컴포넌트 인스턴스
@@ -147,7 +153,7 @@ public class BeanContainer {
      * */
     private void addBeanMap(Class<?> componentType, Object componentInstance, String beanName) {
         BeanInfo beanInfo = BeanInfo.of(beanName, componentInstance);
-//        logger.info("create bean: " + beanName + " > " + componentType.getName());
+        logger.info("create bean: " + beanName + " > " + componentType.getName());
         if (beanMap.get(componentType) != null) {
             beanMap.get(componentType).add(beanInfo);
             return;
@@ -158,18 +164,18 @@ public class BeanContainer {
     }
 
     /**
-     * 핸들러 클래스의 인스턴스를 생성하고 저장합니다.
+     * 핸들러 클래스의 인스턴스를 생성하고 저장한다.
      * */
     private void loadHandler() {
         for (Class<?> handlerClass : beanClassLoader.getHandlerClasses()) {
             Object bean = createComponentInstance(handlerClass);
-//            logger.info("create handler bean: {}", handlerClass.getName());
+            logger.info("create handler bean: {}", handlerClass.getName());
             handlerBeans.add(bean);
         }
     }
 
     /**
-     * 인터셉터 구현체 클래스의 인스턴스를 생성하고 저장합니다.
+     * 인터셉터 구현체 클래스의 인스턴스를 생성하고 저장한다.
      * */
     private void loadInterceptors() {
         try {
@@ -183,7 +189,7 @@ public class BeanContainer {
     }
 
     /**
-     * 컴포넌트의 인스턴스를 생성 후 반환합니다.
+     * 컴포넌트의 인스턴스를 생성 후 반환한다.
      *
      * @param clazz 클래스 타입
      * @return 컴포넌트 인스턴스
@@ -216,6 +222,9 @@ public class BeanContainer {
 
     }
 
+    /**
+     * 클래스 빈에 주입될 의존성 파라미터를 가져온다.
+     * */
     private List<Object> getParameters(Parameter[] parameters) {
         List<Object> parameterList = new ArrayList<>();
         for (Parameter parameter : parameters) {
@@ -233,7 +242,8 @@ public class BeanContainer {
     }
 
     /**
-     * 빈 생성시 필요한 파라미터를 생성 후 반환합니다.
+     * @deprecated
+     * 빈 생성시 필요한 파라미터를 생성 후 반환한다.
      *
      * @param parameters 생성자 파라미터 목록
      * @return 빈 목록
@@ -252,13 +262,17 @@ public class BeanContainer {
         return parameterList;
     }
 
+    /**
+     * 클래스 빈의 생성자에 주입될 빈을 가져온다.
+     * */
     private BeanInfo getBeanInfo(Parameter parameter) {
         String parameterName = parameter.getName();
         return findBeanInfo(parameter.getType(), parameterName);
     }
 
     /**
-     * BeanInfo 인스턴스를 찾은 후 없다면 생성 후 반환합니다.
+     * @deprecated
+     * BeanInfo 인스턴스를 찾은 후 없다면 생성 후 반환한다.
      *
      * @param parameter 파라미터
      * @return BeanInfo 인스턴스
@@ -278,7 +292,7 @@ public class BeanContainer {
     }
 
     /**
-     * 빈 이름을 생성 후 반환합니다.
+     * 빈 이름을 생성 후 반환한다.
      *
      * @param componentType 컴포넌트 타입
      * @return 빈 이름
@@ -293,7 +307,7 @@ public class BeanContainer {
     }
 
     /**
-     * 존재하는 빈이 있는 지 확인합니다.
+     * 존재하는 빈이 있는 지 확인한다.
      *
      * @param componentType 컴포넌트 타입
      * @return 중복 유무
@@ -311,7 +325,7 @@ public class BeanContainer {
     }
 
     /**
-     * 빈이 있는지 확인 후 없다면 생성하고 정보를 반환합니다.
+     * 빈이 있는지 확인 후 없다면 생성하고 정보를 반환한다.
      *
      * @param componentType 컴포넌트 타입
      * @param parameterName 파라미터 이름
@@ -333,7 +347,7 @@ public class BeanContainer {
     }
 
     /**
-     * 컴포넌트 타입에 해당하는 빈이 존재하는 지 확인 후 있다면 키를 반환합니다.
+     * 컴포넌트 타입에 해당하는 빈이 존재하는 지 확인 후 있다면 키를 반환한다.
      *
      * @param componentType 컴포넌트 타입
      * @return 빈 키
@@ -348,7 +362,7 @@ public class BeanContainer {
     }
 
     /**
-     * 기본 생성자를 반환합니다
+     * 기본 생성자를 반환한다.
      *
      * @param clazz 클래스 타입
      * @param constructors 생성자 목록
@@ -367,7 +381,7 @@ public class BeanContainer {
     }
 
     /**
-     * 핸들러 빈 목록을 반환합니다.
+     * 핸들러 빈 목록을 반환한다.
      *
      * @return 핸들러 빈 목록
      * */
@@ -376,7 +390,7 @@ public class BeanContainer {
     }
 
     /**
-     * 인터셉터 구현체 인스턴스 목록을 반환합니다.
+     * 인터셉터 구현체 인스턴스 목록을 반환한다.
      *
      * @return 인터셉터 구현체 인스턴스
      * */
@@ -385,7 +399,7 @@ public class BeanContainer {
     }
 
     /**
-     * 빈 목록을 반환합니다.
+     * 빈 목록을 반환한다.
      *
      * @return 빈 목록
      * */
