@@ -188,6 +188,8 @@ public class BeanContainer {
         String beanName = this.getBeanName(beanClass);
         Object beanInstance = this.createComponentInstance(beanClass);
         beanInfo = BeanInfo.of(beanName, beanInstance);
+        //TODO: 의존성 주입 관련 버그 수정해야 함
+        // 파라미터가 있는 빈의 경우 싱글턴으로 사용되어야 하기 때문에 파라미터를 생성할때 빈을 주입하는데, 이렇게 되면 해당 빈은 생성자 파라미터를 주입할 수 없게 됨
         addBeanMap(parameter.getType(), beanInstance, parameterName);
         return beanInfo;
     }
