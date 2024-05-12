@@ -1,15 +1,11 @@
 package org.sam.server.context;
 
 import org.junit.jupiter.api.Test;
-import org.sam.server.annotation.handle.GetMapping;
-import org.sam.server.annotation.handle.RequestMapping;
-import org.sam.server.http.context.HttpServer;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.Arrays;
 
 class BeanInfoClassLoaderTest {
 

@@ -164,8 +164,10 @@ public class HandlerFinder {
                 return;
             }
             handlerMethods.add(handlerMethod);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+        } catch (NoSuchMethodException | IllegalAccessException e) {
             e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
         }
     }
 
