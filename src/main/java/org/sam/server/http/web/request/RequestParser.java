@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
- * 소켓으로 부터 받은 InputStream을 읽어 Request 인스턴스를 생성하는 클래스입니다.
+ * 소켓으로 부터 받은 InputStream을 읽어 Request 인스턴스를 생성하는 클래스
  *
  * @author hypernova1
  * @see Request
@@ -34,7 +34,7 @@ public final class RequestParser {
     private String boundary;
 
     /**
-     * InputStream에서 HTTP 본문을 읽은 후 파싱합니다.
+     * InputStream에서 HTTP 본문을 읽은 후 파싱한다.
      *
      * @param in 소켓의 InputStream
      */
@@ -76,7 +76,7 @@ public final class RequestParser {
     }
 
     /**
-     * HTTP 바디에 있는 데이터를 파싱합니다.
+     * HTTP 바디에 있는 데이터를 파싱한다.
      *
      * @param inputStream 인풋 스트림
      */
@@ -89,7 +89,7 @@ public final class RequestParser {
     }
 
     /**
-     * HTTP 헤더를 읽어 반환합니다.
+     * HTTP 헤더를 읽어 반환한다.
      *
      * @param inputStream 인풋 스트림
      * @return HTTP 헤더 내용
@@ -114,7 +114,7 @@ public final class RequestParser {
     }
 
     /**
-     * HTTP 바디를 파싱합니다.
+     * HTTP 바디를 파싱한다.
      *
      * @param inputStream 소켓의 InputSteam
      */
@@ -149,7 +149,7 @@ public final class RequestParser {
     }
 
     /**
-     * HTTP 헤더를 파싱합니다.
+     * HTTP 헤더를 파싱한다.
      *
      * @param headers 헤더 본문
      * @return 헤더 목록
@@ -170,7 +170,7 @@ public final class RequestParser {
     }
 
     /**
-     * 요청 URL을 파싱하여 저장하고 쿼리 스트링을 반환합니다.
+     * 요청 URL을 파싱하여 저장하고 쿼리 스트링을 반환한다.
      *
      * @param url 요청 URL
      * @return 쿼리 스트링
@@ -186,7 +186,7 @@ public final class RequestParser {
     }
 
     /**
-     * 쿼리 스트링을 파싱합니다.
+     * 쿼리 스트링을 파싱한다.
      *
      * @param parameters 쿼리 스트링
      * @return 파라미터 목록
@@ -207,7 +207,7 @@ public final class RequestParser {
     }
 
     /**
-     * multipart/form-data 요청을 파싱합니다.
+     * multipart/form-data 요청을 파싱한다.
      *
      * @param inputStream 소켓의 InputStream
      */
@@ -228,7 +228,7 @@ public final class RequestParser {
     }
 
     /**
-     * multipart/form-data 본문을 한 파트씩 파싱합니다.
+     * multipart/form-data 본문을 한 파트씩 파싱한다.
      *
      * @param inputStream 소켓의 InputStream
      * @throws IOException InputStream을 읽다가 오류 발생시
@@ -297,7 +297,7 @@ public final class RequestParser {
     }
 
     /**
-     * multipart/form-data로 받은 파일을 인스턴스로 만듭니다.
+     * multipart/form-data로 받은 파일을 인스턴스로 만든다.
      *
      * @param name     파일 이름
      * @param filename 파일 전체 이름
@@ -316,7 +316,7 @@ public final class RequestParser {
     }
 
     /**
-     * MultipartFile을 추가합니다.
+     * MultipartFile을 추가한다.
      *
      * @param name          MultipartFile의 이름
      * @param multipartFile MultipartFile 인스턴스
@@ -336,7 +336,7 @@ public final class RequestParser {
     }
 
     /**
-     * Multipart boundary를 기준으로 파일을 읽어 들이고 바이트 배열을 반환합니다.
+     * Multipart boundary를 기준으로 파일을 읽어 들이고 바이트 배열을 반환한다.
      *
      * @param inputStream 소켓의 InputStream
      * @return 파일의 바이트 배열
@@ -365,7 +365,7 @@ public final class RequestParser {
     }
 
     /**
-     * HttpRequest 혹은 HttpMultipartRequest 인스턴스를 생성합니다.
+     * HttpRequest 혹은 HttpMultipartRequest 인스턴스를 생성한다.
      *
      * @return 요청 인스턴스
      * @see HttpRequest
@@ -384,7 +384,7 @@ public final class RequestParser {
     }
 
     /**
-     * 한 줄의 마지막인지 확인합니다.
+     * 한 줄의 마지막인지 확인한다.
      *
      * @param data  데이터
      * @param index 인덱스
@@ -395,7 +395,7 @@ public final class RequestParser {
     }
 
     /**
-     * 헤더의 끝 부분인지 확인합니다.
+     * 헤더의 끝 부분인지 확인한다.
      *
      * @param data 데이터
      * @return 헤더의 끝인지 여부
@@ -406,7 +406,7 @@ public final class RequestParser {
     }
 
     /**
-     * 파라미터에 값이 있는지 확인합니다.
+     * 파라미터에 값이 있는지 확인한다.
      *
      * @param parameterPair 파라미터 쌍
      * @return 파라미터 값 존재 여부
@@ -416,7 +416,7 @@ public final class RequestParser {
     }
 
     /**
-     * HTTP 요청이 아닌지 확인합니다.
+     * HTTP 요청이 아닌지 확인한다.
      *
      * @param headersPart 헤더
      * @return HTTP 요청이 아닌지에 대한 여부
@@ -426,14 +426,14 @@ public final class RequestParser {
     }
 
     /**
-     * HTTP 요청 본문이 JSON인지 확인합니다.
+     * HTTP 요청 본문이 JSON인지 확인한다.
      */
     private boolean isJsonRequest() {
         return this.contentType == ContentType.APPLICATION_JSON && this.parameters.isEmpty();
     }
 
     /**
-     * boundary 라인인지 확인합니다.
+     * boundary 라인인지 확인한다.
      *
      * @param line multipart 본문 라인
      * @return boundary 라인 여부
@@ -443,7 +443,7 @@ public final class RequestParser {
     }
 
     /**
-     * boundary 라인이 끝났는지 확인합니다.
+     * boundary 라인이 끝났는지 확인한다.
      *
      * @param content multipart 본문 라인
      * @return boundary 라인이 끝났는지 여부
@@ -454,7 +454,7 @@ public final class RequestParser {
     }
 
     /**
-     * boundary 라인이 존재하는 지 확인합니다.
+     * boundary 라인이 존재하는 지 확인한다.
      *
      * @param content multipart 본문 라인
      * @return boundary 라인 존재 여부

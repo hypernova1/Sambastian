@@ -15,7 +15,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 루트 패키지로 부터 클래스 파일을 읽어 클래스 정보를 저장하는 클래스입니다.
+ * 루트 패키지로 부터 클래스 파일을 읽어 클래스 정보를 저장하는 클래스
  *
  * @author hypernova1
  */
@@ -31,7 +31,7 @@ public class BeanClassLoader {
     }
 
     /**
-     * 루트 패키지부터 경로를 탐색하며 핸들러, 컴포넌트, 인터셉터 클래스를 저장합니다.
+     * 루트 패키지부터 경로를 탐색하며 핸들러, 컴포넌트, 인터셉터 클래스를 저장한다.
      * */
     private void loadClasses() {
         String path = rootPackageName.replace(".", "/");
@@ -52,7 +52,7 @@ public class BeanClassLoader {
     }
 
     /**
-     * 핸들러 클래스를 저장합니다.
+     * 핸들러 클래스를 저장한다.
      *
      * @param classes 클래스 목록
      * @see RequestMapping
@@ -64,7 +64,7 @@ public class BeanClassLoader {
     }
 
     /**
-     * 컴포넌트 클래스를 저장합니다.
+     * 컴포넌트 클래스를 저장한다.
      *
      * @param classes 클래스 목록
      * @see org.sam.server.annotation.component.Component
@@ -84,7 +84,7 @@ public class BeanClassLoader {
     }
 
     /**
-     * 인터셉터를 상속받은 클래스를 저장합니다.
+     * 인터셉터를 상속받은 클래스를 저장한다.
      *
      * @param classes 클래스 목록
      * @see org.sam.server.http.Interceptor
@@ -97,7 +97,7 @@ public class BeanClassLoader {
     }
 
     /**
-     * 디렉토리를 탐색하며 클래스를 찾아 목록을 반환합니다.
+     * 디렉토리를 탐색하며 클래스를 찾아 목록을 반환한다.
      *
      * @param directory 디렉토리
      * @param packageName 패키지명
@@ -122,7 +122,7 @@ public class BeanClassLoader {
     }
 
     /**
-     * 패키지 안에 있는 클래스를 반환합니다.
+     * 패키지 안에 있는 클래스를 반환한다.
      *
      * @param packageName 패키지 이름
      * @param file 패키지 안의 파일
@@ -139,7 +139,7 @@ public class BeanClassLoader {
     }
 
     /**
-     * 루트 패키지를 찾습니다.
+     * 루트 패키지를 찾는다.
      * */
     private void findRootPackageName() {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
@@ -156,7 +156,7 @@ public class BeanClassLoader {
     }
 
     /**
-     * 모든 디렉토리를 탐색하여 루트 패키지를 찾아 저장합니다.
+     * 모든 디렉토리를 탐색하여 루트 패키지를 찾아 저장한다.
      *
      * @param directory 디렉토리
      * @param packageName 패키지 이름
@@ -171,7 +171,7 @@ public class BeanClassLoader {
     }
 
     /**
-     * 패키지 이름을 세팅합니다.
+     * 패키지 이름을 세팅한다.
      *
      * @param file 파일
      * @param packageName 현재까지 만들어진 패키지명
@@ -197,7 +197,7 @@ public class BeanClassLoader {
     }
 
     /**
-     * 핸들러 클래스 목록을 반환합니다.
+     * 핸들러 클래스 목록을 반환한다.
      *
      * @return 핸들러 클래스 목록
      * */
@@ -206,7 +206,7 @@ public class BeanClassLoader {
     }
 
     /**
-     * 컴포넌트 클래스 목록을 반환합니다.
+     * 컴포넌트 클래스 목록을 반환한다.
      *
      * @return 컴포넌트 클래스 목록
      * */
@@ -215,7 +215,7 @@ public class BeanClassLoader {
     }
 
     /**
-     * 인터셉터 구현 클래스 목록을 반환합니다.
+     * 인터셉터 구현 클래스 목록을 반환한다.
      *
      * @return 인터셉터 구현 클래스 목록
      * */
@@ -224,7 +224,7 @@ public class BeanClassLoader {
     }
 
     /**
-     * 클래스의 이름을 반환합니다.
+     * 클래스의 이름을 반환한다.
      *
      * @param packageName 패키지명
      * @param file 클래스 파일
@@ -235,7 +235,7 @@ public class BeanClassLoader {
     }
 
     /**
-     * 클래스의 이름을 반환합니다.
+     * 클래스의 이름을 반환한다.
      *
      * @param fileName 패키지명
      * @return 클래스 이름
@@ -245,7 +245,7 @@ public class BeanClassLoader {
     }
 
     /**
-     * 해당 클래스가 핸들러 클래스인지 확인합니다.
+     * 해당 클래스가 핸들러 클래스인지 확인한다.
      *
      * @param clazz 클래스 타입
      * @return 핸들러 클래스 여부
@@ -255,7 +255,7 @@ public class BeanClassLoader {
     }
 
     /**
-     * 해당 클래스에 ComponentScan 어노테이션이 선언되어 있는지 확인합니다.
+     * 해당 클래스에 ComponentScan 어노테이션이 선언되어 있는지 확인한다.
      *
      * @param clazz 클래스 타입
      * @return ComponentScan 클래스 여부
@@ -266,7 +266,7 @@ public class BeanClassLoader {
     }
 
     /**
-     * 해당 파일이 클래스 파일인지 확인합니다.
+     * 해당 파일이 클래스 파일인지 확인한다.
      *
      * @param file 파일
      * @return 클래스 파일 여부
@@ -276,7 +276,7 @@ public class BeanClassLoader {
     }
 
     /**
-     * Interceptor를 구현한 클래스인지 확인합니다.
+     * Interceptor를 구현한 클래스인지 확인한다.
      *
      * @param clazz 클래스 타입
      * @return Interceptor 구현 여부
@@ -287,7 +287,7 @@ public class BeanClassLoader {
     }
 
     /**
-     * Component 관련 어노테이션인지 확인합니다.
+     * Component 관련 어노테이션인지 확인한다.
      *
      * @param annotation 어노테이션
      * @return Component 어노테이션 여부

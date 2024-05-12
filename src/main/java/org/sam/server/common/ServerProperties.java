@@ -9,7 +9,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 /**
- * 서버의 설정을 관리하는 클래스입니다.
+ * 서버의 설정을 관리하는 클래스
  *
  * @author hypernova1
  */
@@ -36,7 +36,7 @@ public class ServerProperties {
     }
 
     /**
-     * 서버 설정을 가져옵니다.
+     * 서버 설정을 가져온다.
      *
      * @param key 설정 이름
      * @return 설정 값
@@ -46,14 +46,14 @@ public class ServerProperties {
     }
 
     /**
-     * SSL 설정을 활성화 합니다.
+     * SSL 설정을 활성화 한다.
      * */
     public static void setSSL() {
         isSSL = true;
     }
 
     /**
-     * SSL 설정이 되어 있는지 확인합니다.
+     * SSL 설정이 되어 있는지 확인한다.
      *
      * @return SSL 설정 여부
      * */

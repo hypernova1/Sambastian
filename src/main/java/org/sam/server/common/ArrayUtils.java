@@ -2,7 +2,7 @@ package org.sam.server.common;
 
 public class ArrayUtils {
     /**
-     * 입력받은 배열의 길이의 두배인 배열을 생성하고 카피 후 반환합니다.
+     * 입력받은 배열의 길이의 두배인 배열을 생성하고 카피 후 반환한다.
      *
      * @param data 배열
      * @return 2배 길이의 배열
@@ -14,7 +14,7 @@ public class ArrayUtils {
     }
 
     /**
-     * 배열의 길이가 최대인지 확인합니다.
+     * 배열의 길이가 최대인지 확인한다.
      *
      * @param data       확인할 배열
      * @param fileLength 파일 길이

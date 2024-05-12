@@ -1,7 +1,7 @@
 package org.sam.server.context;
 
 /**
- * 빈의 정보를 저장하는 클래스입니다.
+ * 빈의 정보를 저장하는 클래스
  *
  * @author hypernova1
  */
@@ -20,7 +20,7 @@ public class BeanInfo {
     }
 
     /**
-     * 빈의 이름을 반환합니다.
+     * 빈의 이름을 반환한다.
      *
      * @return 빈 이름
      * */
@@ -29,7 +29,7 @@ public class BeanInfo {
     }
 
     /**
-     * 빈을 반환합니다.
+     * 빈을 반환한다.
      *
      * @return 빈 인스턴스
      * */

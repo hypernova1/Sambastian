@@ -9,7 +9,7 @@ import java.io.InputStream;
 import java.util.*;
 
 /**
- * Request 인터페이스의 구현체입니다. 일반적인 HTTP 요청에 대한 정보를 저장합니다.
+ * Request 인터페이스의 구현체. 일반적인 HTTP 요청에 대한 정보를 저장한다.
  *
  * @author hypernova1
  * @see Request

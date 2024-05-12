@@ -1,7 +1,7 @@
 package org.sam.server.constant;
 
 /**
- * 미디어 타입에 대한 상수입니다.
+ * 미디어 타입 상수
  *
  * @author hypernova1
  */

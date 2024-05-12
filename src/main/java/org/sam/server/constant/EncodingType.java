@@ -1,7 +1,7 @@
 package org.sam.server.constant;
 
 /**
- * 인코딩 타입에 대한 상수입니다.
+ * 인코딩 타입 상수
  *
  * @author hypernova1
  */

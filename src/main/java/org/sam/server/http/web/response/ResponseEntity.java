@@ -3,7 +3,7 @@ package org.sam.server.http.web.response;
 import org.sam.server.constant.HttpStatus;
 
 /**
- * 응답 상태 및 데이터를 포장하는 클래스입니다. 핸들러에서 반환 값으로 사용할 수 있습니다.
+ * 응답 상태 및 데이터를 포장하는 클래스. 핸들러에서 반환 값으로 사용할 수 있다.
  *
  * @author hypernova1
  */

@@ -1,7 +1,7 @@
 package org.sam.server.constant;
 
 /**
- * HTTP Method에 대한 상수입니다.
+ * HTTP Method 상수
  *
  * @author hypernova1
  */
@@ -32,7 +32,7 @@ public enum HttpMethod {
     CONNECT;
 
     /**
-     * HTTP 바디에 메시지가 존재하는 지 확인합니다.
+     * HTTP 바디에 메시지가 존재하는 지 확인한다.
      *
      * @return HTTP 바디에 메시지가 존재하는지 여부
      */

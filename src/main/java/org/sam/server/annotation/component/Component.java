@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 클래스에 선언 하여 해당 클래스를 빈으로 만듭니다.
+ * 클래스에 선언 하여 해당 클래스를 빈으로 만든다.
  *
  * @author hypernova1
  * */

@@ -18,7 +18,7 @@ public class HttpMultipartRequest extends HttpRequest {
     }
 
     /**
-     * 해당 이름에 대한 MultipartFile을 반환합니다.
+     * 해당 이름에 대한 MultipartFile을 반환한다.
      *
      * @param name MultipartFile 이름
      * @return MultipartFile 인스턴스
@@ -37,7 +37,7 @@ public class HttpMultipartRequest extends HttpRequest {
     }
 
     /**
-     * 해당 이름에 대한 MultipartFile 목록을 반환합니다.
+     * 해당 이름에 대한 MultipartFile 목록을 반환한다.
      * 
      * @param name MultipartFile 목록의 이름
      * @return MultipartFile 목록

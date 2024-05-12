@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 /**
- * 요청을 해석하고 응답하는 클래스입니다. 정적 자원을 반환합니다.
+ * 요청을 해석하고 응답하는 클래스. 정적 자원을 반환한다.
  *
  * @author hypernova1
  * @see #execute(String, HttpStatus)
@@ -56,7 +56,7 @@ public class HttpResponse implements Response {
     }
 
     /**
-     * 인스턴스를 생성합니다.
+     * 인스턴스를 생성한다.
      *
      * @param os 응답을 출력할 스트림
      * @param requestPath 요청 URL
@@ -94,7 +94,7 @@ public class HttpResponse implements Response {
     }
 
     /**
-     * 정적 자원의 경로를 받아 파일을 읽습니다. 파일이 존재하지 않으면 notFound 메서드를 호출합니다.
+     * 정적 자원의 경로를 받아 파일을 읽는다. 파일이 존재하지 않으면 notFound 메서드를 호출한다.
      *
      * @param filePath 파일 경로
      * @return 파일의 길이
@@ -128,7 +128,7 @@ public class HttpResponse implements Response {
     }
 
     /**
-     * 정적 파일을 읽은 후 OutputStream에 쓰고 파일의 길이를 반환합니다.
+     * 정적 파일을 읽은 후 OutputStream에 쓰고 파일의 길이를 반환한다.
      *
      * @param fis 파일을 읽은 스트림
      * @return 파일의 길이
@@ -147,7 +147,7 @@ public class HttpResponse implements Response {
     }
 
     /**
-     * 정적 파일을 읽은 후 OutputStream에 쓰고 파일의 길이를 반환합니.
+     * 정적 파일을 읽은 후 OutputStream에 쓰고 파일의 길이를 반환한다.
      *
      * @param file 정적 파일
      * @return 파일의 길이
@@ -168,7 +168,7 @@ public class HttpResponse implements Response {
     }
 
     /**
-     * JSON 문자열을 OutputStream에 쓰고 바이트 길이를 반환합니다.
+     * JSON 문자열을 OutputStream에 쓰고 바이트 길이를 반환한다.
      *
      * @param json JSON 문자열
      * @return JSON 문자열의 바이트 길이
@@ -189,7 +189,7 @@ public class HttpResponse implements Response {
     }
 
     /**
-     * 응답 헤더를 OutputStream에 씁니다.
+     * 응답 헤더를 OutputStream에 쓴다.
      * */
     private void printHeaders() {
         writer.print("HTTP/1.1 " + httpStatus.getCode() + " " + httpStatus.getMessage() + "\r\n");
@@ -201,7 +201,7 @@ public class HttpResponse implements Response {
     }
 
     /**
-     * 응답할 헤더 리스트를 세팅합니다.
+     * 응답할 헤더 리스트를 세팅한다.
      * */
     private void setHeaders() {
         headers.put("Server", "Java HTTP Server from sam : 1.0");
@@ -228,7 +228,7 @@ public class HttpResponse implements Response {
     }
 
     /**
-     * 조건에 따라 미디어타입을 반환합니다.
+     * 조건에 따라 미디어타입을 반환한다.
      *
      * @return 미디어 타입
      * @see org.sam.server.constant.ContentType
@@ -244,7 +244,7 @@ public class HttpResponse implements Response {
     }
 
     /**
-     * 쿠키에 대한 정보를 OutputStream에 씁니다.
+     * 쿠키에 대한 정보를 OutputStream에 쓴다.
      *
      * @see org.sam.server.http.Cookie
      * */
@@ -348,7 +348,7 @@ public class HttpResponse implements Response {
     }
 
     /**
-     * 응답할 MIME 형식이 HTML인지 확인합니다
+     * 응답할 MIME 형식이 HTML인지 확인한다
      *
      * @return HTML 여부
      * */

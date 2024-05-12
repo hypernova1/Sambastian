@@ -1,7 +1,7 @@
 package org.sam.server.exception;
 
 /**
- * 해당 빈을 찾을 수 없을 때 발생합니다.
+ * 해당 빈을 찾을 수 없을 때 발생한다.
  *
  * @author hypernova1
  * */

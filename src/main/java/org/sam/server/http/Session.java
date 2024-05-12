@@ -8,7 +8,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * 세션 정보를 담는 클래스입니다.
+ * 세션 정보를 담는 클래스
  *
  * @author hypernova1
  */
@@ -31,14 +31,14 @@ public final class Session {
     }
 
     /**
-     * 세션을 무효화합니다.
+     * 세션을 무효화한다.
      * */
     public void invalidate() {
         SessionManager.removeSession(this.id);
     }
 
     /**
-     * 세션에 담긴 요소를 반환합니다.
+     * 세션에 담긴 요소를 반환한다.
      *
      * @param key 요소 이름
      * @return 요소 값
@@ -48,7 +48,7 @@ public final class Session {
     }
 
     /**
-     * 세션에 요소를 추가합니다.
+     * 세션에 요소를 추가한다.
      *
      * @param key 요소 이름
      * @param value 요소 값
@@ -58,7 +58,7 @@ public final class Session {
     }
 
     /**
-     * 세션의 아이디를 반환합니다.
+     * 세션의 아이디를 반환한다.
      *
      * @return 세션 아이디
      * */
@@ -67,7 +67,7 @@ public final class Session {
     }
 
     /**
-     * 세션의 생성 시간을 반환합니다.
+     * 세션의 생성 시간을 반환한다.
      *
      * @return 세션 생성 시간
      * */
@@ -76,7 +76,7 @@ public final class Session {
     }
 
     /**
-     * 세션의 생성 시간을 설정합니다.
+     * 세션의 생성 시간을 설정한다.
      *
      * @param creationTime 세션 생성 시간
      * */
@@ -85,7 +85,7 @@ public final class Session {
     }
 
     /**
-     * 마지막으로 세션에 접근한 시간을 반환합니다.
+     * 마지막으로 세션에 접근한 시간을 반환한다.
      *
      * @return 최종 세션 접근 시간
      * */
@@ -94,7 +94,7 @@ public final class Session {
     }
 
     /**
-     * 마지막으로 세션에 접근한 시간을 설정합니다.
+     * 마지막으로 세션에 접근한 시간을 설정한다.
      *
      * @param accessTime 최종 세션 접근 시간
      * */
@@ -103,7 +103,7 @@ public final class Session {
     }
 
     /**
-     * 세션의 유효 시간을 가져옵니다.
+     * 세션의 유효 시간을 가져온다.
      *
      * @return 세션 유효 시간
      * */
@@ -112,7 +112,7 @@ public final class Session {
     }
 
     /**
-     * 세션의 유효 시간을 설정합니다.
+     * 세션의 유효 시간을 설정한다.
      *
      * @param timeout 세션 유효 시간
      * */
@@ -121,7 +121,7 @@ public final class Session {
     }
 
     /**
-     * 세션에 요소를 추가합니다.
+     * 세션에 요소를 추가한다.
      *
      * @param name 요소 이름
      * @param value 요소 값
@@ -131,7 +131,7 @@ public final class Session {
     }
 
     /**
-     * 세션 만료 시간을 반환합니다.
+     * 세션 만료 시간을 반환한다.
      *
      * @return 세션 만료 시간
      * */
@@ -140,7 +140,7 @@ public final class Session {
     }
 
     /**
-     * 최종 접근 시간을 현재 시간으로 변경합니다.
+     * 최종 접근 시간을 현재 시간으로 변경한다.
      * */
     public void renewAccessTime() {
         this.accessTime = LocalDateTime.now();
@@ -148,7 +148,7 @@ public final class Session {
 
 
     /**
-     * 만료된 세션인지 확인 합니다.
+     * 만료된 세션인지 확인 한다.
      *
      * @return 만료 여부
      * */

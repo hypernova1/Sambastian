@@ -9,7 +9,7 @@ import java.net.ServerSocket;
 public class ServerSocketFactory {
 
     /**
-     * 서버 소켓을 생성합니다.
+     * 서버 소켓을 생성한다.
      *
      * @return 서버 소켓
      * @throws IOException SSL 소켓 생성시에 네트워크 오류가 발생시
@@ -26,7 +26,7 @@ public class ServerSocketFactory {
     }
 
     /**
-     * SSL 서버 소켓을 생성합니다.
+     * SSL 서버 소켓을 생성한다.
      *
      * @param keyStore keyStore 이름
      * @param password keyStore 비밀번호

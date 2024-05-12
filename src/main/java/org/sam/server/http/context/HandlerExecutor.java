@@ -21,7 +21,7 @@ import java.lang.reflect.Parameter;
 import java.util.*;
 
 /**
- * 핸들러를 실행 시키는 클래스입니다.
+ * 핸들러를 실행 시키는 클래스
  *
  * @author hypernova1
  * @see HandlerExecutor
@@ -38,7 +38,7 @@ public class HandlerExecutor {
     }
 
     /**
-     * 인스턴스를 생성합니다.
+     * 인스턴스를 생성한다.
      * 
      * @param request 요청 인스턴스
      * @param response 응답 인스턴스
@@ -49,7 +49,7 @@ public class HandlerExecutor {
     }
 
     /**
-     * 핸들러를 실행합니다.
+     * 핸들러를 실행한다.
      * */
     public void execute(Handler handlerInfo) {
         setCrossOriginConfig(handlerInfo);
@@ -74,7 +74,7 @@ public class HandlerExecutor {
     }
 
     /**
-     * 핸들러를 실행시킨 후 리턴 값을 받아옵니다. interceptor가 구현되어 있다면 interceptor 실행 후 리턴 값을 받아옵니다.
+     * 핸들러를 실행시킨 후 리턴 값을 받아온다. interceptor가 구현되어 있다면 interceptor 실행 후 리턴 값을 받아온다.
      *
      * @param handler 핸들러 정보
      * @return 핸들러의 리턴 값
@@ -97,7 +97,7 @@ public class HandlerExecutor {
     }
 
     /**
-     * 핸들러 클래스의 CrossOrigin 어노테이션을 확인하고 CORS를 설정 합니다.
+     * 핸들러 클래스의 CrossOrigin 어노테이션을 확인하고 CORS를 설정 한다.
      *
      * @param handler 핸들러 정보
      **/
@@ -121,7 +121,7 @@ public class HandlerExecutor {
     }
 
     /**
-     * 핸들러를 실행하고 반환 값을 반환합니다.
+     * 핸들러를 실행하고 반환 값을 반환한다.
      *
      * @param handler 핸들러 정보
      * @return 핸들러의 반환 값
@@ -137,7 +137,7 @@ public class HandlerExecutor {
     }
 
     /**
-     * 핸들러 실행시 필요한 파라미터 목록을 생성합니다.
+     * 핸들러 실행시 필요한 파라미터 목록을 생성한다.
      * 
      * @param handlerParameters 핸들러 클래스의 파라미터 정보
      * @return 핸들러의 파라미터 목록
@@ -152,7 +152,7 @@ public class HandlerExecutor {
     }
 
     /**
-     * 핸들러 파라미터를 생성 후 반환합니다.
+     * 핸들러 파라미터를 생성 후 반환한다.
      *
      * @param handlerParameter 핸들러 파라미터 정보
      * @return 생성된 파라미터 인스턴스
@@ -182,7 +182,7 @@ public class HandlerExecutor {
     }
 
     /**
-     * 핸들러 실행시 필요한 파라미터를 생성합니다.
+     * 핸들러 실행시 필요한 파라미터를 생성한다.
      *
      * @param value 값
      * @param type 타입

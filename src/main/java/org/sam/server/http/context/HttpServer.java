@@ -13,7 +13,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * HTTP 서버의 시작점으로써, 서버 소켓을 생성하고 쓰헤드 풀을 생성하여 요청을 HttpLauncher로 위임합니다.
+ * HTTP 서버의 시작점으로써, 서버 소켓을 생성하고 쓰헤드 풀을 생성하여 요청을 HttpLauncher로 위임한다.
  *
  * @author hypernova1
  * @see org.sam.server.context.BeanContainer
@@ -29,7 +29,7 @@ public class HttpServer implements Runnable {
     }
 
     /**
-     * 애플리케이션을 시작합니다. 서버가 종료될 때 까지 무한 루프를 돌며 쓰레드를 생성하고 요청을 HttpLauncher에 위임합니다.
+     * 애플리케이션을 시작한다. 서버가 종료될 때 까지 무한 루프를 돌며 쓰레드를 생성하고 요청을 HttpLauncher에 위임한다.
      *
      * @see HttpLauncher
      * */
@@ -52,7 +52,7 @@ public class HttpServer implements Runnable {
     }
 
     /*
-    * 스레드 풀을 생성합니다.
+    * 스레드 풀을 생성한다.
     * **/
     private static ThreadPoolExecutor getThreadPoolExecutor() {
         String maximumPoolSizeValue = ServerProperties.get("server.maximum-pool-size");

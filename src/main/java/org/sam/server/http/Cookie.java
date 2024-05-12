@@ -8,7 +8,7 @@ import java.util.Objects;
 import java.util.TimeZone;
 
 /**
- * HTTP 쿠키 클래스입니다.
+ * HTTP 쿠키 클래스
  *
  * @author hypernova1
  * @see org.sam.server.http.CookieStore
@@ -31,7 +31,7 @@ public class Cookie {
     }
 
     /**
-     * 쿠키의 유효 날짜 및 시간을 반환합니다.
+     * 쿠키의 유효 날짜 및 시간을 반환한다.
      *
      * @param minutes 유효 시간
      * @return 쿠키의 유효 날짜 및 시간
@@ -44,7 +44,7 @@ public class Cookie {
     }
 
     /**
-     * 쿠키의 만료 시간 반환합니다.
+     * 쿠키의 만료 시간 반환한다.
      * 
      * @return 쿠키 만료 시간
      * */
@@ -53,7 +53,7 @@ public class Cookie {
     }
 
     /**
-     * 쿠키의 이름을 반환합니다.
+     * 쿠키의 이름을 반환한다.
      *
      * @return 쿠키 이름
      * */
@@ -62,7 +62,7 @@ public class Cookie {
     }
 
     /**
-     * 쿠키의 이름을 설정합니다.
+     * 쿠키의 이름을 설정한다.
      * 
      * @param name 쿠키 이름
     * */
@@ -71,7 +71,7 @@ public class Cookie {
     }
 
     /**
-     * 쿠키의 값을 반환합니다.
+     * 쿠키의 값을 반환한다.
      * 
      * @return 쿠키 값
      * */
@@ -80,7 +80,7 @@ public class Cookie {
     }
 
     /**
-     * 쿠키의 값을 설정합니다.
+     * 쿠키의 값을 설정한다.
      * 
      * @param value 쿠키 값
      * */
@@ -89,7 +89,7 @@ public class Cookie {
     }
 
     /**
-     * 쿠키의 Max-Age을 설정합니다.
+     * 쿠키의 Max-Age을 설정한다.
      *
      * @param minutes 유효 시간
      * */
@@ -99,7 +99,7 @@ public class Cookie {
     }
 
     /**
-     * 쿠키의 유효 시간을 반환합니다.
+     * 쿠키의 유효 시간을 반환한다.
      * 
      * @return 유효 시간
      * */
@@ -108,7 +108,7 @@ public class Cookie {
     }
 
     /**
-     * 쿠키가 적용되어야 하는 호스트를 반환합니다.
+     * 쿠키가 적용되어야 하는 호스트를 반환한다.
      * 
      * @return 호스트명
      * */
@@ -117,7 +117,7 @@ public class Cookie {
     }
 
     /**
-     * 쿠키가 적용되어야 하는 호스트를 설정합니다.
+     * 쿠키가 적용되어야 하는 호스트를 설정한다.
      * 
      * @param domain 도메인명
      * */
@@ -126,7 +126,7 @@ public class Cookie {
     }
 
     /**
-     * HTTP-only 유무를 반환합니다.
+     * HTTP-only 유무를 반환한다.
      *
      * @return HTTP-only 유무
      * */
@@ -135,7 +135,7 @@ public class Cookie {
     }
 
     /**
-     * HTTP-only 유무를 설정합니다
+     * HTTP-only 유무를 설정한다
      * 
      * @param httpOnly 자바스크립트에서 허용 유무
      * */
@@ -144,7 +144,7 @@ public class Cookie {
     }
 
     /**
-     * Path를 반환합니다
+     * Path를 반환한다
      *
      * @return 쿠키의 범위
      * */
@@ -153,7 +153,7 @@ public class Cookie {
     }
 
     /**
-     * path를 설정합니다
+     * path를 설정한다
      * 
      * @param path 쿠키의 범위
      * */

@@ -16,7 +16,7 @@ import java.lang.reflect.Parameter;
 import java.util.*;
 
 /**
- * 빈을 생성하고 관리하는 클래스입니다.
+ * 빈을 생성하고 관리하는 클래스
  *
  * @author hypernova1
  * */
@@ -44,7 +44,7 @@ public class BeanContainer {
     }
 
     /**
-     * 컴포넌트 클래스의 인스턴스를 생성하고 저장합니다.
+     * 컴포넌트 클래스의 인스턴스를 생성하고 저장한다.
      * */
     private void loadBeans() {
         List<Class<?>> noParameterComponents = new ArrayList<>();

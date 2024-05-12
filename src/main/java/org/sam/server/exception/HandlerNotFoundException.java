@@ -1,7 +1,7 @@
 package org.sam.server.exception;
 
 /**
- * 요청에 대한 핸들러를 찾지 못했을 시 발생합니다.
+ * 요청에 대한 핸들러를 찾지 못했을 시 발생한다.
  *
  * @author hypernova1
  * */

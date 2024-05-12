@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 /**
  *
- * 핸들러 메서드 위에 선언을 하여 API 요청을 처리할 수 있도록 합니다.
+ * 핸들러 메서드 위에 선언을 하여 API 요청을 처리할 수 있도록 한다.
  *
  * @author hypernova1
  */

@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 원시 타입을 박스 타입으로 변환해주는 클래스입니다.
+ * 원시 타입을 박스 타입으로 변환해주는 클래스
  */
 public class PrimitiveWrapper {
 
@@ -26,7 +26,7 @@ public class PrimitiveWrapper {
     }
 
     /**
-     * 원시 타입의 값을 박스 타입 인스턴스로 변환합니다.
+     * 원시 타입의 값을 박스 타입 인스턴스로 변환한다.
      *
      * @param type 원시 타입
      * @param value 원시 타입 값
@@ -39,7 +39,7 @@ public class PrimitiveWrapper {
     }
 
     /**
-     * 원시 타입을 박스 타입으로 변환합니다.
+     * 원시 타입을 박스 타입으로 변환한다.
      *
      * @param type 박스 타입
      * @param value 원시 타입 값
@@ -62,7 +62,7 @@ public class PrimitiveWrapper {
     }
 
     /**
-     * 원시 타입에 해당하는 박스 타입을 반환합니다.
+     * 원시 타입에 해당하는 박스 타입을 반환한다.
      *
      * @param type 원시타명
      * @return 박싱 인스턴스

@@ -1,7 +1,7 @@
 package org.sam.server.constant;
 
 /**
- * HTTP Header에 대한 상수입니다.
+ * HTTP Header에 대한 상수
  *
  * @author hypernova1
  */

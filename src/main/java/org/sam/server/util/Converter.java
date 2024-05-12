@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * 요청 파라미터나 JSON을 인스턴슫로 변환하는 클래스입니다.
+ * 요청 파라미터나 JSON을 인스턴슫로 변환하는 클래스
  *
  * @author hypernova1
  */
@@ -19,7 +19,7 @@ public class Converter {
     private static final Gson gson = new Gson();
 
     /**
-     * 파라미터를 받아 인스턴스에 값을 넣어주고 인스턴스를 반환합니다.
+     * 파라미터를 받아 인스턴스에 값을 넣어주고 인스턴스를 반환한다.
      *
      * @param parameters 요청 파라미터
      * @param type 핸들러의 파라미터 타입
@@ -39,7 +39,7 @@ public class Converter {
     }
 
     /**
-     * 클래스의 Setter 목록을 가져옵니다.
+     * 클래스의 Setter 목록을 가져온다.
      *
      * @param clazz 클래스
      * @return Setter 목록
@@ -51,7 +51,7 @@ public class Converter {
     }
 
     /**
-     * JSON을 인스턴스로 바꾸고 반환합니다.
+     * JSON을 인스턴스로 바꾸고 반환한다.
      *
      * @param <T> 핸들러 파라미터의 클래스 타입
      * @param json 요청 JSON
@@ -63,7 +63,7 @@ public class Converter {
     }
 
     /**
-     * Setter 메서드를 실행 시킵니다.
+     * Setter 메서드를 실행 시킨다.
      *
      * @param parameters Setter의 파라미터
      * @param instance 실행할 인스턴스
@@ -81,7 +81,7 @@ public class Converter {
     }
 
     /**
-     * 인스턴를 JSON으로 변환합니다.
+     * 인스턴를 JSON으로 변환한다.
      *
      * @param object 인스턴스
      * @return JSON

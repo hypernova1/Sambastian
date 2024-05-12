@@ -1,7 +1,7 @@
 package org.sam.server.constant;
 
 /**
- * HTTP 응답 상태에 대한 상수입니다.
+ * HTTP 응답 상태 상수
  *
  * @author hypernova1
  */

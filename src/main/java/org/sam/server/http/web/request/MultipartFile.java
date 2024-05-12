@@ -5,7 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
- * multipart/form-data 요청으로 온 파일을 저장하는 클래스입니다.
+ * multipart/form-data 요청으로 온 파일을 저장하는 클래스
  *
  * @author hypernova1
  * @see HttpMultipartRequest
@@ -25,7 +25,7 @@ public class MultipartFile {
     }
 
     /**
-     * 인자로 받은 경로에 파일을 저장합니다.
+     * 인자로 받은 경로에 파일을 저장한다.
      *
      * @param path 파일을 저장할 위치
      * @throws IOException 파일을 쓰다가 오류 발생시
@@ -39,7 +39,7 @@ public class MultipartFile {
     }
 
     /**
-     * 파일의 미디어 타입을 반환합니다.
+     * 파일의 미디어 타입을 반환한다.
      *
      * @return 미디어 타입
      * */
@@ -48,7 +48,7 @@ public class MultipartFile {
     }
 
     /**
-     * 파일의 이름을 반환합니다.
+     * 파일의 이름을 반환한다.
      *
      * @return 파일 이름
      * */

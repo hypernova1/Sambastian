@@ -6,8 +6,8 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * 빈을 관리하는 클래스입니다. BeanContainer는 이미 선언 된 클래스를 기반으로 빈을 생성하지만
- * BeanFactory는 런타임시 동적으로 빈을 관리합니다.
+ * 빈을 관리하는 클래스 BeanContainer는 이미 선언 된 클래스를 기반으로 빈을 생성하지만
+ * BeanFactory는 런타임시 동적으로 빈을 관리한다.
  *
  * @author hypernova1
  * @see org.sam.server.context.BeanContainer
@@ -23,7 +23,7 @@ public class BeanFactory {
     }
 
     /**
-     * 인자로 받은 이름과, 타입에 해당하는 빈을 반환합니다.
+     * 인자로 받은 이름과, 타입에 해당하는 빈을 반환한다.
      *
      * @param <T> 빈 클래스 타입
      * @param name 빈 이름
@@ -41,7 +41,7 @@ public class BeanFactory {
     }
 
     /**
-     * 인자로 받은 타입에 해당하는 빈 목록을 반환합니다.
+     * 인자로 받은 타입에 해당하는 빈 목록을 반환한다.
      *
      * @param type 빈 타입
      * @return 빈 목록
@@ -61,7 +61,7 @@ public class BeanFactory {
     }
 
     /**
-     * 인자로 받은 인스턴스를 빈으로 만들어 저장합니다.
+     * 인자로 받은 인스턴스를 빈으로 만들어 저장한다.
      *
      * @param <T> 인스턴스 타입
      * @param name 빈 이름
@@ -79,7 +79,7 @@ public class BeanFactory {
     }
 
     /**
-     * 해당 클래스 타입과 일치하는 빈의 클래스 타입을 반환합니다.
+     * 해당 클래스 타입과 일치하는 빈의 클래스 타입을 반환한다.
      *
      * @param classes 빈 클래스 타입 목록
      * @param type 확인할 클래스 타입

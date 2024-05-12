@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
- * 실행할 핸들러를 찾는 클래스입니다.
+ * 실행할 핸들러를 찾는 클래스
  *
  * @author hypernova1
  */
@@ -49,7 +49,7 @@ public class HandlerFinder {
     }
 
     /**
-     * 인스턴스를 생성합니다.
+     * 인스턴스를 생성한다.
      *
      * @param request 요청 인스턴스
      * @param response 응답 인스턴스
@@ -60,7 +60,7 @@ public class HandlerFinder {
     }
 
     /**
-     * 핸들러 클래스를 탐색하여 해당하는 핸들러의 정보를 담은 인스턴스를 생성합니다.
+     * 핸들러 클래스를 탐색하여 해당하는 핸들러의 정보를 담은 인스턴스를 생성한다.
      *
      * @return 핸들러 정보 인스턴스
      * @throws HandlerNotFoundException 홴들러를 찾지 못 했을 시
@@ -84,7 +84,7 @@ public class HandlerFinder {
     }
 
     /**
-     * 핸들러 클래스 내부의 핸들러 메서드를 찾습니다.
+     * 핸들러 클래스 내부의 핸들러 메서드를 찾는다.
      *
      * @return 핸들러 메서드
      * @throws HandlerNotFoundException 핸들러를 찾지 못 했을 시
@@ -101,7 +101,7 @@ public class HandlerFinder {
     }
 
     /**
-     * 어노테이션의 정보와 요청 정보가 일치하는 핸들러의 메서드를 반환합니다.
+     * 어노테이션의 정보와 요청 정보가 일치하는 핸들러의 메서드를 반환한다.
      *
      * @param handlerMethods 핸들러 메서드 목록
      * @return 핸들러 메서드
@@ -113,7 +113,7 @@ public class HandlerFinder {
     }
 
     /**
-     * 핸들러 메서드가 요청과 일치히는지 확인합니다.
+     * 핸들러 메서드가 요청과 일치히는지 확인한다.
      *
      * @param handlerMethod 한들러 메서드
      * @return 일치여부
@@ -126,7 +126,7 @@ public class HandlerFinder {
     }
 
     /**
-     * 일반 핸들러 메서드와 url 내에 파라미터가 있는 핸들러를 분류합니다.
+     * 일반 핸들러 메서드와 url 내에 파라미터가 있는 핸들러를 분류한다.
      *
      * @param handlerClass 핸들러 클래스
      * */
@@ -138,7 +138,7 @@ public class HandlerFinder {
     }
 
     /**
-     * 일반 핸들러 메서드와 url 내에 파라미터가 있는 핸들러를 분류합니다.
+     * 일반 핸들러 메서드와 url 내에 파라미터가 있는 핸들러를 분류한다.
      *
      * @param handlerMethod 핸들러 메서드
      * */
@@ -150,7 +150,7 @@ public class HandlerFinder {
     }
 
     /**
-     * 일반 핸들러 메서드와 url 내에 파라미터가 있는 핸들러를 분류합니다.
+     * 일반 핸들러 메서드와 url 내에 파라미터가 있는 핸들러를 분류한다.
      *
      * @param handlerMethod 핸들러 메서드
      * @param handlerAnnotation 핸들러 메서드의 어노테이션
@@ -170,7 +170,7 @@ public class HandlerFinder {
     }
 
     /**
-     * 요청 정보와 핸들러 메서드의 정보가 일치하는지 비교합니다.
+     * 요청 정보와 핸들러 메서드의 정보가 일치하는지 비교한다.
      *
      * @param handlerMethod 핸들러 메서드
      * @param annotation 핸들러 메서드에 선언된 어노테이션
@@ -197,7 +197,7 @@ public class HandlerFinder {
     }
 
     /**
-     * 핸들러 메서드의 url을 가져옵니다.
+     * 핸들러 메서드의 url을 가져온다.
      *
      * @param annotation 핸들러 메서드의 어노테이션
      * @return url
@@ -212,7 +212,7 @@ public class HandlerFinder {
     }
 
     /**
-     * URL과 HTTP Method가 일치하는지 비교합니다.
+     * URL과 HTTP Method가 일치하는지 비교한다.
      *
      * @param handlerMethod 핸들러 메서드
      * @param handlerMethodPath 핸들러 메서드의 URL
@@ -238,7 +238,7 @@ public class HandlerFinder {
     }
 
     /**
-     * 핸들러 메서드의 url과 요청 url이 같은지에 대한 여부를 반환합니다.
+     * 핸들러 메서드의 url과 요청 url이 같은지에 대한 여부를 반환한다.
      *
      * @param handlerMethod 핸들러 메서드
      * @param handlerMethodPath 핸들러 메서드의 url
@@ -258,7 +258,7 @@ public class HandlerFinder {
     }
 
     /**
-     * URL에 파라미터가 포함된 핸들러 메서드를 찾습니다.
+     * URL에 파라미터가 포함된 핸들러 메서드를 찾는다.
      *
      * @param requestPath 요청 URL
      * @param path 핸들러 메서드의 URL
@@ -277,7 +277,7 @@ public class HandlerFinder {
     }
 
     /**
-     * 핸들러 메서드에 PathValue 어노테이션이 선언되어 있는지 확인합니다.
+     * 핸들러 메서드에 PathValue 어노테이션이 선언되어 있는지 확인한다.
      *
      * @param handlerMethod 핸들러 메서드
      * @return PathValue 선언 여부
@@ -289,7 +289,7 @@ public class HandlerFinder {
     }
 
     /**
-     * 경로에 URL이 포함 된 핸들러 메서드가 일치하는 지 확인합니다.
+     * 경로에 URL이 포함 된 핸들러 메서드가 일치하는 지 확인한다.
      *
      * @param requestPath 요청 URL
      * @param path 핸들러 메서드 URL
@@ -318,7 +318,7 @@ public class HandlerFinder {
     }
 
     /**
-     * 요청 URL과 핸들러 클래스의 URL을 비교하고 처음 부분이 일치한다면 그 부분만큼 요청 URL을 잘라내고 반환합니다.
+     * 요청 URL과 핸들러 클래스의 URL을 비교하고 처음 부분이 일치한다면 그 부분만큼 요청 URL을 잘라내고 반환한다.
      *
      * @return 수정된 요청 URL
      * */
@@ -341,7 +341,7 @@ public class HandlerFinder {
     }
 
     /**
-     * 요청 URL과 핸들러 클래스의 URL을 비교하고 처음 부분이 일치한다면 그 부분만큼 요청 URL을 잘라내고 반환합니다.
+     * 요청 URL과 핸들러 클래스의 URL을 비교하고 처음 부분이 일치한다면 그 부분만큼 요청 URL을 잘라내고 반환한다.
      *
      * @param requestPath 요청 URL
      * @return 수정된 요청 URL
@@ -354,7 +354,7 @@ public class HandlerFinder {
     }
 
     /**
-     * 핸들러 메서드인지 확인합니다.
+     * 핸들러 메서드인지 확인한다.
      *
      * @param annotation 홴들러 메서드의 어노테이션
      * @return 핸들러 메서드인지 여부
@@ -364,7 +364,7 @@ public class HandlerFinder {
     }
 
     /**
-     * URL 내에 파라미터가 포함되어 있는지 확인합니다.
+     * URL 내에 파라미터가 포함되어 있는지 확인한다.
      *
      * @param url URL
      * @return 파라미터 포함 여부
@@ -374,7 +374,7 @@ public class HandlerFinder {
     }
 
     /**
-     * 파라미터에 PathValue 어노테이션이 선언되어 있는지 확인합니다.
+     * 파라미터에 PathValue 어노테이션이 선언되어 있는지 확인한다.
      *
      * @param parameter 파라미터
      * @return PathValue 어노테이션 선언 여부
@@ -384,7 +384,7 @@ public class HandlerFinder {
     }
 
     /**
-     * 핸들러 메서드의 Http Method를 확인합니다.
+     * 핸들러 메서드의 Http Method를 확인한다.
      *
      * @param annotation 핸들러 메서드
      * @return 핸들러 메서드의 Http Method
@@ -396,7 +396,7 @@ public class HandlerFinder {
     }
 
     /**
-     * 요청 메서드가 HEAD인지 여부를 반환합니다.
+     * 요청 메서드가 HEAD인지 여부를 반환한다.
      *
      * @param handlerHttpMethod 핸들러 메서드의 Method
      * @return HEAD 메서드인지 여부
