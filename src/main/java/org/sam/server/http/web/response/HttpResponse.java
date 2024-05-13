@@ -12,8 +12,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * 요청을 해석하고 응답하는 클래스. 정적 자원을 반환한다.
@@ -104,6 +109,26 @@ public class HttpResponse implements Response {
      * */
     private long readStaticResource(String filePath) {
         InputStream fis = Thread.currentThread().getContextClassLoader().getResourceAsStream(filePath);
+        try {
+            ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(Paths.get(System.getProperty("java.class.path"))));
+            ZipEntry entry;
+            while ((entry = zipInputStream.getNextEntry()) != null) {
+                if (entry.getName().equals(filePath)) {
+                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                    byte[] buffer = new byte[1024];
+                    int length;
+                    while ((length = zipInputStream.read(buffer)) != -1) {
+                        outputStream.write(buffer, 0, length);
+                    }
+                    fis = new ByteArrayInputStream(outputStream.toByteArray());
+                    System.out.println(fis);
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         File staticFile = new File("src/main" + filePath);
         if (fis == null && !staticFile.exists()) {
             notFound();
