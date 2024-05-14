@@ -137,9 +137,10 @@ public class BeanContainer {
                 Object instance = declaredMethod.invoke(componentInstance);
                 String beanName = declaredMethod.getName();
                 addBeanMap(beanType, instance, beanName);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
+            } catch (IllegalAccessException e) {
                 throw new BeanAccessModifierException();
+            } catch (InvocationTargetException e) {
+                throw new RuntimeException(e);
             }
         }
     }
@@ -216,8 +217,10 @@ public class BeanContainer {
             }
 
             return constructor.newInstance(parameters.toArray());
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+        } catch (InstantiationException | IllegalAccessException e) {
             throw new BeanCreationException(clazz);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
         }
 
     }
