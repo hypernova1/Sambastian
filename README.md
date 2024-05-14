@@ -2,7 +2,7 @@
 Implementing HTTP Server Framework using java socket.
 
 #### [document](https://hypernova1.github.io/java-http-server-doc/)
-#### [Sample Project](https://github.com/hypernova1/Java-Http-Server-Sample)
+#### [Sample Project](https://github.com/hypernova1/sambastian-sample)
 #### [Template](https://github.com/hypernova1/sambastian-template)
 
 ### How to use
@@ -31,6 +31,7 @@ src/
 ##### 3. initial setting
 filename: resources/static/resource/application.properties
 ~~~properties
+root-package-name=[root package name] # required
 server.port=[port number]
 server.maximum-pool-size=[maximum thread pool size]
 file-buffer-size=[file buffer size]
@@ -51,5 +52,5 @@ public class Application {
 ##### 5. execute program
 ~~~
 22:26:34.015 [main] INFO  org.sam.server.HttpServer - server started..
-22:26:34.019 [main] INFO  org.sam.server.HttpServer - server port: 8081
+22:26:34.019 [main] INFO  org.sam.server.HttpServer - server port: 8080
 ~~~

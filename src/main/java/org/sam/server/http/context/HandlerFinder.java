@@ -24,6 +24,8 @@ import java.util.stream.Stream;
  * 실행할 핸들러를 찾는 클래스
  *
  * @author hypernova1
+ *
+ * @TODO: 주소 비교 방식 변경해야함
  */
 public class HandlerFinder {
 
@@ -189,9 +191,11 @@ public class HandlerFinder {
             String requestUrl = getRequestUrlWithoutHandlerPath();
             String handlerMethodPath = getHandlerMethodPath(annotation);
             if (requestUrl.equals(request.getUrl())) {
+                if (this.handlerClassPath.equals("/")) {
+                    this.handlerClassPath = "";
+                }
                 handlerMethodPath = this.handlerClassPath + handlerMethodPath;
             }
-
 
             HttpMethod handlerHttpMethod = getHandlerHttpMethod(annotation);
             if (isMatchedHandlerMethod(handlerMethod, handlerMethodPath, handlerHttpMethod)) {
