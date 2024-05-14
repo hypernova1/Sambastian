@@ -120,6 +120,6 @@ public interface Request {
      *
      * @return 인덱스 페이지 여부
      * */
-    boolean isIndexRequest();
+    boolean isRootRequest();
 
 }

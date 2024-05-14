@@ -125,7 +125,7 @@ public class HttpRequest implements Request {
     }
 
     @Override
-    public boolean isIndexRequest() {
+    public boolean isRootRequest() {
         return this.getUrl().equals("/") && this.getMethod().equals(HttpMethod.GET);
     }
 

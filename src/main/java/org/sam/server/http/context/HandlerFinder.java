@@ -65,6 +65,8 @@ public class HandlerFinder {
      * @return 핸들러 정보 인스턴스
      * @throws HandlerNotFoundException 홴들러를 찾지 못 했을 시
      * @see Handler
+     *
+     * TODO: 핸들러 찾는 알고리즘 변경해야함.
      * */
     public Handler createHandlerInfo() throws HandlerNotFoundException {
         List<Object> handlerInstances = beanContainer.getHandlerBeans();
@@ -74,12 +76,15 @@ public class HandlerFinder {
             this.handlerClassPath = handlerType.getDeclaredAnnotation(org.sam.server.annotation.component.Handler.class).value();
             Method handlerMethod = findHandlerMethod();
             if (handlerMethod == null) continue;
+            if (!handlerInstance.getClass().equals(handlerMethod.getDeclaringClass())) {
+                continue;
+            }
             return Handler.of(handlerInstance, handlerMethod);
         }
 
-        if (existsPath) {
-            response.methodNotAllowed();
-        }
+//        if (existsPath) {
+//            response.methodNotAllowed();
+//        }
         throw new HandlerNotFoundException();
     }
 
@@ -183,10 +188,10 @@ public class HandlerFinder {
         try {
             String requestUrl = getRequestUrlWithoutHandlerPath();
             String handlerMethodPath = getHandlerMethodPath(annotation);
-
             if (requestUrl.equals(request.getUrl())) {
                 handlerMethodPath = this.handlerClassPath + handlerMethodPath;
             }
+
 
             HttpMethod handlerHttpMethod = getHandlerHttpMethod(annotation);
             if (isMatchedHandlerMethod(handlerMethod, handlerMethodPath, handlerHttpMethod)) {

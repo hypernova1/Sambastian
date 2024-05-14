@@ -53,7 +53,7 @@ public class HttpLauncher {
             return;
         }
 
-        if (request.isIndexRequest()) {
+        if (request.isRootRequest()) {
             response.indexFile();
             return;
         }

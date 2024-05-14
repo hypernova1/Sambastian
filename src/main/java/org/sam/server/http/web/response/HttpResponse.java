@@ -76,7 +76,11 @@ public class HttpResponse implements Response {
     public void execute(String pathOrJson, HttpStatus status) {
         this.httpStatus = status;
         try {
-            if (getContentMimeType().equals(ContentType.APPLICATION_JSON) && !requestMethod.equals(HttpMethod.OPTIONS)) {
+            //TODO: 응답 타입에 따라 응답 환경 설정 변경해야함.
+            if (status.isError()) {
+                this.fileLength = readStaticResource(pathOrJson);
+                this.setContentMimeType(ContentType.TEXT_HTML);
+            } else if (getContentMimeType().equals(ContentType.APPLICATION_JSON) && !requestMethod.equals(HttpMethod.OPTIONS)) {
                 this.fileLength = readJson(pathOrJson);
             } else if (allowedMethods.isEmpty()) {
                 this.fileLength = readStaticResource(pathOrJson);
@@ -109,24 +113,13 @@ public class HttpResponse implements Response {
      * */
     private long readStaticResource(String filePath) {
         InputStream fis = Thread.currentThread().getContextClassLoader().getResourceAsStream(filePath);
-        try {
-            ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(Paths.get(System.getProperty("java.class.path"))));
-            ZipEntry entry;
-            while ((entry = zipInputStream.getNextEntry()) != null) {
-                if (entry.getName().equals(filePath)) {
-                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                    byte[] buffer = new byte[1024];
-                    int length;
-                    while ((length = zipInputStream.read(buffer)) != -1) {
-                        outputStream.write(buffer, 0, length);
-                    }
-                    fis = new ByteArrayInputStream(outputStream.toByteArray());
-                    System.out.println(fis);
-                    break;
-                }
+
+        //TODO: 클래스 패스가 아닌 다른 방법으로 jar 판별하도록 변경
+        if (System.getProperty("java.class.path").startsWith("/target")) {
+            InputStream fisFromJar = findResourceFromJar(filePath);
+            if (fisFromJar != null) {
+                fis = fisFromJar;
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
 
         File staticFile = new File("src/main" + filePath);
@@ -150,6 +143,26 @@ public class HttpResponse implements Response {
             throw new RuntimeException(e);
         }
         return fileLength;
+    }
+
+    private static InputStream findResourceFromJar(String filePath) {
+        try (ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(Paths.get(System.getProperty("java.class.path"))));) {
+            ZipEntry entry;
+            while ((entry = zipInputStream.getNextEntry()) != null) {
+                if (entry.getName().equals(filePath)) {
+                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                    byte[] buffer = new byte[1024];
+                    int length;
+                    while ((length = zipInputStream.read(buffer)) != -1) {
+                        outputStream.write(buffer, 0, length);
+                    }
+                    return new ByteArrayInputStream(outputStream.toByteArray());
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return null;
     }
 
     /**
@@ -326,7 +339,7 @@ public class HttpResponse implements Response {
 
     @Override
     public void notFound() {
-        logger.warn("File " + requestPath + " not found");
+        logger.warn("not found " + requestPath);
         execute(NOT_FOUND_PAGE, HttpStatus.NOT_FOUND);
     }
 
@@ -345,7 +358,8 @@ public class HttpResponse implements Response {
     @Override
     public void indexFile() {
         if (this.requestPath.endsWith("/")) {
-            filePath = DEFAULT_FILE_PAGE;
+//            filePath = DEFAULT_FILE_PAGE;
+            filePath = "static/index.html";
         }
         this.contentMimeType = ContentType.TEXT_HTML.getValue();
         execute(filePath, HttpStatus.OK);

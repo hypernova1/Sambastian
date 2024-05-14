@@ -45,36 +45,13 @@ public class BeanClassLoader {
         this.rootPackageName = ServerProperties.get("root-package-name");
         String path = rootPackageName.replace(".", "/");
         try {
-            Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources(path);
             List<Class<?>> classes = new ArrayList<>();
 
             //TODO: 현재는 class path 기준으로 ide 실행인지, jar 실행인지 구분하고 있음 추후 다른 안전한 방식으로 변경해야함
             if (System.getProperty("java.class.path").startsWith("target/")) {
-                ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(Paths.get(System.getProperty("java.class.path"))));
-                ZipEntry entry;
-                while ((entry = zipInputStream.getNextEntry()) != null) {
-                    if (!entry.getName().startsWith(path)) {
-                        continue;
-                    }
-
-                    if (entry.getName().endsWith(".class")) {
-                        try {
-                            String className = entry.getName()
-                                    .replace("/", ".")
-                                    .replace(".class", "");
-                            Class<?> clazz = Class.forName(className);
-                            classes.add(clazz);
-                        } catch (ClassNotFoundException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                }
+                retrieveFromJar(path, classes);
             } else {
-                while (resources.hasMoreElements()) {
-                    URL resource = resources.nextElement();
-                    File directory = new File(resource.getFile());
-                    classes.addAll(createClasses(directory, rootPackageName));
-                }
+                retrieveFromPath(path, classes);
             }
 
             this.loadHandlerClasses(classes);
@@ -82,6 +59,37 @@ public class BeanClassLoader {
             this.loadInterceptorClasses(classes);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void retrieveFromPath(String path, List<Class<?>> classes) throws IOException {
+        Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources(path);
+        while (resources.hasMoreElements()) {
+            URL resource = resources.nextElement();
+            File directory = new File(resource.getFile());
+            classes.addAll(createClasses(directory, rootPackageName));
+        }
+    }
+
+    private static void retrieveFromJar(String path, List<Class<?>> classes) throws IOException {
+        ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(Paths.get(System.getProperty("java.class.path"))));
+        ZipEntry entry;
+        while ((entry = zipInputStream.getNextEntry()) != null) {
+            if (!entry.getName().startsWith(path)) {
+                continue;
+            }
+
+            if (entry.getName().endsWith(".class")) {
+                try {
+                    String className = entry.getName()
+                            .replace("/", ".")
+                            .replace(".class", "");
+                    Class<?> clazz = Class.forName(className);
+                    classes.add(clazz);
+                } catch (ClassNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
     }
 

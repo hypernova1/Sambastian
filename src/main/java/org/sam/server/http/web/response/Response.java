@@ -16,7 +16,8 @@ import java.util.Set;
  * */
 public interface Response {
 
-    String DEFAULT_FILE_PAGE = "static/index.html";
+    //TODO: jar 빌드시 sambastian 의 리소스가 우선적으로 적용이 되어 해결 필요함.
+    String DEFAULT_FILE_PAGE = "static/index2.html";
     String BAD_REQUEST_PAGE = "static/400.html";
     String NOT_FOUND_PAGE = "static/404.html";
     String FAVICON = "favicon.ico";
