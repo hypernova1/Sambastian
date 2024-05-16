@@ -30,7 +30,28 @@ public class HttpLauncher {
             if (request == null) {
                 return;
             }
+
             Response response = HttpResponse.of(connect.getOutputStream(), request.getUrl(), request.getMethod());
+            if (request.isFaviconRequest()) {
+                response.favicon();
+                return;
+            }
+            if (request.isResourceRequest()) {
+                response.staticResources();
+                return;
+            }
+
+            if (request.isRootRequest()) {
+                response.indexFile();
+                return;
+            }
+
+            if (request.isOptionsRequest()) {
+                response.allowedMethods();
+                return;
+            }
+
+            //TODO: 핸들러 실행 후에 Response 생성하도록 수정
             findHandler(request, response);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -44,25 +65,6 @@ public class HttpLauncher {
      * @param response 응답 인스턴스
      */
     private static void findHandler(Request request, Response response) {
-        if (request.isFaviconRequest()) {
-            response.favicon();
-            return;
-        }
-        if (request.isResourceRequest()) {
-            response.staticResources();
-            return;
-        }
-
-        if (request.isRootRequest()) {
-            response.indexFile();
-            return;
-        }
-
-        if (request.isOptionsRequest()) {
-            response.allowedMethods();
-            return;
-        }
-
         try {
             HandlerFinder handlerFinder = HandlerFinder.of(request, response);
             Handler handlerInfo = handlerFinder.createHandlerInfo();

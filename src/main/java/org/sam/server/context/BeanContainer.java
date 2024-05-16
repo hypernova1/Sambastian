@@ -26,7 +26,7 @@ public class BeanContainer {
 
     private static final Logger logger = LoggerFactory.getLogger(BeanContainer.class);
 
-    private final Map<Class<?>, List<BeanInfo>> beanMap = new HashMap<>();
+    private final Map<Class<?>, List<BeanInfo>> beanInfoMap = new HashMap<>();
 
     private final List<Object> handlerBeans = new ArrayList<>();
 
@@ -34,11 +34,8 @@ public class BeanContainer {
 
     private final BeanClassLoader beanClassLoader;
 
-    private final List<Class<?>> componentClasses;
-
-    private BeanContainer() {
-        this.beanClassLoader = BeanClassLoader.getInstance();
-        this.componentClasses = beanClassLoader.getComponentClasses();
+    private BeanContainer(BeanClassLoader beanClassLoader) {
+        this.beanClassLoader = beanClassLoader;
 
         loadBeans();
         loadHandler();
@@ -51,7 +48,7 @@ public class BeanContainer {
     private void loadBeans() {
         List<Class<?>> noParameterComponents = new ArrayList<>();
         List<Class<?>> parameterComponents = new ArrayList<>();
-        for (Class<?> componentClass : componentClasses) {
+        for (Class<?> componentClass : beanClassLoader.getComponentClasses()) {
             try {
                 componentClass.getConstructor();
                 noParameterComponents.add(componentClass);
@@ -70,7 +67,7 @@ public class BeanContainer {
     private void createNoParameterBeans(List<Class<?>> componentClasses) {
         for (Class<?> componentClass : componentClasses) {
             this.createClassBeanWithDeclaredMethodBeans(componentClass);
-            this.componentClasses.remove(componentClass);
+            this.beanClassLoader.getComponentClasses().remove(componentClass);
         }
     }
 
@@ -83,44 +80,52 @@ public class BeanContainer {
             Iterator<Class<?>> iterator = componentClasses.iterator();
             while (iterator.hasNext()) {
                 Class<?> componentClass = iterator.next();
-                boolean isCreated = this.createClassBeanWithDeclaredMethodBeans(componentClass);
-                if (isCreated) {
-                    iterator.remove();
-                    circularReferences.clear();
+                if (existsBean(componentClass)) {
                     continue;
                 }
 
-                circularReferences.add(componentClass);
-                boolean isCircularReferences = circularReferences.get(0) == circularReferences.get(circularReferences.size() - 1) && circularReferences.size() > 1;
-                if (isCircularReferences) {
-                    String circularReferenceInfo = circularReferences.stream().map(Class::getName).collect(Collectors.joining(" -> "));
-                    throw new CircularReferenceException(circularReferenceInfo);
+                boolean isCreated = this.createClassBeanWithDeclaredMethodBeans(componentClass);
+                if (!isCreated) {
+                    checkCircularReferences(circularReferences, componentClass);
+                    continue;
                 }
+
+                iterator.remove();
+                circularReferences.clear();
             }
         }
+    }
+
+    /**
+     * 순환 참조 여부를 확인한다.
+     * */
+    private static void checkCircularReferences(List<Class<?>> circularReferences, Class<?> componentClass) {
+        circularReferences.add(componentClass);
+        if (circularReferences.size() == 1) {
+            return;
+        }
+
+        boolean isCircularReferences = circularReferences.get(0) == circularReferences.get(circularReferences.size() - 1);
+        if (!isCircularReferences) {
+            return;
+        }
+
+        String circularReferenceInfo = circularReferences.stream().map(Class::getName).collect(Collectors.joining(" -> "));
+        throw new CircularReferenceException(circularReferenceInfo);
     }
 
     /**
      * 클래스 빈을 생성한다. 내부 메서드에 @Bean 이 선언되어 있으면 해당 메서드의 반환 값을 빈으로 생성한다.
      */
     private boolean createClassBeanWithDeclaredMethodBeans(Class<?> componentClass) {
-        Object instance = this.createClassBeanOrNull(componentClass);
+        Object instance = createComponentInstanceOrNull(componentClass);
         if (instance == null) {
             return false;
         }
         addBeanMap(componentClass, instance, getBeanName(componentClass));
+
         this.createMethodBean(instance);
         return true;
-    }
-
-    /**
-     * 클래스 빈을 생성한다.
-     */
-    private Object createClassBeanOrNull(Class<?> componentClass) {
-        if (existsBean(componentClass)) {
-            return null;
-        }
-        return createComponentInstanceOrNull(componentClass);
     }
 
     /**
@@ -143,6 +148,7 @@ public class BeanContainer {
             if (declaredMethod.getDeclaredAnnotation(Bean.class) == null) {
                 continue;
             }
+
             try {
                 Class<?> beanType = declaredMethod.getReturnType();
                 Object instance = declaredMethod.invoke(componentInstance);
@@ -165,14 +171,16 @@ public class BeanContainer {
      */
     private void addBeanMap(Class<?> componentType, Object componentInstance, String beanName) {
         BeanInfo beanInfo = BeanInfo.of(beanName, componentInstance);
-        logger.info("create bean: " + beanName + " > " + componentType.getName());
-        if (beanMap.get(componentType) != null) {
-            beanMap.get(componentType).add(beanInfo);
+
+        if (beanInfoMap.get(componentType) != null) {
+            beanInfoMap.get(componentType).add(beanInfo);
             return;
         }
         List<BeanInfo> beanInfoList = new ArrayList<>();
         beanInfoList.add(beanInfo);
-        beanMap.put(componentType, beanInfoList);
+        beanInfoMap.put(componentType, beanInfoList);
+
+        logger.info("create bean: {} > {}", beanName, componentType.getName());
     }
 
     /**
@@ -257,49 +265,11 @@ public class BeanContainer {
     }
 
     /**
-     * @param parameters 생성자 파라미터 목록
-     * @return 빈 목록
-     * @deprecated 빈 생성시 필요한 파라미터를 생성 후 반환한다.
-     */
-    private List<Object> createParameters(Parameter[] parameters) {
-        List<Object> parameterList = new ArrayList<>();
-        for (Parameter parameter : parameters) {
-            try {
-                BeanInfo beanInfo = this.getBeanInfo(parameter);
-                if (beanInfo == null) continue;
-                parameterList.add(beanInfo.getBeanInstance());
-            } catch (BeanNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return parameterList;
-    }
-
-    /**
      * 클래스 빈의 생성자에 주입될 빈을 가져온다.
      */
     private BeanInfo getBeanInfo(Parameter parameter) {
         String parameterName = parameter.getName();
         return findBeanInfo(parameter.getType(), parameterName);
-    }
-
-    /**
-     * @param parameter 파라미터
-     * @return BeanInfo 인스턴스
-     * @deprecated BeanInfo 인스턴스를 찾은 후 없다면 생성 후 반환한다.
-     */
-    private BeanInfo createBeanInfoOrNull(Parameter parameter) {
-        String parameterName = parameter.getName();
-        BeanInfo beanInfo = findBeanInfo(parameter.getType(), parameterName);
-        if (beanInfo != null) return beanInfo;
-        int index = this.componentClasses.indexOf(parameter.getType());
-        if (index == -1) return null;
-        Class<?> beanClass = this.componentClasses.get(index);
-        String beanName = this.getBeanName(beanClass);
-        Object beanInstance = this.createComponentInstanceOrNull(beanClass);
-        beanInfo = BeanInfo.of(beanName, beanInstance);
-        addBeanMap(parameter.getType(), beanInstance, parameterName);
-        return beanInfo;
     }
 
     /**
@@ -325,8 +295,11 @@ public class BeanContainer {
      */
     private boolean existsBean(Class<?> componentType) {
         String beanName = getBeanName(componentType);
-        List<BeanInfo> beanInfos = this.beanMap.get(componentType);
-        if (beanInfos == null) return false;
+        List<BeanInfo> beanInfos = this.beanInfoMap.get(componentType);
+        if (beanInfos == null) {
+            return false;
+        }
+
         for (BeanInfo beanInfo : beanInfos) {
             if (beanInfo.getBeanName().equals(beanName)) {
                 return true;
@@ -346,12 +319,21 @@ public class BeanContainer {
         if (!this.beanClassLoader.getComponentClasses().contains(componentType)) {
             componentType = findSuperClass(componentType);
         }
-        List<BeanInfo> beanInfos = this.beanMap.get(componentType);
-        if (beanInfos == null) return null;
-        if (beanInfos.size() == 1)
+
+        List<BeanInfo> beanInfos = this.beanInfoMap.get(componentType);
+        if (beanInfos == null) {
+            return null;
+        }
+
+        if (beanInfos.size() == 1) {
             return beanInfos.get(0);
+        }
+
         for (BeanInfo beanInfo : beanInfos) {
-            if (!beanInfo.getBeanName().equals(parameterName)) continue;
+            if (!beanInfo.getBeanName().equals(parameterName)) {
+                continue;
+            }
+
             return beanInfo;
         }
         return null;
@@ -366,7 +348,7 @@ public class BeanContainer {
      * TODO: 여러 구현체 있을 때 대응
      */
     private Class<?> findSuperClass(Class<?> componentType) {
-        Set<Class<?>> keys = this.beanMap.keySet();
+        Set<Class<?>> keys = this.beanInfoMap.keySet();
         for (Class<?> key : keys) {
             if (!componentType.isAssignableFrom(key)) continue;
             return key;
@@ -417,15 +399,15 @@ public class BeanContainer {
      * @return 빈 목록
      */
     public Map<Class<?>, List<BeanInfo>> getBeanInfoMap() {
-        return this.beanMap;
+        return this.beanInfoMap;
     }
 
     public List<BeanInfo> getBeanInfoList(Class<?> type) {
-        return this.beanMap.get(type);
+        return this.beanInfoMap.get(type);
     }
 
     private static class BeanContainerHolder {
-        public static final BeanContainer INSTANCE = new BeanContainer();
+        public static final BeanContainer INSTANCE = new BeanContainer(BeanClassLoader.getInstance());
     }
 
     public static BeanContainer getInstance() {
