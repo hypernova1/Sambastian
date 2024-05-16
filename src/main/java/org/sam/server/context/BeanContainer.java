@@ -358,7 +358,7 @@ public class BeanContainer {
     private Class<?> findSuperClass(Class<?> componentType) {
         Set<Class<?>> keys = this.beanMap.keySet();
         for (Class<?> key : keys) {
-            if (!key.isAssignableFrom(componentType)) continue;
+            if (!componentType.isAssignableFrom(key)) continue;
             return key;
         }
         return null;
