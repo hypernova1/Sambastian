@@ -9,6 +9,7 @@ public enum HttpStatus {
 
     OK("200", "OK"),
     CREATED("201", "Created"),
+    NO_CONTENT("204", "No Content"),
     BAD_REQUEST("400", "Bad Request") {
         @Override
         public boolean isError() {

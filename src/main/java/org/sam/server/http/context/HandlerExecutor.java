@@ -64,7 +64,12 @@ public class HandlerExecutor {
             } else {
                 httpStatus = HttpStatus.OK;
             }
-            String json = Converter.objectToJson(returnValue);
+
+            String json = "";
+            if (returnValue != null) {
+                json = Converter.objectToJson(returnValue);
+            }
+
             response.setContentMimeType(ContentType.APPLICATION_JSON);
             response.execute(json, httpStatus);
         } catch (IllegalArgumentException e) {

@@ -21,16 +21,36 @@ public class ResponseEntity<T> {
         this.httpStatus = httpStatus;
     }
 
+    public static <T> ResponseEntity<T> of(HttpStatus httpStatus) {
+        return new ResponseEntity<T>(httpStatus);
+    }
+
     public static <T> ResponseEntity<T> of(HttpStatus httpStatus, T value) {
         return new ResponseEntity<T>(httpStatus, value);
     }
 
+    public static <T> ResponseEntity<T> ok() {
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     public static <T> ResponseEntity<T> ok(T value) {
-        return new ResponseEntity<T>(HttpStatus.OK, value);
+        return new ResponseEntity<>(HttpStatus.OK, value);
+    }
+
+    public static <T> ResponseEntity<T> noContent() {
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    public static <T> ResponseEntity<T> notFound() {
+        return new ResponseEntity<T>(HttpStatus.OK);
     }
 
     public static <T> ResponseEntity<T> notFound(T value) {
-        return new ResponseEntity<T>(HttpStatus.NOT_FOUND, value);
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND, value);
+    }
+
+    public static <T> ResponseEntity<?> badRequest() {
+        return new ResponseEntity<T>(HttpStatus.BAD_REQUEST);
     }
 
     public static <T> ResponseEntity<?> badRequest(T value) {

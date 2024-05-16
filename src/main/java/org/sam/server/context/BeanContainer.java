@@ -354,6 +354,8 @@ public class BeanContainer {
      *
      * @param componentType 컴포넌트 타입
      * @return 빈 키
+     *
+     * TODO: 여러 구현체 있을 때 대응
      * */
     private Class<?> findSuperClass(Class<?> componentType) {
         Set<Class<?>> keys = this.beanMap.keySet();
