@@ -59,32 +59,25 @@ public class HandlerExecutor {
         setCrossOriginConfig(handlerInfo);
         SessionManager.removeExpiredSession();
         try {
-            HttpStatus httpStatus = null;
+            HttpStatus httpStatus;
             Object returnValue;
             try {
                 returnValue = executeHandlerWithInterceptor(handlerInfo);
             } catch (RuntimeException e) {
-                returnValue = this.executeExceptionHandler(e);
-                if (e.getClass().isAssignableFrom(HttpException.class)) {
-                    httpStatus = ((HttpException) e.getCause().getCause()).getStatus();
-                } else {
-                    returnValue = e.getCause().getCause().toString();
-                    httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-                }
+                returnValue = throwToResponseEntity(e);
             }
 
             if (returnValue != null && returnValue.getClass().equals(ResponseEntity.class)) {
                 ResponseEntity<?> responseEntity = (ResponseEntity<?>) returnValue;
                 httpStatus = responseEntity.getHttpStatus();
                 returnValue = responseEntity.getValue();
-            } else if (httpStatus == null) {
+            } else {
                 httpStatus = HttpStatus.OK;
             }
 
             String json = "";
             if (returnValue != null) {
                 json = Converter.objectToJson(returnValue);
-                System.out.println(json);
             }
 
             response.setContentMimeType(ContentType.APPLICATION_JSON);
@@ -93,6 +86,23 @@ public class HandlerExecutor {
             e.printStackTrace();
             response.badRequest();
         }
+    }
+
+    private ResponseEntity<?> throwToResponseEntity(RuntimeException e) {
+        HttpStatus httpStatus;
+        Object returnValue = this.executeExceptionHandler(e);
+        if (returnValue instanceof ResponseEntity<?>) {
+            return (ResponseEntity<?>) returnValue;
+        }
+
+        if (HttpException.class.isAssignableFrom(e.getCause().getCause().getClass())) {
+            httpStatus = ((HttpException) e.getCause().getCause()).getStatus();
+        } else {
+            returnValue = e.getCause().getCause().toString();
+            httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+
+        return new ResponseEntity<>(httpStatus, returnValue);
     }
 
     private Object executeExceptionHandler(Exception e) {
@@ -121,6 +131,7 @@ public class HandlerExecutor {
                 return method.invoke(handlerInstance, e.getCause().getCause());
             }
 
+            e.printStackTrace();
             return "Internal Server Error";
         } catch (InvocationTargetException | IllegalAccessException ex) {
             throw new RuntimeException(ex);
@@ -130,9 +141,13 @@ public class HandlerExecutor {
 
     private Method findSuperException(Throwable cause, List<Method> methods) {
         Class<?> causeClass = cause.getClass();
+
         while (!methods.isEmpty()) {
             Iterator<Method> iterator = methods.iterator();
             causeClass = causeClass.getSuperclass();
+            if (causeClass == null) {
+                return null;
+            }
             while (iterator.hasNext()) {
                 Method method = iterator.next();
 

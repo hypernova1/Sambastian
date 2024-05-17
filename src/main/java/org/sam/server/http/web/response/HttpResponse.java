@@ -2,7 +2,6 @@ package org.sam.server.http.web.response;
 
 import org.sam.server.common.ServerProperties;
 import org.sam.server.constant.ContentType;
-import org.sam.server.constant.HttpErrorType;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.constant.HttpStatus;
 import org.sam.server.context.ResourcesNotFoundException;
