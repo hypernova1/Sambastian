@@ -1,8 +1,8 @@
-package org.sam.server.exception;
+package org.sam.server.http.context;
 
 import org.sam.server.constant.HttpStatus;
 
-public class HttpException {
+public class HttpException extends RuntimeException {
     private final HttpStatus status;
     private final String message;
 

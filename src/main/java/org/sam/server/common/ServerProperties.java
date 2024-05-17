@@ -1,6 +1,6 @@
 package org.sam.server.common;
 
-import org.sam.server.exception.ResourcesNotFoundException;
+import org.sam.server.context.ResourcesNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

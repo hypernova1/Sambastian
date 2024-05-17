@@ -1,4 +1,4 @@
-package org.sam.server.exception;
+package org.sam.server.context;
 
 /**
  * ComponentScan 어노테이션을 찾을 수 없을 때 발생한다.

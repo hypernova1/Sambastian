@@ -1,4 +1,4 @@
-package org.sam.server.exception;
+package org.sam.server.context;
 
 /**
  * 해당 빈을 찾을 수 없을 때 발생한다.

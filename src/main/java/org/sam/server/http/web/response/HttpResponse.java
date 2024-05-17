@@ -2,11 +2,13 @@ package org.sam.server.http.web.response;
 
 import org.sam.server.common.ServerProperties;
 import org.sam.server.constant.ContentType;
+import org.sam.server.constant.HttpErrorType;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.constant.HttpStatus;
-import org.sam.server.exception.ResourcesNotFoundException;
+import org.sam.server.context.ResourcesNotFoundException;
 import org.sam.server.http.Cookie;
 import org.sam.server.http.CookieStore;
+import org.sam.server.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +18,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -73,13 +74,15 @@ public class HttpResponse implements Response {
     }
 
     @Override
-    public void execute(String pathOrJson, HttpStatus status) {
-        this.httpStatus = status;
+    public void execute(String pathOrJson, HttpStatus httpStatus) {
+        this.httpStatus = httpStatus;
         try {
             //TODO: 응답 타입에 따라 응답 환경 설정 변경해야함.
-            if (status.isError()) {
-                this.fileLength = readStaticResource(pathOrJson);
-                this.setContentMimeType(ContentType.TEXT_HTML);
+            if (httpStatus.isError()) {
+                if (StringUtils.isEmpty(pathOrJson)) {
+                    pathOrJson = httpStatus.getCode();
+                }
+                this.fileLength = readJson(pathOrJson);
             } else if (getContentMimeType().equals(ContentType.APPLICATION_JSON) && !requestMethod.equals(HttpMethod.OPTIONS)) {
                 this.fileLength = readJson(pathOrJson);
             } else if (allowedMethods.isEmpty()) {
@@ -213,10 +216,6 @@ public class HttpResponse implements Response {
      * @throws IOException 문자열을 읽다가 오류 발생시
      * */
     private int readJson(String json) throws IOException {
-        if (httpStatus.equals(HttpStatus.NOT_FOUND) || httpStatus.equals(HttpStatus.BAD_REQUEST)) {
-            return 0;
-        }
-
         byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
 
         if (!this.requestMethod.equals(HttpMethod.HEAD)) {

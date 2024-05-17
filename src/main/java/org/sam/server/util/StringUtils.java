@@ -11,8 +11,18 @@ public class StringUtils {
      * @param value 검사할 문자열
      * @return null이나 빈 값인지에 대한 여부
      * */
+    public static boolean isEmpty(String value) {
+        return value == null || value.isEmpty();
+    }
+
+    /**
+     * 문자열이 null이나 빈 값인지 확인한다.
+     *
+     * @param value 검사할 문자열
+     * @return null이나 빈 값인지에 대한 여부
+     * */
     public static boolean isNotEmpty(String value) {
-        return value != null && !value.isEmpty();
+        return !isEmpty(value);
     }
 
 }

@@ -1,6 +1,7 @@
 package org.sam.server.util;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -16,7 +17,13 @@ import java.util.stream.Collectors;
  */
 public class Converter {
 
-    private static final Gson gson = new Gson();
+    private static final Gson gson;
+
+    static {
+        gson = new GsonBuilder()
+                .serializeNulls()
+                .create();
+    }
 
     /**
      * 파라미터를 받아 인스턴스에 값을 넣어주고 인스턴스를 반환한다.

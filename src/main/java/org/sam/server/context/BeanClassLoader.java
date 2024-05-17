@@ -5,7 +5,6 @@ import org.sam.server.annotation.component.Component;
 import org.sam.server.annotation.component.Handler;
 import org.sam.server.annotation.handle.RequestMapping;
 import org.sam.server.common.ServerProperties;
-import org.sam.server.exception.ComponentScanNotFoundException;
 import org.sam.server.http.Interceptor;
 
 import java.io.File;

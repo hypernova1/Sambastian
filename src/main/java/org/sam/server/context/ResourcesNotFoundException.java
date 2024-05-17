@@ -1,4 +1,4 @@
-package org.sam.server.exception;
+package org.sam.server.context;
 
 /**
  * 요청된 정적 자원을 찾을 수 없을 시 발생한다.

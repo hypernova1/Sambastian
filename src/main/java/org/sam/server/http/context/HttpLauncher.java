@@ -1,7 +1,7 @@
 package org.sam.server.http.context;
 
 import org.sam.server.context.Handler;
-import org.sam.server.exception.HandlerNotFoundException;
+import org.sam.server.context.HandlerNotFoundException;
 import org.sam.server.http.web.request.HttpRequest;
 import org.sam.server.http.web.response.HttpResponse;
 import org.sam.server.http.web.request.Request;

@@ -1,12 +1,14 @@
 package org.sam.server.http.context;
 
 import org.sam.server.annotation.CrossOrigin;
+import org.sam.server.annotation.ExceptionResponse;
 import org.sam.server.annotation.handle.JsonRequest;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpStatus;
 import org.sam.server.context.BeanContainer;
 import org.sam.server.context.Handler;
 import org.sam.server.http.*;
+import org.sam.server.http.web.HttpExceptionHandler;
 import org.sam.server.http.web.request.HttpRequest;
 import org.sam.server.http.web.request.Request;
 import org.sam.server.http.web.response.HttpResponse;
@@ -15,17 +17,19 @@ import org.sam.server.http.web.response.ResponseEntity;
 import org.sam.server.util.Converter;
 import org.sam.server.util.PrimitiveWrapper;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 핸들러를 실행 시키는 클래스
  *
  * @author hypernova1
  * @see HandlerExecutor
- * */
+ */
 public class HandlerExecutor {
 
     private final Request request;
@@ -39,35 +43,48 @@ public class HandlerExecutor {
 
     /**
      * 인스턴스를 생성한다.
-     * 
-     * @param request 요청 인스턴스
+     *
+     * @param request  요청 인스턴스
      * @param response 응답 인스턴스
      * @return 인스턴스
-     * */
+     */
     public static HandlerExecutor of(Request request, Response response) {
         return new HandlerExecutor(request, response);
     }
 
     /**
      * 핸들러를 실행한다.
-     * */
+     */
     public void execute(Handler handlerInfo) {
         setCrossOriginConfig(handlerInfo);
         SessionManager.removeExpiredSession();
         try {
-            Object returnValue = executeHandlerWithInterceptor(handlerInfo);
-            HttpStatus httpStatus;
+            HttpStatus httpStatus = null;
+            Object returnValue;
+            try {
+                returnValue = executeHandlerWithInterceptor(handlerInfo);
+            } catch (RuntimeException e) {
+                returnValue = this.executeExceptionHandler(e);
+                if (e.getClass().isAssignableFrom(HttpException.class)) {
+                    httpStatus = ((HttpException) e.getCause().getCause()).getStatus();
+                } else {
+                    returnValue = e.getCause().getCause().toString();
+                    httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+                }
+            }
+
             if (returnValue != null && returnValue.getClass().equals(ResponseEntity.class)) {
                 ResponseEntity<?> responseEntity = (ResponseEntity<?>) returnValue;
                 httpStatus = responseEntity.getHttpStatus();
                 returnValue = responseEntity.getValue();
-            } else {
+            } else if (httpStatus == null) {
                 httpStatus = HttpStatus.OK;
             }
 
             String json = "";
             if (returnValue != null) {
                 json = Converter.objectToJson(returnValue);
+                System.out.println(json);
             }
 
             response.setContentMimeType(ContentType.APPLICATION_JSON);
@@ -78,12 +95,76 @@ public class HandlerExecutor {
         }
     }
 
+    private Object executeExceptionHandler(Exception e) {
+        List<Object> handlerBeans = BeanContainer.getInstance().getHandlerBeans();
+        List<Object> exceptionHandlers = handlerBeans.stream()
+                .filter((handlerBean) -> HttpExceptionHandler.class.isAssignableFrom(handlerBean.getClass()))
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        List<Method> sameSuperClassMethods = new ArrayList<>();
+        try {
+            for (Object exceptionHandler : exceptionHandlers) {
+                Method[] methods = exceptionHandler.getClass().getDeclaredMethods();
+                for (Method method : methods) {
+                    Class<?> exceptionClass = getExceptionClass(method);
+                    if (exceptionClass.equals(e.getCause().getCause().getClass())) {
+                        return method.invoke(exceptionHandler, e.getCause().getCause());
+                    }
+
+                    sameSuperClassMethods.add(method);
+                }
+            }
+
+            Method method = this.findSuperException(e.getCause().getCause(), sameSuperClassMethods);
+            if (method != null) {
+                Object handlerInstance = this.beanContainer.findHandlerByClass(method.getDeclaringClass());
+                return method.invoke(handlerInstance, e.getCause().getCause());
+            }
+
+            return "Internal Server Error";
+        } catch (InvocationTargetException | IllegalAccessException ex) {
+            throw new RuntimeException(ex);
+        }
+
+    }
+
+    private Method findSuperException(Throwable cause, List<Method> methods) {
+        Class<?> causeClass = cause.getClass();
+        while (!methods.isEmpty()) {
+            Iterator<Method> iterator = methods.iterator();
+            causeClass = causeClass.getSuperclass();
+            while (iterator.hasNext()) {
+                Method method = iterator.next();
+
+                Class<?> exceptionClass = getExceptionClass(method);
+                if (exceptionClass.equals(causeClass)) {
+                    return method;
+                }
+
+                if (exceptionClass.equals(Object.class)) {
+                    iterator.remove();
+                }
+            }
+        }
+        return null;
+    }
+
+    private static Class<?> getExceptionClass(Method method) {
+        Annotation annotation = method.getDeclaredAnnotation(ExceptionResponse.class);
+        try {
+            Method annotationMethod = annotation.annotationType().getDeclaredMethod("value");
+            return (Class<?>) annotationMethod.invoke(annotation);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
     /**
      * 핸들러를 실행시킨 후 리턴 값을 받아온다. interceptor가 구현되어 있다면 interceptor 실행 후 리턴 값을 받아온다.
      *
      * @param handler 핸들러 정보
      * @return 핸들러의 리턴 값
-     * */
+     */
     private Object executeHandlerWithInterceptor(Handler handler) {
         List<Interceptor> interceptors = beanContainer.getInterceptors();
 
@@ -130,7 +211,7 @@ public class HandlerExecutor {
      *
      * @param handler 핸들러 정보
      * @return 핸들러의 반환 값
-     * */
+     */
     private Object executeHandler(Handler handler) {
         Method handlerMethod = handler.getMethod();
         Object[] parameters = getParameters(handlerMethod.getParameters());
@@ -143,10 +224,10 @@ public class HandlerExecutor {
 
     /**
      * 핸들러 실행시 필요한 파라미터 목록을 생성한다.
-     * 
+     *
      * @param handlerParameters 핸들러 클래스의 파라미터 정보
      * @return 핸들러의 파라미터 목록
-     * */
+     */
     private Object[] getParameters(Parameter[] handlerParameters) {
         List<Object> inputParameters = new ArrayList<>();
         for (Parameter handlerParameter : handlerParameters) {
@@ -161,7 +242,7 @@ public class HandlerExecutor {
      *
      * @param handlerParameter 핸들러 파라미터 정보
      * @return 생성된 파라미터 인스턴스
-     * */
+     */
     private Object getParameter(Parameter handlerParameter) {
         Map<String, String> requestData = request.getParameters();
         String parameterName = handlerParameter.getName();
@@ -190,13 +271,13 @@ public class HandlerExecutor {
      * 핸들러 실행시 필요한 파라미터를 생성한다.
      *
      * @param value 값
-     * @param type 타입
+     * @param type  타입
      * @return 핸들러 파라미터
-     * */
+     */
     private Object createParameter(Object value, Class<?> type) {
         if (type.isPrimitive()) {
             return PrimitiveWrapper.wrapPrimitiveValue(type, value.toString());
-        } else if (type.getSuperclass().equals(Number.class))  {
+        } else if (type.getSuperclass().equals(Number.class)) {
             try {
                 return type.getMethod("valueOf", String.class).invoke(null, value.toString());
             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {

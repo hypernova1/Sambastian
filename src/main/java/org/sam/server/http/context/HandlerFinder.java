@@ -7,7 +7,7 @@ import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.context.BeanContainer;
 import org.sam.server.context.Handler;
-import org.sam.server.exception.HandlerNotFoundException;
+import org.sam.server.context.HandlerNotFoundException;
 import org.sam.server.http.web.request.Request;
 import org.sam.server.http.web.response.Response;
 

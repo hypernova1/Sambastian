@@ -10,42 +10,14 @@ public enum HttpStatus {
     OK("200", "OK"),
     CREATED("201", "Created"),
     NO_CONTENT("204", "No Content"),
-    BAD_REQUEST("400", "Bad Request") {
-        @Override
-        public boolean isError() {
-            return true;
-        }
-    },
-    UNAUTHORIZED("401", "Unauthorized") {
-        @Override
-        public boolean isError() {
-            return true;
-        }
-    },
-    FORBIDDEN("403", "Forbidden") {
-        @Override
-        public boolean isError() {
-            return true;
-        }
-    },
-    NOT_FOUND("404", "Not Found") {
-        @Override
-        public boolean isError() {
-            return true;
-        }
-    },
-    METHOD_NOT_ALLOWED("405", "Method Not Allowed") {
-        @Override
-        public boolean isError() {
-            return true;
-        }
-    },
-    NOT_IMPLEMENTED("501", "Not Implemented") {
-        @Override
-        public boolean isError() {
-            return true;
-        }
-    };
+    BAD_REQUEST("400", "Bad Request"),
+    UNAUTHORIZED("401", "Unauthorized"),
+    FORBIDDEN("403", "Forbidden"),
+    NOT_FOUND("404", "Not Found"),
+    METHOD_NOT_ALLOWED("405", "Method Not Allowed"),
+    NOT_IMPLEMENTED("501", "Not Implemented"),
+
+    INTERNAL_SERVER_ERROR("500", "Internal Server Error");
 
     private final String code;
     private final String message;
@@ -64,7 +36,19 @@ public enum HttpStatus {
     }
 
     public boolean isError() {
-        return false;
+        return this.code.startsWith("4") || this.code.startsWith("5");
+    }
+
+    public HttpErrorType errorType() {
+        if (this.code.startsWith("1") || this.code.startsWith("2") || this.code.startsWith("3")) {
+            return HttpErrorType.NONE;
+        }
+
+        if (this.code.startsWith("4")) {
+            return HttpErrorType.CLIENT;
+        }
+
+        return HttpErrorType.SERVER;
     }
 
 }
