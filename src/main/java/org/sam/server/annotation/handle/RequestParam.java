@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
-public @interface RequiredParam {
+public @interface RequestParam {
 
     /**
      * 파라미터 이름
@@ -18,4 +18,6 @@ public @interface RequiredParam {
      * @return 필수 파라미터 여부
      * */
     boolean value() default true;
+
+    String defaultValue() default "";
 }

@@ -3,6 +3,7 @@ package org.sam.server.http.context;
 import org.sam.server.annotation.CrossOrigin;
 import org.sam.server.annotation.ExceptionResponse;
 import org.sam.server.annotation.handle.JsonRequest;
+import org.sam.server.annotation.handle.RequestParam;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpStatus;
 import org.sam.server.context.BeanContainer;
@@ -275,10 +276,16 @@ public class HandlerExecutor {
             return Converter.jsonToObject(request.getJson(), type);
         }
 
+        RequestParam requestParamAnnotation = handlerParameter.getDeclaredAnnotation(RequestParam.class);
+        if (requestParamAnnotation != null) {
+            return createParameter(requestParamAnnotation.defaultValue(), type);
+        }
+
         Object value = requestData.get(parameterName);
         if (value != null) {
             return createParameter(value, type);
         }
+
         return Converter.parameterToObject(request.getParameters(), type);
     }
 
