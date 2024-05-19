@@ -65,7 +65,7 @@ public class HandlerExecutor {
             try {
                 returnValue = executeHandlerWithInterceptor(handlerInfo);
             } catch (RuntimeException e) {
-                returnValue = throwToResponseEntity(e);
+                returnValue = throwToResponseEntity(e.getCause().getCause());
             }
 
             if (returnValue != null && returnValue.getClass().equals(ResponseEntity.class)) {
@@ -89,24 +89,24 @@ public class HandlerExecutor {
         }
     }
 
-    private ResponseEntity<?> throwToResponseEntity(RuntimeException e) {
+    private ResponseEntity<?> throwToResponseEntity(Throwable e) {
         HttpStatus httpStatus;
         Object returnValue = this.executeExceptionHandler(e);
         if (returnValue instanceof ResponseEntity<?>) {
             return (ResponseEntity<?>) returnValue;
         }
 
-        if (HttpException.class.isAssignableFrom(e.getCause().getCause().getClass())) {
-            httpStatus = ((HttpException) e.getCause().getCause()).getStatus();
+        if (HttpException.class.isAssignableFrom(e.getClass())) {
+            httpStatus = ((HttpException) e).getStatus();
         } else {
-            returnValue = e.getCause().getCause().toString();
+            returnValue = e.toString();
             httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
         }
 
         return new ResponseEntity<>(httpStatus, returnValue);
     }
 
-    private Object executeExceptionHandler(Exception e) {
+    private Object executeExceptionHandler(Throwable e) {
         List<Object> handlerBeans = BeanContainer.getInstance().getHandlerBeans();
         List<Object> exceptionHandlers = handlerBeans.stream()
                 .filter((handlerBean) -> HttpExceptionHandler.class.isAssignableFrom(handlerBean.getClass()))
@@ -118,18 +118,18 @@ public class HandlerExecutor {
                 Method[] methods = exceptionHandler.getClass().getDeclaredMethods();
                 for (Method method : methods) {
                     Class<?> exceptionClass = getExceptionClass(method);
-                    if (exceptionClass.equals(e.getCause().getCause().getClass())) {
-                        return method.invoke(exceptionHandler, e.getCause().getCause());
+                    if (exceptionClass.equals(e.getClass())) {
+                        return method.invoke(exceptionHandler,e);
                     }
 
                     sameSuperClassMethods.add(method);
                 }
             }
 
-            Method method = this.findSuperException(e.getCause().getCause(), sameSuperClassMethods);
+            Method method = this.findSuperException(e, sameSuperClassMethods);
             if (method != null) {
                 Object handlerInstance = this.beanContainer.findHandlerByClass(method.getDeclaringClass());
-                return method.invoke(handlerInstance, e.getCause().getCause());
+                return method.invoke(handlerInstance, e);
             }
 
             e.printStackTrace();
