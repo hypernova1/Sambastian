@@ -301,12 +301,12 @@ public class HandlerExecutor {
             return Converter.jsonToObject(request.getJson(), type);
         }
 
+        Object value = requestData.get(parameterName);
         RequestParam requestParamAnnotation = handlerParameter.getDeclaredAnnotation(RequestParam.class);
-        if (requestParamAnnotation != null) {
+        if (requestParamAnnotation != null && value == null) {
             return createParameter(requestParamAnnotation.defaultValue(), type);
         }
 
-        Object value = requestData.get(parameterName);
         if (value != null) {
             return createParameter(value, type);
         }
