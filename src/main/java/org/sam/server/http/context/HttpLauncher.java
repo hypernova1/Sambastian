@@ -52,7 +52,7 @@ public class HttpLauncher {
             }
 
             //TODO: 핸들러 실행 후에 Response 생성하도록 수정
-            findHandler(request, response);
+            execute(request, response);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -64,10 +64,10 @@ public class HttpLauncher {
      * @param request  요청 인스턴스
      * @param response 응답 인스턴스
      */
-    private static void findHandler(Request request, Response response) {
+    private static void execute(Request request, Response response) {
         try {
             HandlerFinder handlerFinder = HandlerFinder.of(request, response);
-            Handler handlerInfo = handlerFinder.createHandlerInfo();
+            Handler handlerInfo = handlerFinder.find();
             HandlerExecutor handlerExecutor = HandlerExecutor.of(request, response);
             handlerExecutor.execute(handlerInfo);
         } catch (HandlerNotFoundException e) {

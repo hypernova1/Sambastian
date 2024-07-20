@@ -50,6 +50,8 @@ public class CookieStore {
 
     /**
      * 세션 정보를 추가한다.
+     *
+     * @param id 세션 아이디
      * */
     public static void addSession(String id) {
         Cookie cookie = new Cookie("sessionId", id);

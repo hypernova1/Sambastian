@@ -61,6 +61,12 @@ public class BeanClassLoader {
         }
     }
 
+    /**
+     * 경로를 기준으로 클래스를 탐색한다.
+     *
+     * @param path 경로
+     * @param classes 찾은 클래스를 담을 컬렉션
+     * */
     private void retrieveFromPath(String path, List<Class<?>> classes) throws IOException {
         Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources(path);
         while (resources.hasMoreElements()) {
@@ -70,6 +76,12 @@ public class BeanClassLoader {
         }
     }
 
+    /**
+     * Jar 내의 클래스를 찾는다.
+     *
+     * @param path 경로
+     * @param classes 찾은 클래스를 담을 컬렉션
+     * */
     private static void retrieveFromJar(String path, List<Class<?>> classes) throws IOException {
         ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(Paths.get(System.getProperty("java.class.path"))));
         ZipEntry entry;
@@ -117,6 +129,12 @@ public class BeanClassLoader {
         }
     }
 
+    /**
+     * 싱글턴으로 생성할 클래스를 추가한다.
+     *
+     * @param clazz 클래스
+     * @param declaredAnnotations 선언된 어노테이션 목록
+     * */
     private void addComponentClass(Class<?> clazz, Annotation[] declaredAnnotations) {
         for (Annotation declaredAnnotation : declaredAnnotations) {
             if (!isComponentClass(declaredAnnotation)) continue;

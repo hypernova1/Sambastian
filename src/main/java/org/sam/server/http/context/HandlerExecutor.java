@@ -55,17 +55,19 @@ public class HandlerExecutor {
 
     /**
      * 핸들러를 실행한다.
+     *
+     * @param handler 핸들러
      */
-    public void execute(Handler handlerInfo) {
-        setCrossOriginConfig(handlerInfo);
+    public void execute(Handler handler) {
+        setCrossOriginConfig(handler);
         SessionManager.removeExpiredSession();
         try {
             HttpStatus httpStatus;
             Object returnValue;
             try {
-                returnValue = executeHandlerWithInterceptor(handlerInfo);
+                returnValue = executeHandlerWithInterceptor(handler);
             } catch (RuntimeException e) {
-                returnValue = throwToResponseEntity(e);
+                returnValue = throwToResponseEntity(e.getCause().getCause());
             }
 
             if (returnValue != null && returnValue.getClass().equals(ResponseEntity.class)) {
@@ -89,24 +91,35 @@ public class HandlerExecutor {
         }
     }
 
-    private ResponseEntity<?> throwToResponseEntity(RuntimeException e) {
+    /**
+     * 핸들러에서 발생한 예외를 응답으로 변환한다.
+     *
+     * @param e 핸들러에서 발생한 예외
+     * */
+    private ResponseEntity<?> throwToResponseEntity(Throwable e) {
         HttpStatus httpStatus;
         Object returnValue = this.executeExceptionHandler(e);
         if (returnValue instanceof ResponseEntity<?>) {
             return (ResponseEntity<?>) returnValue;
         }
 
-        if (HttpException.class.isAssignableFrom(e.getCause().getCause().getClass())) {
-            httpStatus = ((HttpException) e.getCause().getCause()).getStatus();
+        if (HttpException.class.isAssignableFrom(e.getClass())) {
+            httpStatus = ((HttpException) e).getStatus();
         } else {
-            returnValue = e.getCause().getCause().toString();
+            returnValue = e.toString();
             httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
         }
 
         return new ResponseEntity<>(httpStatus, returnValue);
     }
 
-    private Object executeExceptionHandler(Exception e) {
+    /**
+     * 선언된 예외처리 클래스를 실행한다. 핸들링할 메서드가 없을시 Internal Server Error를 반환한다.
+     *
+     * @param cause 핸들러에서 발생한 예외
+     * @return 응답 데이터
+     * */
+    private Object executeExceptionHandler(Throwable cause) {
         List<Object> handlerBeans = BeanContainer.getInstance().getHandlerBeans();
         List<Object> exceptionHandlers = handlerBeans.stream()
                 .filter((handlerBean) -> HttpExceptionHandler.class.isAssignableFrom(handlerBean.getClass()))
@@ -118,21 +131,21 @@ public class HandlerExecutor {
                 Method[] methods = exceptionHandler.getClass().getDeclaredMethods();
                 for (Method method : methods) {
                     Class<?> exceptionClass = getExceptionClass(method);
-                    if (exceptionClass.equals(e.getCause().getCause().getClass())) {
-                        return method.invoke(exceptionHandler, e.getCause().getCause());
+                    if (exceptionClass.equals(cause.getClass())) {
+                        return method.invoke(exceptionHandler,cause);
                     }
 
                     sameSuperClassMethods.add(method);
                 }
             }
 
-            Method method = this.findSuperException(e.getCause().getCause(), sameSuperClassMethods);
+            Method method = this.findSuperException(cause, sameSuperClassMethods);
             if (method != null) {
                 Object handlerInstance = this.beanContainer.findHandlerByClass(method.getDeclaringClass());
-                return method.invoke(handlerInstance, e.getCause().getCause());
+                return method.invoke(handlerInstance, cause);
             }
 
-            e.printStackTrace();
+            cause.printStackTrace();
             return "Internal Server Error";
         } catch (InvocationTargetException | IllegalAccessException ex) {
             throw new RuntimeException(ex);
@@ -140,6 +153,13 @@ public class HandlerExecutor {
 
     }
 
+    /**
+     *  예외 핸들링 메서드 중 예외의 최근 부모 클레스를 핸들링하는 메서드를 가져온다.
+     *
+     * @param cause 예외
+     * @param methods 예외 핸들링 메서드 목록
+     * @return 핸들링 메서드
+     * */
     private Method findSuperException(Throwable cause, List<Method> methods) {
         Class<?> causeClass = cause.getClass();
 
@@ -165,6 +185,11 @@ public class HandlerExecutor {
         return null;
     }
 
+    /**
+     * 예외 핸들링 메서드에 선언된 처리할 익셉션 클래스를 가져온다.
+     *
+     * @param method 예외 핸들링 메서드
+     * */
     private static Class<?> getExceptionClass(Method method) {
         Annotation annotation = method.getDeclaredAnnotation(ExceptionResponse.class);
         try {
@@ -276,12 +301,12 @@ public class HandlerExecutor {
             return Converter.jsonToObject(request.getJson(), type);
         }
 
+        Object value = requestData.get(parameterName);
         RequestParam requestParamAnnotation = handlerParameter.getDeclaredAnnotation(RequestParam.class);
-        if (requestParamAnnotation != null) {
+        if (requestParamAnnotation != null && value == null) {
             return createParameter(requestParamAnnotation.defaultValue(), type);
         }
 
-        Object value = requestData.get(parameterName);
         if (value != null) {
             return createParameter(value, type);
         }

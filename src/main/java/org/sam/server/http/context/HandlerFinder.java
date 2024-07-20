@@ -24,8 +24,6 @@ import java.util.stream.Stream;
  * 실행할 핸들러를 찾는 클래스
  *
  * @author hypernova1
- *
- * @TODO: 주소 비교 방식 변경해야함
  */
 public class HandlerFinder {
 
@@ -42,8 +40,6 @@ public class HandlerFinder {
     private final List<Method> handlerMethods = new ArrayList<>();
 
     private String handlerClassPath;
-
-    private boolean existsPath;
 
     private HandlerFinder(Request request, Response response) {
         this.request = request;
@@ -70,7 +66,7 @@ public class HandlerFinder {
      *
      * TODO: 핸들러 찾는 알고리즘 변경해야함.
      * */
-    public Handler createHandlerInfo() throws HandlerNotFoundException {
+    public Handler find() throws HandlerNotFoundException {
         List<Object> handlerInstances = beanContainer.getHandlerBeans();
         for (Object handlerInstance : handlerInstances) {
             Class<?> handlerType = handlerInstance.getClass();
@@ -84,9 +80,6 @@ public class HandlerFinder {
             return Handler.of(handlerInstance, handlerMethod);
         }
 
-//        if (existsPath) {
-//            response.methodNotAllowed();
-//        }
         throw new HandlerNotFoundException();
     }
 
@@ -259,13 +252,8 @@ public class HandlerFinder {
 
         if (existsPathValueAnnotation(handlerMethod)) {
             return isMatchedPath(requestPath, handlerMethodPath);
-        } else {
-            if (requestPath.equals(handlerMethodPath)) {
-                this.existsPath = true;
-                return true;
-            }
         }
-        return false;
+        return requestPath.equals(handlerMethodPath);
     }
 
     /**
