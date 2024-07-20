@@ -5,18 +5,18 @@ package org.sam.server.context;
  *
  * @author hypernova1
  */
-public class BeanInfo {
+public class BeanDefinition {
 
     private final String name;
     private final Object instance;
 
-    private BeanInfo(String name, Object instance) {
+    private BeanDefinition(String name, Object instance) {
         this.name = name;
         this.instance = instance;
     }
 
-    protected static BeanInfo of(String name, Object instance) {
-        return new BeanInfo(name, instance);
+    protected static BeanDefinition of(String name, Object instance) {
+        return new BeanDefinition(name, instance);
     }
 
     /**

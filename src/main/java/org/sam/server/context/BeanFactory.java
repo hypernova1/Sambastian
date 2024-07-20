@@ -16,10 +16,10 @@ public class BeanFactory {
     private final BeanContainer beanContainer = BeanContainer.getInstance();
 
     private BeanFactory() {
-        List<BeanInfo> list = new ArrayList<>();
-        BeanInfo beanInfo = BeanInfo.of("beanFactory", this);
-        list.add(beanInfo);
-        this.beanContainer.getBeanInfoMap().put(BeanFactory.class, list);
+        List<BeanDefinition> list = new ArrayList<>();
+        BeanDefinition beanDefinition = BeanDefinition.of("beanFactory", this);
+        list.add(beanDefinition);
+        this.beanContainer.getBeanDefinitionMap().put(BeanFactory.class, list);
     }
 
     /**
@@ -32,12 +32,12 @@ public class BeanFactory {
      * */
     @SuppressWarnings("unchecked")
     public <T> T getBean(String name, Class<?> type) {
-        List<BeanInfo> beanInfos = this.beanContainer.getBeanInfoList(type);
-        BeanInfo savedBeanInfo = beanInfos.stream()
-                .filter(beanInfo -> beanInfo.getBeanName().equals(name))
+        List<BeanDefinition> beanDefinitions = this.beanContainer.getBeanDefinitionList(type);
+        BeanDefinition savedBeanDefinition = beanDefinitions.stream()
+                .filter(beanDefinition -> beanDefinition.getBeanName().equals(name))
                 .findFirst()
                 .orElse(null);
-        return (T) savedBeanInfo;
+        return (T) savedBeanDefinition;
     }
 
     /**
@@ -47,15 +47,15 @@ public class BeanFactory {
      * @return 빈 목록
      * */
     public List<?> getBeanList(Class<?> type) {
-        Set<Class<?>> classes = this.beanContainer.getBeanInfoMap().keySet();
+        Set<Class<?>> classes = this.beanContainer.getBeanDefinitionMap().keySet();
         Class<?> beanType = classes.stream()
                 .filter(savedBeanType -> savedBeanType.isAssignableFrom(type))
                 .findFirst()
                 .orElseGet(() -> this.getMatchType(classes, type));
-        List<BeanInfo> beanInfos = this.beanContainer.getBeanInfoList(beanType);
+        List<BeanDefinition> beanDefinitions = this.beanContainer.getBeanDefinitionList(beanType);
         List<Object> result = new ArrayList<>();
-        for (BeanInfo beanInfo : beanInfos) {
-            result.add(beanInfo.getBeanInstance());
+        for (BeanDefinition beanDefinition : beanDefinitions) {
+            result.add(beanDefinition.getBeanInstance());
         }
         return result;
     }
@@ -68,14 +68,14 @@ public class BeanFactory {
      * @param instance 인스턴스
      * */
     public <T> void registerBean(String name, T instance) {
-        List<BeanInfo> list = Optional
-                .ofNullable(beanContainer.getBeanInfoList(instance.getClass()))
+        List<BeanDefinition> list = Optional
+                .ofNullable(beanContainer.getBeanDefinitionList(instance.getClass()))
                 .orElseGet(ArrayList::new);
         boolean exists = list.stream()
-                .anyMatch(beanInfo -> beanInfo.getBeanName().equals(name));
+                .anyMatch(beanDefinition -> beanDefinition.getBeanName().equals(name));
         if (exists) return;
-        BeanInfo beanInfo = BeanInfo.of(name, instance);
-        list.add(beanInfo);
+        BeanDefinition beanDefinition = BeanDefinition.of(name, instance);
+        list.add(beanDefinition);
     }
 
     /**
