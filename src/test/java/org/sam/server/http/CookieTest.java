@@ -26,7 +26,6 @@ class CookieTest {
         df.setTimeZone(TimeZone.getTimeZone("GMT"));
         String format1 = df.format(expiredDate);
         System.out.println(format1);
-
     }
 
 }

@@ -29,8 +29,8 @@ public class BeanClassLoader {
     private final List<Class<?>> componentClasses = new ArrayList<>();
     private final List<Class<?>> interceptorClasses = new ArrayList<>();
 
-    private BeanClassLoader() {
-        this.rootPackageName = ServerProperties.get("root-package-name");
+    public BeanClassLoader(String rootPackageName) {
+        this.rootPackageName = rootPackageName;
         if (this.rootPackageName == null) {
             findRootPackageName();
         }
@@ -353,14 +353,6 @@ public class BeanClassLoader {
      */
     private boolean isComponentClass(Annotation annotation) {
         return annotation.annotationType().getDeclaredAnnotation(Component.class) != null || annotation.annotationType().equals(Component.class);
-    }
-
-    private static class BeanClassLoaderHolder {
-        public static final BeanClassLoader INSTANCE = new BeanClassLoader();
-    }
-
-    public static BeanClassLoader getInstance() {
-        return BeanClassLoaderHolder.INSTANCE;
     }
 
 }

@@ -1,14 +1,10 @@
 package org.sam.server.http.context;
 
+import org.sam.server.context.BeanContainer;
 import org.sam.server.context.Handler;
 import org.sam.server.context.HandlerNotFoundException;
-import org.sam.server.http.web.request.HttpRequest;
-import org.sam.server.http.web.response.HttpResponse;
 import org.sam.server.http.web.request.Request;
 import org.sam.server.http.web.response.Response;
-
-import java.io.IOException;
-import java.net.Socket;
 
 /**
  * Request, Response 인스턴스를 만들고 HTTP 요청을 분기한다.
@@ -24,51 +20,12 @@ public class HttpLauncher {
      *
      * @param connect 소켓
      */
-    public static void execute(Socket connect) {
+    public static void execute(Request request, Response response, BeanContainer beanContainer) {
+        //TODO: 핸들러 실행 후에 Response 생성하도록 수정
         try {
-            Request request = HttpRequest.from(connect.getInputStream());
-            if (request == null) {
-                return;
-            }
-
-            Response response = HttpResponse.of(connect.getOutputStream(), request.getUrl(), request.getMethod());
-            if (request.isFaviconRequest()) {
-                response.favicon();
-                return;
-            }
-            if (request.isResourceRequest()) {
-                response.staticResources();
-                return;
-            }
-
-            if (request.isRootRequest()) {
-                response.indexFile();
-                return;
-            }
-
-            if (request.isOptionsRequest()) {
-                response.allowedMethods();
-                return;
-            }
-
-            //TODO: 핸들러 실행 후에 Response 생성하도록 수정
-            execute(request, response);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * 요청 URL을 읽어 핸들러를 찾을지 정적 자원을 찾을지 분기한다.
-     *
-     * @param request  요청 인스턴스
-     * @param response 응답 인스턴스
-     */
-    private static void execute(Request request, Response response) {
-        try {
-            HandlerFinder handlerFinder = HandlerFinder.of(request, response);
+            HandlerFinder handlerFinder = HandlerFinder.of(request, response, beanContainer.getHandlerBeans());
             Handler handlerInfo = handlerFinder.find();
-            HandlerExecutor handlerExecutor = HandlerExecutor.of(request, response);
+            HandlerExecutor handlerExecutor = HandlerExecutor.of(request, response, beanContainer);
             handlerExecutor.execute(handlerInfo);
         } catch (HandlerNotFoundException e) {
             response.notFound();

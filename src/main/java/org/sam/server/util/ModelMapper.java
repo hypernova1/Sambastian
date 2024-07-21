@@ -1,6 +1,6 @@
 package org.sam.server.util;
 
-import org.sam.server.context.BeanFactory;
+import org.sam.server.context.BeanContainer;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -54,11 +54,11 @@ public class ModelMapper {
             } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ignored) {}
         }
 
-        BeanFactory beanFactory = BeanFactory.getInstance();
-        List<?> beanList = beanFactory.getBeanList(CustomModelMapper.class);
-        if (!beanList.isEmpty()) {
-            applyCustomConfig(instance, target, beanList);
-        }
+//        BeanContainer beanContainer = BeanContainer.getInstance();
+//        List<?> beanList = beanContainer.getBeanList(CustomModelMapper.class);
+//        if (!beanList.isEmpty()) {
+//            applyCustomConfig(instance, target, beanList);
+//        }
     }
 
     private <T, U> void applyCustomConfig(T instance, U target, List<?> beanList) {

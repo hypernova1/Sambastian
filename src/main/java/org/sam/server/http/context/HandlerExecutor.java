@@ -35,11 +35,12 @@ public class HandlerExecutor {
 
     private final Request request;
     private final Response response;
-    private final BeanContainer beanContainer = BeanContainer.getInstance();
+    private final BeanContainer beanContainer;
 
-    private HandlerExecutor(Request request, Response response) {
+    private HandlerExecutor(Request request, Response response, BeanContainer beanContainer) {
         this.request = request;
         this.response = response;
+        this.beanContainer = beanContainer;
     }
 
     /**
@@ -49,8 +50,8 @@ public class HandlerExecutor {
      * @param response 응답 인스턴스
      * @return 인스턴스
      */
-    public static HandlerExecutor of(Request request, Response response) {
-        return new HandlerExecutor(request, response);
+    public static HandlerExecutor of(Request request, Response response, BeanContainer beanContainer) {
+        return new HandlerExecutor(request, response, beanContainer);
     }
 
     /**
@@ -120,7 +121,7 @@ public class HandlerExecutor {
      * @return 응답 데이터
      * */
     private Object executeExceptionHandler(Throwable cause) {
-        List<Object> handlerBeans = BeanContainer.getInstance().getHandlerBeans();
+        List<Object> handlerBeans = this.beanContainer.getHandlerBeans();
         List<Object> exceptionHandlers = handlerBeans.stream()
                 .filter((handlerBean) -> HttpExceptionHandler.class.isAssignableFrom(handlerBean.getClass()))
                 .collect(Collectors.toCollection(ArrayList::new));
@@ -207,7 +208,7 @@ public class HandlerExecutor {
      * @return 핸들러의 리턴 값
      */
     private Object executeHandlerWithInterceptor(Handler handler) {
-        List<Interceptor> interceptors = beanContainer.getInterceptors();
+        List<Interceptor> interceptors = this.beanContainer.getInterceptors();
 
         for (Interceptor interceptor : interceptors) {
             interceptor.preHandler(request, response);

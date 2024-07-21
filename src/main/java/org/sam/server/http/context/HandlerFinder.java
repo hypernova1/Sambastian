@@ -6,10 +6,12 @@ import org.sam.server.annotation.handle.RestApi;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.context.BeanContainer;
+import org.sam.server.context.BeanLoader;
 import org.sam.server.context.Handler;
 import org.sam.server.context.HandlerNotFoundException;
 import org.sam.server.http.web.request.Request;
 import org.sam.server.http.web.response.Response;
+import org.xml.sax.HandlerBase;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -29,11 +31,11 @@ public class HandlerFinder {
 
     private static final Pattern PATH_VALUE_PATTERN = Pattern.compile("[{](.*?)[}]");
 
-    private final BeanContainer beanContainer = BeanContainer.getInstance();
-
     private final Request request;
 
     private final Response response;
+
+    private final List<Object> handlerBeans;
 
     private final List<Method> pathValueHandlerMethods = new ArrayList<>();
 
@@ -41,9 +43,10 @@ public class HandlerFinder {
 
     private String handlerClassPath;
 
-    private HandlerFinder(Request request, Response response) {
+    private HandlerFinder(Request request, Response response, List<Object> handlerBeans) {
         this.request = request;
         this.response = response;
+        this.handlerBeans = handlerBeans;
     }
 
     /**
@@ -53,8 +56,8 @@ public class HandlerFinder {
      * @param response 응답 인스턴스
      * @return HandlerFinder 인스턴스
      * */
-    public static HandlerFinder of(Request request, Response response) {
-        return new HandlerFinder(request, response);
+    public static HandlerFinder of(Request request, Response response, List<Object> handlerBeans) {
+        return new HandlerFinder(request, response, handlerBeans);
     }
 
     /**
@@ -67,8 +70,7 @@ public class HandlerFinder {
      * TODO: 핸들러 찾는 알고리즘 변경해야함.
      * */
     public Handler find() throws HandlerNotFoundException {
-        List<Object> handlerInstances = beanContainer.getHandlerBeans();
-        for (Object handlerInstance : handlerInstances) {
+        for (Object handlerInstance : handlerBeans) {
             Class<?> handlerType = handlerInstance.getClass();
             classifyHandler(handlerType);
             this.handlerClassPath = handlerType.getDeclaredAnnotation(org.sam.server.annotation.component.Handler.class).value();
