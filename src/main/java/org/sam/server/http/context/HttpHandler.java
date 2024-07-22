@@ -1,6 +1,7 @@
 package org.sam.server.http.context;
 
 import org.sam.server.context.BeanContainer;
+import org.sam.server.http.SessionManager;
 import org.sam.server.http.web.request.HttpRequest;
 import org.sam.server.http.web.request.Request;
 import org.sam.server.http.web.response.HttpResponse;
@@ -24,6 +25,7 @@ public class HttpHandler implements Runnable {
             Request request = HttpRequest.from(connect.getInputStream());
             Response response = HttpResponse.of(connect.getOutputStream(), request.getUrl(), request.getMethod());
 
+            SessionManager.removeExpiredSession();
             if (StaticResourceHandler.isStaticResourceRequest(request, response)) {
                 return;
             }

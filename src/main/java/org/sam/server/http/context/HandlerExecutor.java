@@ -61,10 +61,11 @@ public class HandlerExecutor {
      */
     public void execute(Handler handler) {
         setCrossOriginConfig(handler);
-        SessionManager.removeExpiredSession();
+
         try {
             HttpStatus httpStatus;
             Object returnValue;
+
             try {
                 returnValue = executeHandlerWithInterceptor(handler);
             } catch (RuntimeException e) {

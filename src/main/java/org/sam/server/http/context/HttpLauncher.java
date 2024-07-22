@@ -21,7 +21,6 @@ public class HttpLauncher {
      * @param connect 소켓
      */
     public static void execute(Request request, Response response, BeanContainer beanContainer) {
-        //TODO: 핸들러 실행 후에 Response 생성하도록 수정
         try {
             HandlerFinder handlerFinder = HandlerFinder.of(request, response, beanContainer.getHandlerBeans());
             Handler handlerInfo = handlerFinder.find();

@@ -32,7 +32,6 @@ public class HttpServer {
             logger.info("server port: " + serverSocket.getLocalPort());
 
             ThreadPoolExecutor threadPoolExecutor = ThreadPoolManager.getThreadPoolExecutor();
-            System.out.println(threadPoolExecutor);
             while (!Thread.currentThread().isInterrupted()) {
                 Socket clientSocket = serverSocket.accept();
                 HttpHandler requestHandler = new HttpHandler(clientSocket, beanContainer);
