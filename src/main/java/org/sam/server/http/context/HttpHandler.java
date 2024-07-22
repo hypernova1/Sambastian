@@ -12,11 +12,9 @@ import java.net.Socket;
 
 public class HttpHandler implements Runnable {
     private final Socket connect;
-    private final BeanContainer beanContainer;
 
-    public HttpHandler(Socket connect, BeanContainer beanContainer) {
+    public HttpHandler(Socket connect) {
         this.connect = connect;
-        this.beanContainer = beanContainer;
     }
 
     @Override
@@ -30,7 +28,7 @@ public class HttpHandler implements Runnable {
                 return;
             }
 
-            HttpLauncher.execute(request, response, beanContainer);
+            HttpLauncher.execute(request, response);
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {

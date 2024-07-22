@@ -1,6 +1,5 @@
 package org.sam.server.http.context;
 
-import org.sam.server.context.BeanContainer;
 import org.sam.server.context.Handler;
 import org.sam.server.context.HandlerNotFoundException;
 import org.sam.server.http.web.request.Request;
@@ -20,11 +19,11 @@ public class HttpLauncher {
      *
      * @param connect 소켓
      */
-    public static void execute(Request request, Response response, BeanContainer beanContainer) {
+    public static void execute(Request request, Response response) {
         try {
-            HandlerFinder handlerFinder = HandlerFinder.of(request, response, beanContainer.getHandlerBeans());
+            HandlerFinder handlerFinder = HandlerFinder.of(request, response);
             Handler handlerInfo = handlerFinder.find();
-            HandlerExecutor handlerExecutor = HandlerExecutor.of(request, response, beanContainer);
+            HandlerExecutor handlerExecutor = HandlerExecutor.of(request, response);
             handlerExecutor.execute(handlerInfo);
         } catch (HandlerNotFoundException e) {
             response.notFound();

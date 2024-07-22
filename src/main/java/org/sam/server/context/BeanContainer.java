@@ -13,17 +13,33 @@ import java.util.*;
  * */
 public class BeanContainer {
 
+    private static BeanContainer INSTANCE = null;
+
     private final Map<Class<?>, List<BeanDefinition>> beanDefinitionMap;
 
     private final List<Object> handlerBeans;
 
     private final List<Interceptor> interceptors;
 
-    public BeanContainer(Map<Class<?>, List<BeanDefinition>> beanDefinitionMap, List<Object> handlerBeans, List<Interceptor> interceptors) {
+    private BeanContainer(Map<Class<?>, List<BeanDefinition>> beanDefinitionMap, List<Object> handlerBeans, List<Interceptor> interceptors) {
         this.beanDefinitionMap = beanDefinitionMap;
         this.handlerBeans = handlerBeans;
         this.interceptors = interceptors;
 //        this.beanLoader.getBeanDefinitionMap().put(BeanContainer.class, list);
+
+        INSTANCE = this;
+    }
+
+    public static void load(Map<Class<?>, List<BeanDefinition>> beanDefinitionMap, List<Object> handlerBeans, List<Interceptor> interceptors) {
+        INSTANCE = new BeanContainer(beanDefinitionMap, handlerBeans, interceptors);
+    }
+
+    public static BeanContainer getInstance() {
+        if (INSTANCE == null) {
+            throw new RuntimeException("bean container not load");
+        }
+
+        return INSTANCE;
     }
 
     /**

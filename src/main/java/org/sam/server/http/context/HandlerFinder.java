@@ -35,18 +35,19 @@ public class HandlerFinder {
 
     private final Response response;
 
-    private final List<Object> handlerBeans;
+    private final List<Object> handlerBeans = BeanContainer.getInstance().getHandlerBeans();
 
     private final List<Method> pathValueHandlerMethods = new ArrayList<>();
 
     private final List<Method> handlerMethods = new ArrayList<>();
 
+    private final BeanContainer beanContainer = BeanContainer.getInstance();
+
     private String handlerClassPath;
 
-    private HandlerFinder(Request request, Response response, List<Object> handlerBeans) {
+    private HandlerFinder(Request request, Response response) {
         this.request = request;
         this.response = response;
-        this.handlerBeans = handlerBeans;
     }
 
     /**
@@ -56,8 +57,8 @@ public class HandlerFinder {
      * @param response 응답 인스턴스
      * @return HandlerFinder 인스턴스
      * */
-    public static HandlerFinder of(Request request, Response response, List<Object> handlerBeans) {
-        return new HandlerFinder(request, response, handlerBeans);
+    public static HandlerFinder of(Request request, Response response) {
+        return new HandlerFinder(request, response);
     }
 
     /**

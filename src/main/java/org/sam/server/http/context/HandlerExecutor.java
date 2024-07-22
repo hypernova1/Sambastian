@@ -35,12 +35,11 @@ public class HandlerExecutor {
 
     private final Request request;
     private final Response response;
-    private final BeanContainer beanContainer;
+    private final BeanContainer beanContainer = BeanContainer.getInstance();
 
-    private HandlerExecutor(Request request, Response response, BeanContainer beanContainer) {
+    private HandlerExecutor(Request request, Response response) {
         this.request = request;
         this.response = response;
-        this.beanContainer = beanContainer;
     }
 
     /**
@@ -50,8 +49,8 @@ public class HandlerExecutor {
      * @param response 응답 인스턴스
      * @return 인스턴스
      */
-    public static HandlerExecutor of(Request request, Response response, BeanContainer beanContainer) {
-        return new HandlerExecutor(request, response, beanContainer);
+    public static HandlerExecutor of(Request request, Response response) {
+        return new HandlerExecutor(request, response);
     }
 
     /**

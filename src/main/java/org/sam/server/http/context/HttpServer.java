@@ -3,7 +3,6 @@ package org.sam.server.http.context;
 import org.sam.server.ThreadPoolManager;
 import org.sam.server.common.ServerProperties;
 import org.sam.server.context.BeanClassLoader;
-import org.sam.server.context.BeanContainer;
 import org.sam.server.context.BeanLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,14 +26,14 @@ public class HttpServer {
     public static void start() {
         try {
             ServerSocket serverSocket = ServerSocketFactory.createServerSocket();
-            BeanContainer beanContainer = getBeanContainer();
+            loadBeanContainer();
             logger.info("server started..");
             logger.info("server port: " + serverSocket.getLocalPort());
 
             ThreadPoolExecutor threadPoolExecutor = ThreadPoolManager.getThreadPoolExecutor();
             while (!Thread.currentThread().isInterrupted()) {
                 Socket clientSocket = serverSocket.accept();
-                HttpHandler requestHandler = new HttpHandler(clientSocket, beanContainer);
+                HttpHandler requestHandler = new HttpHandler(clientSocket);
                 threadPoolExecutor.execute(requestHandler);
             }
         } catch (IOException e) {
@@ -42,11 +41,8 @@ public class HttpServer {
         }
     }
 
-    private static BeanContainer getBeanContainer() {
+    private static void loadBeanContainer() {
         String rootPackageName = ServerProperties.get("root-package-name");
-        if (rootPackageName == null) {
-            throw new RuntimeException("루트 패키지명이 지정되지 않았습니다.");
-        }
-        return new BeanLoader(new BeanClassLoader(rootPackageName)).load();
+        new BeanLoader(new BeanClassLoader(rootPackageName)).load();
     }
 }

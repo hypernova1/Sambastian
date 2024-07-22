@@ -34,12 +34,12 @@ public class BeanLoader {
         this.beanClassLoader = beanClassLoader;
     }
 
-    public BeanContainer load() {
+    public void load() {
         loadBeans();
         loadHandler();
         loadInterceptors();
 
-        return new BeanContainer(beanDefinitionMap, handlerBeans, interceptors);
+        BeanContainer.load(beanDefinitionMap, handlerBeans, interceptors);
     }
 
     /**
