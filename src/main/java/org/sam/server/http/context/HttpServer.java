@@ -17,7 +17,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  *
  * @author hypernova1
  * @see BeanLoader
- * @see HttpLauncher
+ * @see HttpRequestDispatcherLauncher
  */
 public class HttpServer {
 
@@ -33,7 +33,7 @@ public class HttpServer {
             ThreadPoolExecutor threadPoolExecutor = ThreadPoolManager.getThreadPoolExecutor();
             while (!Thread.currentThread().isInterrupted()) {
                 Socket clientSocket = serverSocket.accept();
-                HttpHandler requestHandler = new HttpHandler(clientSocket);
+                HttpRequestHandler requestHandler = new HttpRequestHandler(clientSocket);
                 threadPoolExecutor.execute(requestHandler);
             }
         } catch (IOException e) {
