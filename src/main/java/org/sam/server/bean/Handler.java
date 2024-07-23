@@ -1,4 +1,4 @@
-package org.sam.server.context;
+package org.sam.server.bean;
 
 import java.lang.reflect.Method;
 

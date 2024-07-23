@@ -1,4 +1,4 @@
-package org.sam.server.context;
+package org.sam.server.bean;
 
 import org.sam.server.annotation.Qualifier;
 import org.sam.server.annotation.component.Bean;

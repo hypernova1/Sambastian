@@ -1,8 +1,9 @@
 package org.sam.server.http;
 
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 세션을 관리하는 클래스. 세션의 생명주기를 관리한다.
@@ -11,7 +12,7 @@ import java.util.Set;
  * */
 public class SessionManager {
 
-    private static final Set<Session> sessionList = new HashSet<>();
+    private static final Map<String, Session> sessionMap = new ConcurrentHashMap<>();
 
     private SessionManager() {}
 
@@ -21,7 +22,7 @@ public class SessionManager {
      * @param session 추가할 세션
      * */
     public static void addSession(Session session) {
-        sessionList.add(session);
+        sessionMap.put(session.getId(), session);
     }
 
     /**
@@ -31,9 +32,12 @@ public class SessionManager {
      * @return 세션
      * */
     public static Session getSession(String id) {
-        return sessionList.stream()
-                .filter(session -> session.getId().equals(id))
-                .findFirst().orElse(null);
+        Session session = sessionMap.get(id);
+        if (session.isExpired()) {
+            sessionMap.remove(id);
+            return null;
+        }
+        return session;
     }
 
     /**
@@ -42,17 +46,21 @@ public class SessionManager {
      * @param id 삭제할 세션의 아이디
      * */
     public static void removeSession(String id) {
-        sessionList.removeIf(session -> session.getId().equals(id));
+        sessionMap.remove(id);
     }
 
     /**
      * 세션의 만료 시간을 확인 후 만료된 세션을 삭제한다.
      * */
     public static void removeExpiredSession() {
-        Iterator<Session> iterator = sessionList.iterator();
+        Set<Map.Entry<String, Session>> entrySet = sessionMap.entrySet();
+        Iterator<Map.Entry<String, Session>> iterator = entrySet.iterator();
+
         while (iterator.hasNext()) {
-            Session session = iterator.next();
-            if (!session.isExpired()) continue;
+            Session session = iterator.next().getValue();
+            if (!session.isExpired()) {
+                continue;
+            }
             iterator.remove();
         }
     }

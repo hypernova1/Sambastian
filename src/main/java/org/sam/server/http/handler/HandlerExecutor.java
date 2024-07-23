@@ -1,8 +1,9 @@
-package org.sam.server.http.context;
+package org.sam.server.http.handler;
 
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpStatus;
-import org.sam.server.context.Handler;
+import org.sam.server.bean.Handler;
+import org.sam.server.http.context.CorsConfigHandler;
 import org.sam.server.http.web.request.Request;
 import org.sam.server.http.web.response.Response;
 import org.sam.server.http.web.response.ResponseEntity;

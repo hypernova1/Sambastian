@@ -1,4 +1,4 @@
-package org.sam.server.context;
+package org.sam.server.bean;
 
 /**
  * 해당 빈을 생성할 수 없을 때 발생한다.

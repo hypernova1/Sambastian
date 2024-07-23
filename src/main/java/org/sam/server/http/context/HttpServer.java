@@ -2,8 +2,8 @@ package org.sam.server.http.context;
 
 import org.sam.server.ThreadPoolManager;
 import org.sam.server.common.ServerProperties;
-import org.sam.server.context.BeanClassLoader;
-import org.sam.server.context.BeanLoader;
+import org.sam.server.bean.BeanClassLoader;
+import org.sam.server.bean.BeanLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

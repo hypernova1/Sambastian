@@ -1,8 +1,8 @@
-package org.sam.server.http.context;
+package org.sam.server.http.handler;
 
-import org.sam.server.context.BeanContainer;
-import org.sam.server.context.Handler;
-import org.sam.server.context.HandlerNotFoundException;
+import org.sam.server.bean.BeanContainer;
+import org.sam.server.bean.Handler;
+import org.sam.server.bean.HandlerNotFoundException;
 import org.sam.server.http.web.request.Request;
 import org.sam.server.http.web.response.Response;
 

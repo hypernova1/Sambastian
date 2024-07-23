@@ -1,6 +1,6 @@
-package org.sam.server.http.context;
+package org.sam.server.http.handler;
 
-import org.sam.server.context.BeanContainer;
+import org.sam.server.bean.BeanContainer;
 import org.sam.server.http.Interceptor;
 import org.sam.server.http.web.request.Request;
 import org.sam.server.http.web.response.Response;

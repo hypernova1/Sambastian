@@ -1,10 +1,8 @@
-package org.sam.server.context;
+package org.sam.server.bean;
 
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class BeanDefinitionFactoryTest {
 

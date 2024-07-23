@@ -1,8 +1,6 @@
 package org.sam.server;
 
 import org.junit.jupiter.api.Test;
-import org.sam.server.context.BeanClassLoader;
-import org.sam.server.context.BeanLoader;
 
 public class TestTest {
 

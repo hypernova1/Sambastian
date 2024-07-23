@@ -2,10 +2,10 @@ package org.sam.server.http;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Hashtable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 세션 정보를 담는 클래스
@@ -19,7 +19,7 @@ public final class Session {
     private LocalDateTime accessTime;
     private int timeout;
 
-    private final Map<String, Object> attribute = new Hashtable<>();
+    private final Map<String, Object> attribute = new ConcurrentHashMap<>();
 
     public Session() {
         this.id = UUID.randomUUID().toString();

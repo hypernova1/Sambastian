@@ -1,4 +1,4 @@
-package org.sam.server.context;
+package org.sam.server.bean;
 
 /**
  * 순환 참조 발생시 발생하는 예외

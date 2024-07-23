@@ -1,4 +1,4 @@
-package org.sam.server.context;
+package org.sam.server.bean;
 
 /**
  * 빈의 정보를 저장하는 클래스

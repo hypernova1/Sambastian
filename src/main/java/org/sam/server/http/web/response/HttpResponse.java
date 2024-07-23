@@ -4,7 +4,7 @@ import org.sam.server.common.ServerProperties;
 import org.sam.server.constant.ContentType;
 import org.sam.server.constant.HttpMethod;
 import org.sam.server.constant.HttpStatus;
-import org.sam.server.context.ResourcesNotFoundException;
+import org.sam.server.bean.ResourcesNotFoundException;
 import org.sam.server.http.Cookie;
 import org.sam.server.http.CookieStore;
 import org.sam.server.util.StringUtils;
