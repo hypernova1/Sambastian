@@ -23,12 +23,14 @@ public class HttpServer {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
 
-    public static void start() {
+    public static void start() throws ClassNotFoundException {
         try {
             ServerSocket serverSocket = ServerSocketFactory.createServerSocket();
             loadBeanContainer();
             logger.info("server started..");
-            logger.info("server port: " + serverSocket.getLocalPort());
+            logger.info("server port: {}", serverSocket.getLocalPort());
+
+            Class.forName("org.sam.server.http.SessionManager");
 
             ThreadPoolExecutor threadPoolExecutor = ThreadPoolManager.getThreadPoolExecutor();
             while (!Thread.currentThread().isInterrupted()) {
