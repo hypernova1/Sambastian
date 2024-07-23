@@ -20,10 +20,12 @@ public class HttpRequestHandler implements Runnable {
     @Override
     public void run() {
         try {
-            Request request = HttpRequest.from(clientSocket.getInputStream());
-            Response response = HttpResponse.of(clientSocket.getOutputStream(), request.getUrl(), request.getMethod());
-
             SessionManager.removeExpiredSession();
+            Request request = HttpRequest.from(connect.getInputStream());
+            if (request == null) {
+                return;
+            }
+            Response response = HttpResponse.of(connect.getOutputStream(), request.getUrl(), request.getMethod());
             if (StaticResourceHandler.isStaticResourceRequest(request, response)) {
                 return;
             }
