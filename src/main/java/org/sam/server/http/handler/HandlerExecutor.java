@@ -58,7 +58,8 @@ public class HandlerExecutor {
             try {
                 returnValue = executeHandlerWithInterceptor(handler, request, response);
             } catch (RuntimeException e) {
-                returnValue = exceptionHandlerExecutor.handleException(e.getCause().getCause());
+                Throwable cause = e.getCause() != null ? e.getCause() : e;
+                returnValue = exceptionHandlerExecutor.handleException(cause);
             }
 
             if (returnValue != null && returnValue.getClass().equals(ResponseEntity.class)) {
@@ -111,8 +112,10 @@ public class HandlerExecutor {
         Method handlerMethod = handler.getMethod();
         Object[] parameters = handlerMethodParameterResolver.createParameters(handlerMethod.getParameters(), request, response);
         try {
-            return handlerMethod.invoke(handler, parameters);
-        } catch (IllegalAccessException | InvocationTargetException e) {
+            return handlerMethod.invoke(handler.getHandleInstance(), parameters);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e.getTargetException());
+        } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }
