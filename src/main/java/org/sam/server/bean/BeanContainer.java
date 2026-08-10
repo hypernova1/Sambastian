@@ -53,11 +53,14 @@ public class BeanContainer {
     @SuppressWarnings("unchecked")
     public <T> T getBean(String name, Class<?> type) {
         List<BeanDefinition> beanDefinitions = this.beanDefinitionMap.get(type);
-        BeanDefinition savedBeanDefinition = beanDefinitions.stream()
+        if (beanDefinitions == null) {
+            return null;
+        }
+        return (T) beanDefinitions.stream()
                 .filter(beanDefinition -> beanDefinition.getBeanName().equals(name))
                 .findFirst()
+                .map(BeanDefinition::getBeanInstance)
                 .orElse(null);
-        return (T) savedBeanDefinition;
     }
 
     /**
@@ -69,9 +72,12 @@ public class BeanContainer {
     public List<?> getBeanList(Class<?> type) {
         Set<Class<?>> classes = this.beanDefinitionMap.keySet();
         Class<?> beanType = classes.stream()
-                .filter(savedBeanType -> savedBeanType.isAssignableFrom(type))
+                .filter(type::isAssignableFrom)
                 .findFirst()
                 .orElseGet(() -> this.getMatchType(classes, type));
+        if (beanType == null) {
+            return new ArrayList<>();
+        }
         List<BeanDefinition> beanDefinitions = this.beanDefinitionMap.get(beanType);
         List<Object> result = new ArrayList<>();
         for (BeanDefinition beanDefinition : beanDefinitions) {
@@ -88,9 +94,8 @@ public class BeanContainer {
      * @param instance 인스턴스
      * */
     public <T> void registerBean(String name, T instance) {
-        List<BeanDefinition> list = Optional
-                .ofNullable(getBeanDefinitionList(instance.getClass()))
-                .orElseGet(ArrayList::new);
+        List<BeanDefinition> list = this.beanDefinitionMap
+                .computeIfAbsent(instance.getClass(), key -> new ArrayList<>());
         boolean exists = list.stream()
                 .anyMatch(beanDefinition -> beanDefinition.getBeanName().equals(name));
         if (exists) return;
