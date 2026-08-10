@@ -2,6 +2,7 @@ package org.sam.server.http.handler;
 
 import org.sam.server.annotation.handle.JsonRequest;
 import org.sam.server.annotation.handle.RequestParam;
+import org.sam.server.http.Cookie;
 import org.sam.server.http.Session;
 import org.sam.server.http.web.request.HttpRequest;
 import org.sam.server.http.web.request.Request;
@@ -68,7 +69,13 @@ public class HandlerMethodParameterResolver {
             return response;
         }
         if (Session.class.equals(type)) {
-            return request.getSession();
+            Session session = request.getSession();
+            boolean hasSessionCookie = request.getCookies().stream()
+                    .anyMatch(cookie -> "sessionId".equals(cookie.getName()) && cookie.getValue().equals(session.getId()));
+            if (!hasSessionCookie) {
+                response.addCookies(new Cookie("sessionId", session.getId()));
+            }
+            return session;
         }
         if (handlerParameter.getDeclaredAnnotation(JsonRequest.class) != null) {
             return Converter.jsonToObject(request.getJson(), type);

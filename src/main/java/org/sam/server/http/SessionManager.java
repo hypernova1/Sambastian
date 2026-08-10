@@ -33,6 +33,9 @@ public class SessionManager {
      * */
     public static Session getSession(String id) {
         Session session = sessionMap.get(id);
+        if (session == null) {
+            return null;
+        }
         if (session.isExpired()) {
             sessionMap.remove(id);
             return null;

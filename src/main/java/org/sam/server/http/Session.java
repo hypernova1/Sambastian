@@ -27,7 +27,6 @@ public final class Session {
         this.accessTime = LocalDateTime.now();
         this.timeout = 30;
         SessionManager.addSession(this);
-        CookieStore.addSession(this.id);
     }
 
     /**
@@ -155,7 +154,7 @@ public final class Session {
     public boolean isExpired() {
         long accessTime = this.getAccessTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
         long now = System.currentTimeMillis();
-        int timeout = this.getTimeout() * 1000 * 1800;
+        long timeout = this.getTimeout() * 60_000L;
         return now - accessTime > timeout;
     }
 
