@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -114,6 +115,10 @@ public class HttpResponse implements Response {
      * @see #readStaticResources(InputStream)
      * */
     private long readStaticResource(String filePath) {
+        if (isForbiddenPath(filePath)) {
+            notFound();
+            return 0;
+        }
         InputStream fis = Thread.currentThread().getContextClassLoader().getResourceAsStream(filePath);
 
         //TODO: 클래스 패스가 아닌 다른 방법으로 jar 판별하도록 변경
@@ -126,6 +131,10 @@ public class HttpResponse implements Response {
 
         File staticFile = new File("src/main" + filePath);
         if (fis == null && !staticFile.exists()) {
+            // 404 페이지 자체가 없을 때 notFound()가 다시 이 메서드를 부르는 무한 재귀를 차단한다
+            if (NOT_FOUND_PAGE.equals(filePath)) {
+                return 0;
+            }
             notFound();
             return 0;
         }
@@ -145,6 +154,39 @@ public class HttpResponse implements Response {
             throw new RuntimeException(e);
         }
         return fileLength;
+    }
+
+    /**
+     * 디렉터리 탈출(path traversal) 등 허용되지 않는 정적 리소스 경로인지 검사한다.
+     *
+     * @param filePath 검사할 경로
+     * @return 금지된 경로 여부
+     * */
+    static boolean isForbiddenPath(String filePath) {
+        if (filePath == null) {
+            return true;
+        }
+        String decoded = filePath;
+        try {
+            // %2e%2e%2f 등 인코딩 우회를 막기 위해 반복 디코딩한다
+            String previous;
+            do {
+                previous = decoded;
+                decoded = URLDecoder.decode(previous, "UTF-8");
+            } while (!decoded.equals(previous));
+        } catch (UnsupportedEncodingException | IllegalArgumentException e) {
+            return true;
+        }
+        if (decoded.indexOf('\0') >= 0) {
+            return true;
+        }
+        String unified = decoded.replace('\\', '/');
+        for (String segment : unified.split("/")) {
+            if ("..".equals(segment.trim())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static InputStream findResourceFromJar(String filePath) {
