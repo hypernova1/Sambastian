@@ -15,7 +15,6 @@ import java.util.TimeZone;
  */
 public class Cookie {
 
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss zzz", Locale.US);
     private String name;
     private String value;
     private String expires;
@@ -38,9 +37,10 @@ public class Cookie {
      * */
     public String getAfterTime(int minutes) {
         Date expiredDate = new Date();
-        expiredDate.setTime(expiredDate.getTime() + (1000L * minutes));
-        DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
-        return DATE_FORMAT.format(expiredDate);
+        expiredDate.setTime(expiredDate.getTime() + (60_000L * minutes));
+        DateFormat dateFormat = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss zzz", Locale.US);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        return dateFormat.format(expiredDate);
     }
 
     /**

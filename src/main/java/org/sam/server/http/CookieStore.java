@@ -4,57 +4,39 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * 쿠키를 관리하는 클래스
+ * HTTP 요청의 Cookie 헤더를 파싱하는 유틸 클래스.
+ * 쿠키는 요청/응답 인스턴스가 소유하며 전역 상태를 갖지 않는다.
  *
  * @author hypernova1
  * @see org.sam.server.http.Cookie
  */
 public class CookieStore {
 
-    private static final Set<Cookie> cookies = new HashSet<>();
-
-    /**
-     * 쿠키의 목록을 반환한다.
-     * 
-     * @return 쿠키 목록
-     * */
-    public static Set<Cookie> getCookies() {
-        return cookies;
-    }
+    private CookieStore() {}
 
     /**
      * HTTP 요청 헤더에서 쿠키 부분을 읽어 파싱한다.
-     * 
+     *
      * @param cookieStr 쿠키 내용
      * @return 쿠키 목록
      * */
     public static Set<Cookie> parseCookie(String cookieStr) {
-        String[] cookiePairs = cookieStr.split("; ");
+        Set<Cookie> cookies = new HashSet<>();
+        if (cookieStr == null) {
+            return cookies;
+        }
+        String[] cookiePairs = cookieStr.split(";");
         for (String cookiePairStr : cookiePairs) {
-            String[] cookiePair = cookiePairStr.split("=");
-            String name = cookiePair[0];
-            String value = cookiePair[1];
+            String trimmed = cookiePairStr.trim();
+            int separatorIndex = trimmed.indexOf('=');
+            if (separatorIndex <= 0) {
+                continue;
+            }
+            String name = trimmed.substring(0, separatorIndex);
+            String value = trimmed.substring(separatorIndex + 1);
             cookies.add(new Cookie(name, value));
         }
 
         return cookies;
-    }
-
-    /**
-     * 쿠키 목록을 초기화 한다.
-     * */
-    public static void vacateList() {
-        cookies.clear();
-    }
-
-
-    /**
-     * 세션 정보를 추가한다.
-     *
-     * @param id 세션 아이디
-     * */
-    public static void addSession(String id) {
-        Cookie cookie = new Cookie("sessionId", id);
-        CookieStore.getCookies().add(cookie);
     }
 }

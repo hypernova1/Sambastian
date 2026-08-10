@@ -6,7 +6,6 @@ import org.sam.server.constant.HttpMethod;
 import org.sam.server.constant.HttpStatus;
 import org.sam.server.bean.ResourcesNotFoundException;
 import org.sam.server.http.Cookie;
-import org.sam.server.http.CookieStore;
 import org.sam.server.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +35,7 @@ public class HttpResponse implements Response {
 
     private final Map<String, Object> headers = new HashMap<>();
 
-    private final Set<Cookie> cookies = CookieStore.getCookies();
+    private final Set<Cookie> cookies = new HashSet<>();
 
     private final String requestPath;
 
@@ -89,7 +88,6 @@ public class HttpResponse implements Response {
             }
             setHeaders();
             printHeaders();
-            CookieStore.vacateList();
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
@@ -291,7 +289,7 @@ public class HttpResponse implements Response {
             line.append(cookie.getName()).append("=").append(cookie.getValue());
             if (cookie.getMaxAge() != 0) {
                 line.append("; Expires=").append(cookie.getExpires());
-                line.append("; Max-Age=").append(cookie.getMaxAge());
+                line.append("; Max-Age=").append(cookie.getMaxAge() * 60L);
             }
             if (ServerProperties.isSSL()) {
                 line.append("; Secure");
