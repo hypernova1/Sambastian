@@ -7,7 +7,6 @@ import org.sam.server.http.context.HttpException;
 import org.sam.server.http.web.HttpExceptionHandler;
 import org.sam.server.http.web.response.ResponseEntity;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -73,6 +72,7 @@ public class ExceptionHandlerExecutor {
                 Method[] methods = exceptionHandler.getClass().getDeclaredMethods();
                 for (Method method : methods) {
                     Class<?> exceptionClass = getExceptionClass(method);
+                    if (exceptionClass == null) continue;
                     if (exceptionClass.equals(cause.getClass())) {
                         return method.invoke(exceptionHandler, cause);
                     }
@@ -133,12 +133,10 @@ public class ExceptionHandlerExecutor {
      * @return 예외 클래스
      */
     private static Class<?> getExceptionClass(Method method) {
-        Annotation annotation = method.getDeclaredAnnotation(ExceptionResponse.class);
-        try {
-            Method annotationMethod = annotation.annotationType().getDeclaredMethod("value");
-            return (Class<?>) annotationMethod.invoke(annotation);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
-            throw new RuntimeException(ex);
+        ExceptionResponse annotation = method.getDeclaredAnnotation(ExceptionResponse.class);
+        if (annotation == null) {
+            return null;
         }
+        return annotation.value();
     }
 }

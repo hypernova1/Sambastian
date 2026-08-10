@@ -42,7 +42,7 @@ public class ResponseEntity<T> {
     }
 
     public static <T> ResponseEntity<T> notFound() {
-        return new ResponseEntity<T>(HttpStatus.OK);
+        return new ResponseEntity<T>(HttpStatus.NOT_FOUND);
     }
 
     public static <T> ResponseEntity<T> notFound(T value) {
